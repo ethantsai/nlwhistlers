@@ -19,7 +19,7 @@ const Beq  = 3.e-5;         # B field at equator (T), f64
 # Parsing the conf file
 conf = ConfParse(conffile)
 parse_conf!(conf)
-basename = parse(String, retrieve(conf, "basename"));
+basename = retrieve(conf, "basename");
 numParticles = parse(Int64, retrieve(conf, "numberOfParticles"));
 startTime = parse(Float64, retrieve(conf, "startTime"));
 endTime = parse(Float64, retrieve(conf, "endTime"));
