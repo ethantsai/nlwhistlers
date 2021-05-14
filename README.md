@@ -46,3 +46,16 @@ add TickTock, ConfParser, Distributed, DifferentialEquations, JLD2, Plots, Dates
   1. Modify the setup.conf to your liking. Make sure the basename is correct too.
   
   2. On any machine, you can just do `julia runEnsemble.jl` to run it.
+
+
+
+
+
+## Profiling Code
+
+Using Profile and PProf
+  - Library: ```using Profile, PProf```
+  - Syntax: `@profile [function]`
+  - View: pprof(;webport=58599)
+
+Make sure graphviz is installed. The arrows a -> b are a calls b and the numbers provide run time information, with second percentage being percent total run time and first percentage being how much itself takes (as compared to its subroutines).
