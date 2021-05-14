@@ -6,6 +6,7 @@ using DifferentialEquations
 using JLD2
 using Plots
 using Dates
+using Random
 @info "Packges compiled, running model"
 
 #######################
@@ -40,6 +41,7 @@ PAHi = parse(Float64, retrieve(conf, "PAHi"));
 PAsteps = parse(Float64, retrieve(conf, "PAsteps"));
 ICrange = [ELo, EHi, Esteps, PALo, PAHi, PAsteps];
 batches = parse(Int64, retrieve(conf, "batches"));
+numThreads = parse(Int64, retrieve(conf, "numberOfThreads"))
 @info "Parsed Config file: $conffile"
 
 ####################
@@ -121,7 +123,7 @@ function eom!(dH,H,p,t)
     
     dH[1] = pz/gamma
     dH[2] = -(mu*db)/gamma - (eta*epsilon*u*sqrt(2*mu*b)*cos(zeta))/gamma
-    dH[3] = eta*(K*dH[1] - omegam + b/gamma) + (eta*epsilon*u*sqrt(2*mu*b)*sin(zeta))/(2*mu*gamma*K)
+    dH[3] = @view eta*(K*dH[1] - omegam + b/gamma) + (eta*epsilon*u*sqrt(2*mu*b)*sin(zeta))/(2*mu*gamma*K)
     dH[4] = -(epsilon*u*eta*sqrt(2*mu*b)*cos(zeta))/(gamma*K)
     dH[5] = pz/(gamma*cos(lambda)*sqrt(1+3*sin(lambda)^2))
 end

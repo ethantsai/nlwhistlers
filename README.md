@@ -6,9 +6,37 @@
   2. Once installed, edit path variables.
      -  `JULIA_HOME` variable should be set to `C:\Users\ethan\AppData\Local\Programs\Julia-X.X.X\bin` if default install location
      - `NUMBER_OF_PROCESSORS` should be set to whatever your max number of threads are e.g. `16`
-  3. Install packages:  
-     - Open powershell, and run `Julia`. Verify it's the correct version.
-     - Install packages by hitting `]` and then entering:
+
+
+## For Ubuntu
+
+  1. In downloads, dl latest binaries, where X.X is gonna be version numbers:
+
+  ```
+  wget https://julialang-s3.julialang.org/bin/linux/x64/X.X/julia-X.X.X-linux-x86_64.tar.gz
+  ```
+
+  2. Extract with `tar -xvzf julia-X.X.X-linux-x86_64.tar.gz`.
+
+  3. Move it to `/usr/lib/`
+
+```
+sudo cp -r julia-X.X.X ~/usr/lib/
+```
+
+  4. create a symlink in `/usr/local/bin`
+
+```
+sudo ln -s ~/usr/lib/julia-1.6.0/bin/julia /usr/local/bin/julia
+```
+
+  5. Ensure `bashrc` has the num_threads variable set correctly. I.e. `export JULIA_NUM_THREADS=16`
+  
+## Install packages
+
+  1. Open terminal/powershell, and run `Julia`. Verify it's the correct version. You can do so by typing in `VERSION` into Julia.
+
+  2. Install packages by hitting `]` and then entering:
 ```
 add TickTock, ConfParser, Distributed, DifferentialEquations, JLD2, Plots, Dates
 ```
@@ -16,5 +44,5 @@ add TickTock, ConfParser, Distributed, DifferentialEquations, JLD2, Plots, Dates
 ## Run code
 
   1. Modify the setup.conf to your liking. Make sure the basename is correct too.
-  2. On any machine, you can just do `julia runEnsemble.jl` to run it. However, there's a problem with windows machines and running in powershell that I haven't determined the cause yet. If you want to run in windows, you have to just open the repl and run stuff line by line in there.
   
+  2. On any machine, you can just do `julia runEnsemble.jl` to run it.
