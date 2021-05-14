@@ -1,6 +1,6 @@
 ## Notes on Performance in Julia
 
-# Using Static Arrays
+## Using Static Arrays
 
 
 

@@ -1,12 +1,16 @@
 @info "Compiling packages for running model..."
+#meta
 using TickTock
 using ConfParser
-using Distributed
-using DifferentialEquations
-using JLD2
-using Plots
+using Profile
+#sim
 using Dates
 using Random
+using StaticArrays
+using Distributed
+@everywhere using OrdinaryDiffEq
+using JLD2
+using Plots
 @info "Packges compiled, running model"
 
 #######################
@@ -16,6 +20,7 @@ using Random
 const Re   = 6370e3;        # Earth radius, f64
 const c    = 3e8;           # speedo lite, f64
 const Beq  = 3.e-5;         # B field at equator (T), f64
+const maxWave = deg2rad(1); # shoreeeeee
 
 # Parsing the conf file
 conf = ConfParse(conffile)
@@ -85,7 +90,7 @@ function generateFlatParticleDistribution(numParticles::Int64, ICrange, z0=0::Fl
     return h0, f0, eta, epsilon, resolution;
 end
 
-function generateModifiableFunction(batches)
+@everywhere function generateModifiableFunction(batches)
     ```
     Takes in the initial condition and splits them into batches.
     This way, we can feed each one in and get a percent completeness during sim.
@@ -93,39 +98,44 @@ function generateModifiableFunction(batches)
     probGeneratorList = [];
     nPerBatch = numParticles÷batches;
     for j in 0:batches-1
-        truncatedIC = h0[nPerBatch*j+1:(nPerBatch*j+nPerBatch),:]
-        push!(probGeneratorList, ((prob,i,repeat) -> remake(prob, u0 = truncatedIC[i,:], p = [eta, epsilon])))
+        truncatedIC =  h0[nPerBatch*j+1:(nPerBatch*j+nPerBatch),:]
+        push!(probGeneratorList, ((prob,i,repeat) -> remake(prob, u0 = truncatedIC[i,:], p = @SVector [eta, epsilon, Omegape, omegam])))
     end
     percentage = (round(100/batches))
     @info "Each batch will simulate $nPerBatch particles and correspond with $percentage%"
     return probGeneratorList, nPerBatch, percentage
 end
 
+
+
 ##################
 ## Math n stuff ##
 ##################
 
-function eom!(dH,H,p,t)
+function eom!(dH,H,p::SVector{4, Float64},t::Float64)
     ```
     These equations define the motion.
     ```
-    z, pz, zeta, mu, lambda = H
-    eta, epsilon = p
-
-    u = .5*(tanh(lambda/deg2rad(1))+1); # single sided wave
+    @fastmath u = @views .5*(tanh(H[5]/deg2rad(1))+1); # single sided wave
     # u=1; # or not
+    
+    @fastmath sinlambda = @views sin(H[5]);
+    @fastmath coslambda = @views cos(H[5]);
+    @fastmath coszeta = @views cos(H[3]);
 
-    b = calcb(lambda);
-    db = calcdb(lambda);
-    gamma = calcGamma(pz,mu,b)
-    K = calcK(b, lambda);
+    @fastmath b = sqrt(1+3*sinlambda^2)/(coslambda^6);
+    @fastmath db = @views (3*(27*sinlambda-5*sin(3*H[5])))/(coslambda^8*(4+12*sinlambda^2));
+    @fastmath gamma = @views sqrt(1 + H[2]^2 + 2*H[4]*b);
+    @fastmath K = @views (p[3] * (coslambda^-(5/2)))/sqrt(b/p[4] - 1);
     # eta = Omegace*L*Re/c;
     
-    dH[1] = pz/gamma
-    dH[2] = -(mu*db)/gamma - (eta*epsilon*u*sqrt(2*mu*b)*cos(zeta))/gamma
-    dH[3] = @view eta*(K*dH[1] - omegam + b/gamma) + (eta*epsilon*u*sqrt(2*mu*b)*sin(zeta))/(2*mu*gamma*K)
-    dH[4] = -(epsilon*u*eta*sqrt(2*mu*b)*cos(zeta))/(gamma*K)
-    dH[5] = pz/(gamma*cos(lambda)*sqrt(1+3*sin(lambda)^2))
+    @fastmath etaepsilonusqrt2mubovergamma = @views p[1]*p[2]*u*sqrt(2*H[4]*b)/gamma
+
+    @fastmath dH .= @views SizedVector{5}([ H[2]/gamma,
+                    -(H[4]*db)/gamma - (etaepsilonusqrt2mubovergamma*coszeta),
+                    p[1]*(K*dH[1] - p[4] + b/gamma) + (etaepsilonusqrt2mubovergamma*sin(H[3]))/(2*H[4]*K),
+                    -(etaepsilonusqrt2mubovergamma*coszeta)/(K),
+                    H[2]/(gamma*coslambda*sqrt(1+3*sinlambda^2)) ])
 end
 
 # Simple calcs
