@@ -28,3 +28,8 @@ If you can't avoid type instability, you can hide it with function barriers, whi
 Use `@fastmath` macro to allow floating point optimizations that are usually pretty correct for real numbers.
 https://docs.julialang.org/en/v1/base/math/#Base.FastMath.@fastmath
 
+
+## loop vectorization
+
+Use special vectorized functions like LoopVectorization when broadcasting trig or exp or sqrt functions. Utilizes `@avx` macro to do this wicked fast.
+https://github.com/JuliaSIMD/LoopVectorization.jl

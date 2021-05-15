@@ -20,7 +20,6 @@ using Plots
 const Re   = 6370e3;        # Earth radius, f64
 const c    = 3e8;           # speedo lite, f64
 const Beq  = 3.e-5;         # B field at equator (T), f64
-const maxWave = deg2rad(1); # shoreeeeee
 
 # Parsing the conf file
 conf = ConfParse(conffile)
@@ -30,9 +29,9 @@ numParticles = parse(Int64, retrieve(conf, "numberOfParticles"));
 startTime = parse(Float64, retrieve(conf, "startTime"));
 endTime = parse(Float64, retrieve(conf, "endTime"));
 tspan = (startTime, endTime); # integration time
-lossConeAngle = parse(Float64, retrieve(conf, "lossConeAngle"));
-saveDecimation = parse(Float64, retrieve(conf, "saveDecimation"));
-L = parse(Float64, retrieve(conf, "L"));
+const lossConeAngle = parse(Float64, retrieve(conf, "lossConeAngle"));
+const saveDecimation = parse(Float64, retrieve(conf, "saveDecimation"));
+const L = parse(Float64, retrieve(conf, "L"));
 omegam = parse(Float64, retrieve(conf, "omegam"));
 Omegape = parse(Float64, retrieve(conf, "Omegape"));
 z0 = parse(Float64, retrieve(conf, "z0"));
@@ -106,8 +105,6 @@ end
     return probGeneratorList, nPerBatch, percentage
 end
 
-
-
 ##################
 ## Math n stuff ##
 ##################
@@ -116,35 +113,72 @@ function eom!(dH,H,p::SVector{4, Float64},t::Float64)
     ```
     These equations define the motion.
     ```
-    @fastmath u = @views .5*(tanh(H[5]/deg2rad(1))+1); # single sided wave
-    # u=1; # or not
-    
-    @fastmath sinlambda = @views sin(H[5]);
-    @fastmath coslambda = @views cos(H[5]);
-    @fastmath coszeta = @views cos(H[3]);
+    @inbounds begin
+        # z, pz, zeta, mu, lambda = H
+        # eta, epsilon, Omegape, omegam = p
+        sinlambda = @fastmath @views sin(H[5]);
+        coslambda = @fastmath @views cos(H[5]);
+        sinzeta = @fastmath @views sin(H[3]);
+        coszeta = @fastmath @views cos(H[3]);
 
-    @fastmath b = sqrt(1+3*sinlambda^2)/(coslambda^6);
-    @fastmath db = @views (3*(27*sinlambda-5*sin(3*H[5])))/(coslambda^8*(4+12*sinlambda^2));
-    @fastmath gamma = @views sqrt(1 + H[2]^2 + 2*H[4]*b);
-    @fastmath K = @views (p[3] * (coslambda^-(5/2)))/sqrt(b/p[4] - 1);
-    # eta = Omegace*L*Re/c;
-    
-    @fastmath etaepsilonusqrt2mubovergamma = @views p[1]*p[2]*u*sqrt(2*H[4]*b)/gamma
+        u = @fastmath @views .5*(tanh(H[5]/deg2rad(1))+1);
+        b = @fastmath @views sqrt(1+3*sinlambda^2)/(coslambda^6);
+        db = @fastmath @views (3*(27*sinlambda-5*sin(3*H[5])))/(coslambda^8*(4+12*sinlambda^2));
+        gamma = @fastmath @views sqrt(1 + H[2]^2 + 2*H[4]*b);
+        K = @fastmath @views (p[3] * (coslambda^(-5/2)))/sqrt(b/p[4] - 1);
+        psi = @fastmath @views p[1]*p[2]*u*sqrt(2*H[4]*b)/gamma;
 
-    @fastmath dH .= @views SizedVector{5}([ H[2]/gamma,
-                    -(H[4]*db)/gamma - (etaepsilonusqrt2mubovergamma*coszeta),
-                    p[1]*(K*dH[1] - p[4] + b/gamma) + (etaepsilonusqrt2mubovergamma*sin(H[3]))/(2*H[4]*K),
-                    -(etaepsilonusqrt2mubovergamma*coszeta)/(K),
-                    H[2]/(gamma*coslambda*sqrt(1+3*sinlambda^2)) ])
+        dH1 = @fastmath @views H[2]/gamma;
+        dH2 = @fastmath @views -(H[4]*db)/gamma - (psi*coszeta);
+        dH3 = @fastmath @views p[1]*(K*dH1 - p[4] + b/gamma) + (psi*sinzeta)/(2*H[4]*K);
+        dH4 = @fastmath @views -(psi*coszeta)/K;
+        dH5 = @fastmath @views H[2]/(gamma*coslambda*sqrt(1+3*sinlambda^2)); 
+
+        dH .= SizedVector{5}([ dH1, dH2, dH3, dH4, dH5 ]);
+    end
 end
 
-# Simple calcs
-calcb(lambda::Float64)  = sqrt(1+3*sin(lambda)^2)/(cos(lambda)^6)
-calcdb(lambda::Float64) = (3*(27*sin(lambda)-5*sin(3*lambda)))/(cos(lambda)^8*(4+12*sin(lambda)^2))
-calcGamma(pz::Float64,mu::Float64,b::Float64) = sqrt(1 + pz^2 + 2*mu*b)
-calcK(b::Float64,lambda::Float64) = (Omegape * (cos(lambda)^-(5/2)))/sqrt(b/omegam - 1)
-calcAlpha(mu::Float64, gamma::Float64) = rad2deg(asin(sqrt((2*mu)/(gamma^2 - 1))))
 
+function palostcondition(H,t,integrator)
+    # condition: if particle enters loss cone
+    @inbounds begin
+        b = @fastmath @views sqrt(1+3*sin(H[5])^2)/(cos(H[5])^6);
+        gamma = @fastmath @views sqrt(1 + H[2]^2 + 2*H[4]*b);
+        return  @fastmath @views (rad2deg(asin(sqrt((2*H[4])/(gamma^2 -1))))) < (lossConeAngle)
+    end
+end
+
+function ixlostcondition(H,t,integrator)
+    # condition: if I_x approaches 0
+    @inbounds begin
+        b = @fastmath @views sqrt(1+3*sin(H[5])^2)/(cos(H[5])^6);
+        return @fastmath @views 2*H[4]*b < (1/saveDecimation)
+    end
+end
+
+affect!(integrator) = terminate!(integrator); # terminate if condition reached
+cb1 = DiscreteCallback(palostcondition,affect!);
+cb2 = DiscreteCallback(ixlostcondition,affect!);
+
+function ensemble()
+    for i in 1:batches
+        ensemble_prob = EnsembleProblem(prob::ODEProblem,prob_func=probGeneratorList[i])
+        @time sol = solve(ensemble_prob, Tsit5(), EnsembleThreads(), save_everystep=false;
+                            callback=CallbackSet(cb1, cb2), trajectories=nPerBatch,
+                            dtmax=resolution, linear_solver=:LapackDense, maxiters=1e8, 
+                            saveat = saveDecimation*resolution)
+        @save string(outFileDir,"/",outFileBaseName,"$i.jld2") sol
+        @info "$(i*percentage)% complete..."
+    end
+end
+
+
+# Simple calcs
+calcb(lambda::Float64)  = @fastmath sqrt(1+3*sin(lambda)^2)/(cos(lambda)^6)
+calcdb(lambda::Float64) = @fastmath (3*(27*sin(lambda)-5*sin(3*lambda)))/(cos(lambda)^8*(4+12*sin(lambda)^2))
+calcGamma(pz::Float64,mu::Float64,b::Float64) = @fastmath sqrt(1 + pz^2 + 2*mu*b)
+calcK(b::Float64,lambda::Float64) = @fastmath (Omegape * (cos(lambda)^-(5/2)))/sqrt(b/omegam - 1)
+calcAlpha(mu::Float64, gamma::Float64) = @fastmath rad2deg(asin(sqrt((2*mu)/(gamma^2 - 1))))
 
 ###############################
 ## Post Processing functions ##
@@ -194,7 +228,7 @@ function loadSolutions(inFileBaseName::String, batches::Int64)
     allPA = Vector{Vector{Float64}}();
     allT = Vector{Vector{Float64}}();
     for i in 1:batches
-        JLD2.@load jldname = string("data/10000particles/",inFileBaseName,"$i.jld2") sol
+        JLD2.@load jldname = string(inFileBaseName,"$i.jld2") sol
         
         for traj in sol # TODO make this multithreaded
             vars = hcat(traj.u...) # pulls out the canonical position/momentum
