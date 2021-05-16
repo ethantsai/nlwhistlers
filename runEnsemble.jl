@@ -1,29 +1,37 @@
 @info "Hello! It's sim time!"
-conffile = "setup.conf";
 include("helperFunctions.jl")
-@info "Imported helper functions!"
+@info "Imported helperFunctions.jl"
+flush(io)
 
-outFileBaseName = basename*"_$numParticles";
-outFileDir = string("jld2_", Dates.format(now(), DateFormat("yymmdd_HH")))
-mkpath(outFileDir)
-
-Threads.nthreads() = numThreads
-@info "using $(Threads.nthreads()) CPU threads"
-@info "All prepped, running model"
+threadsAvailable = length(Sys.cpu_info())
+if numThreads > threadsAvailable
+    Threads.nthreads() = threadsAvailable
+    @warn "Assigned more threads than available."
+elseif numThreads < threadsAvailable
+    Threads.nthreads() = numThreads
+end
+@info "using $(Threads.nthreads()) CPU threads of $threadsAvailable available threads."
+flush(io)
 
 h0, f0, eta, epsilon, resolution = generateFlatParticleDistribution(numParticles, ICrange, z0, lambda0);
 numParticles = length(h0[:,1]);      # new total number of particles may have changed.
+@info "All prepped, running model on $numParticles particles."
+flush(io)
 # hf0 = [h0  f0][shuffle(1:end), :];   # shuffle so batches all take same-ish time
 
 ## Actual model
 prob = ODEProblem(eom!, ~, tspan, @SVector [eta, epsilon, Omegape, omegam]);
 
 @everywhere probGeneratorList, nPerBatch, percentage = generateModifiableFunction(batches); # consider making all of these constant
+flush(io)
+
 
 tick()
-@time ensemble()
-@info "this finished in..."
+ensemble()
+@info "Total sim time:"
 tock()
+flush(io)
+
 
 
 # after that, see if we can use parallel GPU

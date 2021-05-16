@@ -2,13 +2,14 @@
 #meta
 using TickTock
 using ConfParser
+using Logging
 using Profile
 #sim
 using Dates
 using Random
 using StaticArrays
 using Distributed
-@everywhere using OrdinaryDiffEq
+using OrdinaryDiffEq
 using JLD2
 using Plots
 @info "Packages compiled, running model"
@@ -22,9 +23,12 @@ const c    = 3e8;           # speedo lite, f64
 const Beq  = 3.e-5;         # B field at equator (T), f64
 
 # Parsing the conf file
+conffile = "setup.conf";
 conf = ConfParse(conffile)
 parse_conf!(conf)
-basename = retrieve(conf, "basename");
+const basename = retrieve(conf, "basename");
+const directoryname = retrieve(conf, "directoryname");
+const log2file = Bool(parse(Int64, retrieve(conf, "logToFile")));
 numParticles = parse(Int64, retrieve(conf, "numberOfParticles"));
 startTime = parse(Float64, retrieve(conf, "startTime"));
 endTime = parse(Float64, retrieve(conf, "endTime"));
@@ -32,21 +36,53 @@ tspan = (startTime, endTime); # integration time
 const lossConeAngle = parse(Float64, retrieve(conf, "lossConeAngle"));
 const saveDecimation = parse(Float64, retrieve(conf, "saveDecimation"));
 const L = parse(Float64, retrieve(conf, "L"));
-omegam = parse(Float64, retrieve(conf, "omegam"));
-Omegape = parse(Float64, retrieve(conf, "Omegape"));
-z0 = parse(Float64, retrieve(conf, "z0"));
-lambda0 = parse(Float64, retrieve(conf, "lambda0"));
-waveAmplitudeModifier = parse(Float64, retrieve(conf, "waveAmplitudeModifier"));
-ELo = parse(Float64, retrieve(conf, "ELo"));
-EHi = parse(Float64, retrieve(conf, "EHi"));
-Esteps = parse(Float64, retrieve(conf, "Esteps"));
-PALo = parse(Float64, retrieve(conf, "PALo"));
-PAHi = parse(Float64, retrieve(conf, "PAHi"));
-PAsteps = parse(Float64, retrieve(conf, "PAsteps"));
+const omegam = parse(Float64, retrieve(conf, "omegam"));
+const Omegape = parse(Float64, retrieve(conf, "Omegape"));
+const z0 = parse(Float64, retrieve(conf, "z0"));
+const lambda0 = parse(Float64, retrieve(conf, "lambda0"));
+const waveAmplitudeModifier = parse(Float64, retrieve(conf, "waveAmplitudeModifier"));
+const ELo = parse(Float64, retrieve(conf, "ELo"));
+const EHi = parse(Float64, retrieve(conf, "EHi"));
+const Esteps = parse(Float64, retrieve(conf, "Esteps"));
+const PALo = parse(Float64, retrieve(conf, "PALo"));
+const PAHi = parse(Float64, retrieve(conf, "PAHi"));
+const PAsteps = parse(Float64, retrieve(conf, "PAsteps"));
 ICrange = [ELo, EHi, Esteps, PALo, PAHi, PAsteps];
-batches = parse(Int64, retrieve(conf, "batches"));
-numThreads = parse(Int64, retrieve(conf, "numberOfThreads"))
-@info "Parsed Config file: $conffile"
+const batches = parse(Int64, retrieve(conf, "batches"));
+const numThreads = parse(Int64, retrieve(conf, "numberOfThreads"))
+@info "Parsed Config file: $conffile:"
+
+###################
+## Setup Logging ##
+###################
+
+function setupDirectories(directoryname::String)
+    #=
+    directory name
+     └ jld2_yymmdd_HH
+      | setup_asrun.conf    
+      | yymmdd_HHMMSS.log
+      └ basename_numparticles_numbatch.jld2
+    =#
+    mkpath(directoryname)
+    outputFileDirectory = string(directoryname, "/jld2_", Dates.format(now(), DateFormat("yymmdd_HH")))
+    mkpath(outputFileDirectory)
+    outputFileBaseName = outputFileDirectory*"/"*basename*"_$numParticles";
+    loggingFileName = string(outputFileDirectory,"/",Dates.format(now(), DateFormat("yymmdd_HHMMSS")),".log")
+    asrunConfFileName = outputFileDirectory*"/setup asrun.conf"
+    run(`cp setup.conf $asrunConfFileName`) # copy setup over to as run file
+    run(`cp setup.conf $loggingFileName`) # copy setup over to log file
+
+    @info "Logging to file: "*loggingFileName
+    io = open(loggingFileName, "a")
+    global_logger(ConsoleLogger(io))
+    @info "^^Used this setup configuration file^^^"
+    flush(io)
+
+    return outputFileBaseName, io
+end
+outputFileBaseName, io = setupDirectories(directoryname)
+
 
 ####################
 ## Initialization ##
@@ -57,17 +93,22 @@ function generateFlatParticleDistribution(numParticles::Int64, ICrange, z0=0::Fl
     @info "Generating a flat particle distribution with"
     @info "Energy from $ELo KeV to $EHi KeV in $Esteps KeV increments"
     @info "PA from $PALo deg to $PAHi deg in $PAsteps deg increments"
+    flush(io)
 
     nBins = ((EHi-ELo)÷Esteps + 1) * ((PAHi-PALo)÷PAsteps + 1)
     N = numParticles ÷ nBins # num of particles per bin
     @info "Flat distribution with $N particles/bin in $nBins bins"
+    flush(io)
 
-    if numParticles%nBins != 0 @warn "Truncating $(numParticles%nBins) particles for an even distribution"
+    if numParticles%nBins != 0
+        @warn "Truncating $(numParticles%nBins) particles for an even distribution"
+        flush(io)
     end
     if iszero(N)
         N = 1;
         @warn "Use higher number of particles next time. Simulating 1 trajectory/bin."
         @warn "Minimum number of particles to simulate is 1 particles/bin."
+        flush(io)
     end
 
     @views f0 = [[(E+511.)/511. deg2rad(PA)] for PA in PALo:PAsteps:PAHi for E in ELo:Esteps:EHi for i in 1:N] # creates a 2xN array with initial PA and Energy
@@ -84,7 +125,8 @@ function generateFlatParticleDistribution(numParticles::Int64, ICrange, z0=0::Fl
     eta         = Omegace0*L*Re/c;              # should be like 10^3
     epsilon     = waveAmplitudeModifier/eta;    # normalized wave large amplitude, .1 for small, 15 for large
     resolution  = .1/eta;                       # determines max step size of the integrator
-    @info @views "Created Initial Conditions for $(length(h0[:,1])) particles"
+    @info "Created Initial Conditions for $(length(h0[:,1])) particles"
+    flush(io)
     
     return h0, f0, eta, epsilon, resolution;
 end
@@ -102,6 +144,7 @@ end
     end
     percentage = (round(100/batches))
     @info "Each batch will simulate $nPerBatch particles for $(endTime-startTime) dt and correspond with $percentage%"
+    flush(io)
     return probGeneratorList, nPerBatch, percentage
 end
 
@@ -156,12 +199,16 @@ cb2 = DiscreteCallback(ixlostcondition,affect!);
 function ensemble()
     for i in 1:batches
         ensemble_prob = EnsembleProblem(prob::ODEProblem,prob_func=probGeneratorList[i])
-        @time sol = solve(ensemble_prob, Tsit5(), EnsembleThreads(), save_everystep=false;
+        tick()
+        sol = solve(ensemble_prob, Tsit5(), EnsembleThreads(), save_everystep=false;
                             callback=CallbackSet(cb1, cb2), trajectories=nPerBatch,
                             dtmax=resolution, linear_solver=:LapackDense, maxiters=1e8, 
                             saveat = saveDecimation*resolution)
-        @save string(outFileDir,"/",outFileBaseName,"_$(i).jld2") sol
+        @save outputFileBaseName*"_$(i).jld2" sol
+        @info "$nPerBatch particles simulated in:"
+        tock()
         @info "$(i*percentage)% complete..."
+        flush(io)
     end
 end
 
