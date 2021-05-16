@@ -21,13 +21,13 @@
   3. Move it to `/usr/lib/`
 
 ```
-sudo cp -r julia-X.X.X ~/usr/lib/
+sudo cp -r julia-X.X.X /usr/lib/
 ```
 
   4. create a symlink in `/usr/local/bin`
 
 ```
-sudo ln -s ~/usr/lib/julia-1.6.0/bin/julia /usr/local/bin/julia
+sudo ln -s /usr/lib/julia-1.6.0/bin/julia /usr/local/bin/julia
 ```
 
   5. Ensure `bashrc` has the num_threads variable set correctly. I.e. `export JULIA_NUM_THREADS=16`
@@ -38,7 +38,7 @@ sudo ln -s ~/usr/lib/julia-1.6.0/bin/julia /usr/local/bin/julia
 
   2. Install packages by hitting `]` and then entering:
 ```
-add TickTock, ConfParser, Distributed, DifferentialEquations, JLD2, Plots, Dates
+add TickTock, ConfParser, Profile, Dates, Random, StaticArrays, Distributed, OrdinaryDiffEq, JLD2, Plots
 ```
 
 ## Run code

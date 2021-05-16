@@ -101,7 +101,7 @@ end
         push!(probGeneratorList, ((prob,i,repeat) -> remake(prob, u0 = truncatedIC[i,:], p = @SVector [eta, epsilon, Omegape, omegam])))
     end
     percentage = (round(100/batches))
-    @info "Each batch will simulate $nPerBatch particles and correspond with $percentage%"
+    @info "Each batch will simulate $nPerBatch particles for $(endTime-startTime) dt and correspond with $percentage%"
     return probGeneratorList, nPerBatch, percentage
 end
 
@@ -132,7 +132,7 @@ function eom!(dH,H,p::SVector{4, Float64},t::Float64)
     dH4 = -(psi*coszeta)/K;
     dH5 = H[2]/(gamma*coslambda*sqrt(1+3*sinlambda^2)); 
 
-    dH = @SVector [ dH1, dH2, dH3, dH4, dH5 ];
+    dH .= SizedVector{5}([ dH1, dH2, dH3, dH4, dH5 ]);
 end
 
 
@@ -160,7 +160,7 @@ function ensemble()
                             callback=CallbackSet(cb1, cb2), trajectories=nPerBatch,
                             dtmax=resolution, linear_solver=:LapackDense, maxiters=1e8, 
                             saveat = saveDecimation*resolution)
-        @save string(outFileDir,"/",outFileBaseName,"$i.jld2") sol
+        @save string(outFileDir,"/",outFileBaseName,"_$(i).jld2") sol
         @info "$(i*percentage)% complete..."
     end
 end
@@ -178,11 +178,11 @@ calcAlpha(mu::Float64, gamma::Float64) = @fastmath rad2deg(asin(sqrt((2*mu)/(gam
 ###############################
 
 function loadSingleSolution(inFileName::String)
-    ```
+    #=
     Loads in the JLD2 file and creates timeseries of all the data.
     Takes in filename in string, returns 5 TxN vectors for time,
     z, pz, pitch angle, and energy timeseries for all N particles.
-    ```
+    =#
     JLD2.@load jldname = inFileName sol # load desired variables
 
     allZ = Vector{Vector{Float64}}();
@@ -210,18 +210,18 @@ function loadSingleSolution(inFileName::String)
 end
 
 function loadSolutions(inFileBaseName::String, batches::Int64)
-    ```
+    #=
     Loads in the JLD2 file and creates timeseries of all the data.
     Takes in filename in string, returns 5 TxN vectors for time,
     z, pz, pitch angle, and energy timeseries for all N particles.
-    ```
+    =#
     allZ = Vector{Vector{Float64}}();
     allPZ = Vector{Vector{Float64}}();
     allE = Vector{Vector{Float64}}();
     allPA = Vector{Vector{Float64}}();
     allT = Vector{Vector{Float64}}();
     for i in 1:batches
-        JLD2.@load jldname = string(inFileBaseName,"$i.jld2") sol
+        JLD2.@load jldname = string(inFileBaseName,"_$i.jld2") sol
         
         for traj in sol # TODO make this multithreaded
             vars = hcat(traj.u...) # pulls out the canonical position/momentum
@@ -243,12 +243,12 @@ function loadSolutions(inFileBaseName::String, batches::Int64)
 end
 
 function countLostParticles(allT)
-    ```
+    #=
     Based on time vectors, counts which ones were lost
     and at what time. Returns a Nx2 array where the first
     column is the time at which the particle was lost, and
     the 2nd column denotes the number lost at that point.
-    ```
+    =#
     lossCounter = []; # initialize vector
 
     for ntime in allT # loop thru each particle
@@ -271,11 +271,11 @@ function countLostParticles(allT)
 end
 
 function postProcessor(allT, allZ, allPZ, allE, allPA)
-    ```
+    #=
     This function will take the output of the model and convert them into usable m x n matrices
     where m is max number of timesteps for the longest trajectory and N is number of particles
     Arrays that are not m long are filled with NaNs
-    ```
+    =#
     N = length(allT); # num particles from data
     tVec = allT[findall(i->i==maximum(length.(allT)),length.(allT))[1]]; # turns all time vectors into a single time vector spanning over the longest trajectory
     timeseriesLength = length(tVec); # all vectors must be this tall to ride
@@ -345,10 +345,10 @@ end
             
 function recalcDistFunc(Ematrix::Array{Float64,2},PAmatrix::Array{Float64,2},initial::Int64,final::Int64,distFunc,
     Egrid::StepRange{Int64,Int64}, PAgrid::StepRange{Int64,Int64})
-    ```
+    #=
     Takes in matrix of Energy and PA, initial and final indices, and grid values as stepranges.
     Recalculates out a new PSD given a a distribution function at the initial and final indices.
-    ```
+    =#
     N = @views length(Ematrix[1,:]) # num particles
     EPA0i = @views round.([Ematrix[1,:] PAmatrix[1,:]])
     Nkl = @views N/(length(unique(EPA0i[:,1]))*length(unique(EPA0i[:,2]))) # obtain number of particles/bin

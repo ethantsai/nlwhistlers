@@ -1,13 +1,13 @@
 conffile = "setup.conf";
-inFileName = "data/jld2_210513_01/1500fixout.jld2";
+inFileName = "jld2_210515_01/ghost_1001.jld2";
 inFileBaseName = "ghost_420";
 
 include("helperFunctions.jl")
 @info "Imported helper functions!"
 
 # Load in data
-# @time allZ, allPZ, allT, allPA, allE = loadSingleSolution(inFileName);
-@time allZ, allPZ, allT, allPA, allE = loadSolutions(inFileBaseName, 40);
+@time allZ, allPZ, allT, allPA, allE = loadSingleSolution(inFileName);
+# @time allZ, allPZ, allT, allPA, allE = loadSolutions(inFileBaseName, 40);
 
 # Count lost particles
 lostParticles = countLostParticles(allT);
@@ -17,7 +17,7 @@ tVec, Zmatrix, PZmatrix, Ematrix, PAmatrix = postProcessor(allT, allZ, allPZ, al
 #define dist function here
 f0 = ((C::Float64, E::Float64, PA::Float64) -> ((C*(E/10)^-3)*sin(deg2rad(PA))))
 
-initial, final = 1, 400
+initial, final = 1, 100
 f, psd_init, psd_final = recalcDistFunc(Ematrix,PAmatrix,initial,final,f0,0:50:1000,0:5:90);
 checkDistFunc(f, psd_init, psd_final, initial, final)
 
