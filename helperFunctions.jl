@@ -28,7 +28,6 @@ conf = ConfParse(conffile)
 parse_conf!(conf)
 const basename = retrieve(conf, "basename");
 const directoryname = retrieve(conf, "directoryname");
-const log2file = Bool(parse(Int64, retrieve(conf, "logToFile")));
 numParticles = parse(Int64, retrieve(conf, "numberOfParticles"));
 startTime = parse(Float64, retrieve(conf, "startTime"));
 endTime = parse(Float64, retrieve(conf, "endTime"));
