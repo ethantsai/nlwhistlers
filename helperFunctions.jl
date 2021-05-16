@@ -11,7 +11,7 @@ using Distributed
 @everywhere using OrdinaryDiffEq
 using JLD2
 using Plots
-@info "Packges compiled, running model"
+@info "Packages compiled, running model"
 
 #######################
 ## Constants n stuff ##
@@ -90,10 +90,10 @@ function generateFlatParticleDistribution(numParticles::Int64, ICrange, z0=0::Fl
 end
 
 @everywhere function generateModifiableFunction(batches)
-    ```
+    #=
     Takes in the initial condition and splits them into batches.
     This way, we can feed each one in and get a percent completeness during sim.
-    ```
+    =#
     probGeneratorList = [];
     nPerBatch = numParticles÷batches;
     for j in 0:batches-1
@@ -110,50 +110,43 @@ end
 ##################
 
 function eom!(dH,H,p::SVector{4, Float64},t::Float64)
-    ```
-    These equations define the motion.
-    ```
-    @inbounds begin
-        # z, pz, zeta, mu, lambda = H
-        # eta, epsilon, Omegape, omegam = p
-        sinlambda = @fastmath @views sin(H[5]);
-        coslambda = @fastmath @views cos(H[5]);
-        sinzeta = @fastmath @views sin(H[3]);
-        coszeta = @fastmath @views cos(H[3]);
+    # These equations define the motion.
 
-        u = @fastmath @views .5*(tanh(H[5]/deg2rad(1))+1);
-        b = @fastmath @views sqrt(1+3*sinlambda^2)/(coslambda^6);
-        db = @fastmath @views (3*(27*sinlambda-5*sin(3*H[5])))/(coslambda^8*(4+12*sinlambda^2));
-        gamma = @fastmath @views sqrt(1 + H[2]^2 + 2*H[4]*b);
-        K = @fastmath @views (p[3] * (coslambda^(-5/2)))/sqrt(b/p[4] - 1);
-        psi = @fastmath @views p[1]*p[2]*u*sqrt(2*H[4]*b)/gamma;
+    # z, pz, zeta, mu, lambda = H
+    # eta, epsilon, Omegape, omegam = p
+    sinlambda = sin(H[5]);
+    coslambda = cos(H[5]);
+    sinzeta = sin(H[3]);
+    coszeta = cos(H[3]);
 
-        dH1 = @fastmath @views H[2]/gamma;
-        dH2 = @fastmath @views -(H[4]*db)/gamma - (psi*coszeta);
-        dH3 = @fastmath @views p[1]*(K*dH1 - p[4] + b/gamma) + (psi*sinzeta)/(2*H[4]*K);
-        dH4 = @fastmath @views -(psi*coszeta)/K;
-        dH5 = @fastmath @views H[2]/(gamma*coslambda*sqrt(1+3*sinlambda^2)); 
+    u = .5*(tanh(H[5]/deg2rad(1))+1);
+    b = sqrt(1+3*sinlambda^2)/(coslambda^6);
+    db = (3*(27*sinlambda-5*sin(3*H[5])))/(coslambda^8*(4+12*sinlambda^2));
+    gamma = sqrt(1 + H[2]^2 + 2*H[4]*b);
+    K = (p[3] * (coslambda^(-5/2)))/sqrt(b/p[4] - 1);
+    psi = p[1]*p[2]*u*sqrt(2*H[4]*b)/gamma;
 
-        dH .= SizedVector{5}([ dH1, dH2, dH3, dH4, dH5 ]);
-    end
+    dH1 = H[2]/gamma;
+    dH2 = -(H[4]*db)/gamma - (psi*coszeta);
+    dH3 = p[1]*(K*dH1 - p[4] + b/gamma) + (psi*sinzeta)/(2*H[4]*K);
+    dH4 = -(psi*coszeta)/K;
+    dH5 = H[2]/(gamma*coslambda*sqrt(1+3*sinlambda^2)); 
+
+    dH = @SVector [ dH1, dH2, dH3, dH4, dH5 ];
 end
 
 
 function palostcondition(H,t,integrator)
     # condition: if particle enters loss cone
-    @inbounds begin
-        b = @fastmath @views sqrt(1+3*sin(H[5])^2)/(cos(H[5])^6);
-        gamma = @fastmath @views sqrt(1 + H[2]^2 + 2*H[4]*b);
-        return  @fastmath @views (rad2deg(asin(sqrt((2*H[4])/(gamma^2 -1))))) < (lossConeAngle)
-    end
+    b = sqrt(1+3*sin(H[5])^2)/(cos(H[5])^6);
+    gamma = sqrt(1 + H[2]^2 + 2*H[4]*b);
+    return  (rad2deg(asin(sqrt((2*H[4])/(gamma^2 -1))))) < (lossConeAngle)
 end
 
 function ixlostcondition(H,t,integrator)
     # condition: if I_x approaches 0
-    @inbounds begin
-        b = @fastmath @views sqrt(1+3*sin(H[5])^2)/(cos(H[5])^6);
-        return @fastmath @views 2*H[4]*b < (1/saveDecimation)
-    end
+    b = sqrt(1+3*sin(H[5])^2)/(cos(H[5])^6);
+    return 2*H[4]*b < (1/saveDecimation)
 end
 
 affect!(integrator) = terminate!(integrator); # terminate if condition reached
