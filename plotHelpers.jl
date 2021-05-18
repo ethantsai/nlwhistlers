@@ -69,8 +69,8 @@ function loadData(directory::String, basename::String, num_batches::Int64)
     allT = Vector{Vector{Float64}}();
 
     for i in 1:num_batches
-        @time JLD2.@load directory*"/"*basename*"_$i.jld2" sol
-        @time for traj in sol
+        JLD2.@load directory*"/"*basename*"_$i.jld2" sol
+        for traj in sol
             vars = Array(traj')
             timesteps = length(traj.t)
             b = zeros(timesteps)
@@ -81,18 +81,19 @@ function loadData(directory::String, basename::String, num_batches::Int64)
             @views calcGamma!(gamma,vars[:,2],vars[:,4],b)
             @views calcAlpha!(Alpha,vars[:,4],gamma)
             @views push!(allT, traj.t);
-            @views push!(allZ, vars[1,:]);
-            @views push!(allPZ, vars[2,:]);
+            @views push!(allZ, vars[:,1]);
+            @views push!(allPZ, vars[:,2]);
             @views push!(allPA, Alpha);
             @views push!(allE, @. (511*(gamma - 1)));
         end
         @info "$(length(sol)) particles loaded in from $(basename*"_$i.jld2")"
+        @info "Total $(length(allT)) particles loaded so far..."
     end
     @info "Loaded total $(length(allT)) particles!"
     return allZ, allPZ, allT, allPA, allE
 end
 
-function countLostParticles(allT)
+function countLostParticles(allT::Vector{Vector{Float64}})
     #=
     Based on time vectors, counts which ones were lost
     and at what time. Returns a Nx2 array where the first
@@ -115,14 +116,14 @@ function countLostParticles(allT)
     if maximum(lostParticles[:,1]) != endTime # this adds in a final hline from last particle lost to end of simulation
         lostParticles = vcat(lostParticles, [endTime (maximum(lostParticles[:,2]))]);
     end 
-    #lostParticles[1:end .!= 6,: ] # clever 1 liner to rid a row
+
     @info "Total of $(lostParticles[end,end]) particles lost during sim"
     return lostParticles
 end
 
 
 
-function postProcessor(allT, allZ, allPZ, allE, allPA)
+function postProcessor(allT::Vector{Vector{Float64}}, allZ::Vector{Vector{Float64}}, allPZ::Vector{Vector{Float64}}, allE::Vector{Vector{Float64}}, allPA::Vector{Vector{Float64}})
     #=
     This function will take the output of the model and convert them into usable m x n matrices
     where m is max number of timesteps for the longest trajectory and N is number of particles
