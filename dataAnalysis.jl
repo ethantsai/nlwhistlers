@@ -25,13 +25,13 @@ md"
  
 #### There's plenty of plots
 
-Lost Electrons
+Lost electrons are cool.
 
 "
 
 # ╔═╡ 9834a489-ea0f-45b7-a299-74454b4b3ace
 md"
-conf file = $(@bind conffile TextField((30,5); default="Hello JuliaCon!"))
+conf file = $(@bind conffile TextField())
 
 directory = $(@bind dirname TextField())
 
@@ -47,7 +47,7 @@ begin
 	const Beq  = 3.e-5;         # B field at equator (T), f64
 
 	# Parsing the conf file
-	conf = ConfParse(conffile)
+	conf = ConfParse(dirname*"/"*conffile)
 	parse_conf!(conf)
 	numParticles = parse(Int64, retrieve(conf, "numberOfParticles"));
 	startTime = parse(Float64, retrieve(conf, "startTime"));
@@ -87,11 +87,11 @@ begin
 	calcAlpha(mu::Float64, gamma::Float64) = rad2deg(asin(sqrt((2*mu)/(gamma^2 - 1))))
 
 	function loadData(directory::String, basename::String, num_batches::Int64)
-		```
+		#=
 		Loads in the JLD2 file and creates timeseries of all the data.
 		Takes in filename in string, returns 5 TxN vectors for time,
 		z, pz, pitch angle, and energy timeseries for all N particles.
-		```
+		=#
 
 		allZ = Vector{Vector{Float64}}();
 		allPZ = Vector{Vector{Float64}}();
@@ -99,7 +99,7 @@ begin
 		allPA = Vector{Vector{Float64}}();
 		allT = Vector{Vector{Float64}}();
 
-		for i in 1:num_batches
+		Threads.@threads for i in 1:num_batches
 			JLD2.@load jldname = directory*"/"*basename*"_$i.jld2" sol
 
 			for traj in sol # TODO make this multithreaded
@@ -109,15 +109,18 @@ begin
 				# zeta     = vars[3,:];
 				# mu       = vars[4,:];
 				# lambda   = vars[5,:];
-				@views gamma = calcGamma.(vars[2,:],vars[4,:],calcb.(vars[5,:]));
+				b = @views @avx @. sqrt(1+3*sin(vars[5,:])^2)/(cos(vars[5,:])^6)
+				gamma = @views @avx @. sqrt(1 + vars[2,:]^2 + 2*vars[4,:]*b)
+								
+				@views push!(allT, traj.t);
 				@views push!(allZ, vars[1,:]);
 				@views push!(allPZ, vars[2,:]);
-				push!(allT, traj.t);
-				@views push!(allPA, calcAlpha.(vars[4,:], gamma));
-				push!(allE, (511*(gamma .- 1)));
+				@views push!(allPA, @. rad2deg( @avx asin(sqrt((2*vars[4,:])/(gamma^2 - 1)))));
+				@views push!(allE, @. (511*(gamma - 1)));
 			end
-			@info "All variables loaded in"
+			@info "$(length(sol)) particles loaded in from $(basename*"_$i.jld2")"
 		end
+		@info "Loaded total $(length(allT)) particles!"
 		return allZ, allPZ, allT, allPA, allE
 	end
 	
@@ -152,20 +155,21 @@ begin
 end
 
 # ╔═╡ de04d879-e805-4d27-8383-6398fb44872d
-@time allZ, allPZ, allT, allPA, allE = loadData(dirname, basename, num_batches);
+allZ, allPZ, allT, allPA, allE = loadData(dirname, basename, num_batches);
 
 # ╔═╡ 7af09807-4012-46e2-bb2e-d307fa092b28
-@time countLostParticles(allT)
+# @time countLostParticles(allT)
 
 # ╔═╡ dbd59420-c97c-48e0-81e4-57bd72a5e52b
 
 
 # ╔═╡ Cell order:
-# ╠═fe4cd7b2-b5d2-11eb-29f5-81ec8d2a9a9e
+# ╟─fe4cd7b2-b5d2-11eb-29f5-81ec8d2a9a9e
 # ╠═9da308cd-880e-45ca-9c9f-79315cb575c6
-# ╠═9834a489-ea0f-45b7-a299-74454b4b3ace
+# ╟─9834a489-ea0f-45b7-a299-74454b4b3ace
 # ╠═8fa0edf6-5276-436f-bb76-e4e90429d0f2
-# ╟─59c01c3b-effc-4260-be8f-981feda851c8
+# ╠═59c01c3b-effc-4260-be8f-981feda851c8
 # ╠═de04d879-e805-4d27-8383-6398fb44872d
 # ╠═7af09807-4012-46e2-bb2e-d307fa092b28
 # ╠═dbd59420-c97c-48e0-81e4-57bd72a5e52b
+# ╠═27be5594-8ad4-48e4-8a3d-c06c9e712311
