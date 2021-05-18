@@ -70,6 +70,19 @@ BenchmarkTools.Trial:
   evals/sample:     1
 ```
 
+## Make sure swap file is large
+
+Default is 2 gb, and `oom_reaper` will come and get you. The only way Julia ooms out is:
+
+  1. You have exceeded to size of your swap/virtual memory (This is an OS setting), or
+  2. You have attempted to allocate a single object larger than RAM (e.g. a 100million by 100million dense Array)
+  3. There is a bug. If so then the discussion belongs in a GitHub issue.
+
+See swap size here by running (on ubuntu): `swapon --show` or `free -mh`.
+
+Change swap size on WSL2 by following instructions here: https://www.bleepingcomputer.com/news/microsoft/windows-10-wsl2-now-allows-you-to-configure-global-options/
+
+
 
 # Last Resorts
 
