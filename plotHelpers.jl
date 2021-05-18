@@ -21,7 +21,7 @@ const c    = 3e8;           # speedo lite, f64
 const Beq  = 3.e-5;         # B field at equator (T), f64
 
 # Parsing the conf file
-conf = ConfParse(dirname*"/"*conffile)
+conf = ConfParse(directoryname*"/"*conffile)
 parse_conf!(conf)
 numParticles = parse(Int64, retrieve(conf, "numberOfParticles"));
 startTime = parse(Float64, retrieve(conf, "startTime"));
@@ -51,14 +51,9 @@ numThreads = parse(Int64, retrieve(conf, "numberOfThreads"))
 ## Post Processing functions ##
 ###############################
 
-calcb!(b::Vector{Float64}, lambda::SubArray{Float64, 1, Matrix{Float64}, Tuple{Int64, Base.Slice{Base.OneTo{Int64}}}, true}) = @. b = sqrt(1+3*sin(lambda)^2)/(cos(lambda)^6)
-calcGamma!(gamma::Vector{Float64},
-            pz::SubArray{Float64, 1, Matrix{Float64}, Tuple{Int64, Base.Slice{Base.OneTo{Int64}}}, true},
-            mu::SubArray{Float64, 1, Matrix{Float64}, Tuple{Int64, Base.Slice{Base.OneTo{Int64}}}, true},
-            b::Vector{Float64}) = @. gamma = sqrt(1 + pz^2 + 2*mu*b)
-calcAlpha!(alpha::Vector{Float64},
-            mu::SubArray{Float64, 1, Matrix{Float64}, Tuple{Int64, Base.Slice{Base.OneTo{Int64}}}, true},
-            gamma::Vector{Float64}) = @. alpha = rad2deg(asin(sqrt((2*mu)/(gamma^2 - 1))))
+calcb!(b::Vector{Float64}, lambda::SubArray{Float64, 1, Matrix{Float64}, Tuple{Base.Slice{Base.OneTo{Int64}}, Int64}, true}) = @. b = sqrt(1+3*sin(lambda)^2)/(cos(lambda)^6)
+calcGamma!(gamma::Vector{Float64}, pz::SubArray{Float64, 1, Matrix{Float64}, Tuple{Base.Slice{Base.OneTo{Int64}}, Int64}, true}, mu::SubArray{Float64, 1, Matrix{Float64}, Tuple{Base.Slice{Base.OneTo{Int64}}, Int64}, true}, b::Vector{Float64}) = @. gamma = sqrt(1 + pz^2 + 2*mu*b)
+calcAlpha!(alpha::Vector{Float64}, mu::SubArray{Float64, 1, Matrix{Float64}, Tuple{Base.Slice{Base.OneTo{Int64}}, Int64}, true}, gamma::Vector{Float64}) = @. alpha = rad2deg(asin(sqrt((2*mu)/(gamma^2 - 1))))
 
 function loadData(directory::String, basename::String, num_batches::Int64)
     #=
@@ -74,28 +69,21 @@ function loadData(directory::String, basename::String, num_batches::Int64)
     allT = Vector{Vector{Float64}}();
 
     for i in 1:num_batches
-        @time JLD2.@load jldname = directory*"/"*basename*"_$i.jld2" sol
-        @info "loaded solution from $(basename*"_$i.jld2")"
-        @time for traj in sol # TODO make this multithreaded
-            vars = hcat(traj.u...) # pulls out the canonical position/momentum
-            # z        = vars[1,:]; 
-            # pz       = vars[2,:];
-            # zeta     = vars[3,:];
-            # mu       = vars[4,:];
-            # lambda   = vars[5,:];
+        @time JLD2.@load directory*"/"*basename*"_$i.jld2" sol
+        @time for traj in sol
+            vars = Array(traj')
             timesteps = length(traj.t)
             b = zeros(timesteps)
             gamma = zeros(timesteps)
-            alpha = zeros(timesteps)
-
-            @views calcb!(b,vars[5,:])
-            @views calcGamma!(gamma,vars[2,:],vars[4,:],b)
-            @views calcAlpha!(alpha,vars[4,:],gamma)
-                            
+            Alpha = zeros(timesteps)
+    
+            @views calcb!(b,vars[:,5])
+            @views calcGamma!(gamma,vars[:,2],vars[:,4],b)
+            @views calcAlpha!(Alpha,vars[:,4],gamma)
             @views push!(allT, traj.t);
             @views push!(allZ, vars[1,:]);
             @views push!(allPZ, vars[2,:]);
-            @views push!(allPA, alpha);
+            @views push!(allPA, Alpha);
             @views push!(allE, @. (511*(gamma - 1)));
         end
         @info "$(length(sol)) particles loaded in from $(basename*"_$i.jld2")"
@@ -171,39 +159,39 @@ function animatePAD(gifFileName="PADanimation.gif", maxParticles=1000, binwidth=
         annotate!(lossConeAngle+.5, .95*maxParticles, text((count(i->isnan(i), Ematrix[i,:])), :left));
         annotate!(80, 1.05*maxParticles, text("t = $(round(tVec[i]*R*L/(c),digits=4)) s"), :right)
     end every animDec
-    savename = string("plots/",gifFileName)
+    savename = string("results/",gifFileName)
     gif(anim, savename, fps = (length(tVec)/animDec)/(animScale*endTime*Re*L/(c)))
 end
 
-function animateESD(gifFileName="ESDanimation.gif", maxParticles=1500, binwidth=50)
+function animateESD(gifFileName="ESDanimation.gif", maxParticles=1000, binwidth=50)
     pyplot()
-    animDec = 10; # make a png for animation every 10 points
-    animScale = 10; # i.e. animscale = 10 means every 10 seconds in animation is 1 second of simulation time (increase for longer animation)
+    animDec = 10; # make a png for animation every 100 points
+    animScale = 5; # i.e. animscale = 10 means every 10 seconds in animation is 1 second of simulation time (increase for longer animation)
     anim = @animate for i=1:length(tVec)
-        histogram(Ematrix[i,:],bins=(0:binwidth:2000), ylim = [0, 1.1*maxParticles], #xminorticks = 4, yminorticks = 2,
-            legend = false, dpi = 100, xscale=:log10, xticks = ([10,100,1000],["10", "100", "1000"]), xlim = [10,2000],
+        histogram(Ematrix[i,:],bins=(0:binwidth:2000), ylim = [1, 1.1*maxParticles], #xminorticks = 4, yminorticks = 2,
+            legend = false, dpi = 100, xscale=:log10, yscale =:log10, xticks = ([10,100,1000],["10", "100", "1000"]), xlim = [10,2000],
             xlabel="Energy (KeV)", ylabel="Number of Particles", title="Time evolution of Energy Spectra");
         annotate!(20, 1.05*maxParticles, text("t = $(round(tVec[i]*Re*L/(c),digits=4)) s"), :left)
     end every animDec
-    savename = string("plots/",gifFileName)
+    savename = string("results/",gifFileName)
     gif(anim, savename, fps = (length(tVec)/animDec)/(animScale*endTime*Re*L/(c)))
 end
 
-function animatePSD(gifFileName="PSDanimation.gif", PAbinwidth=5, Ebinwidth=50, maxParticles=150)
+function animatePSD(gifFileName="PSDanimation.gif", PAbinwidth=3, Ebinwidth=100, maxParticles=50)
     pyplot()
     animDec = 10; # make a png for animation every 10 points
-    animScale = 10; # i.e. animscale = 10 means every 10 seconds in animation is 1 second of simulation time (increase for longer animation)
+    animScale = 1; # i.e. animscale = 10 means every 10 seconds in animation is 1 second of simulation time (increase for longer animation)
     anim = @animate for i=1:length(tVec)
         histogram2d(PAmatrix[i,:], Ematrix[i,:], bins=(0:PAbinwidth:90,0:Ebinwidth:2000),
             xlabel="Pitch Angle (deg)",ylabel="Energy (keV)",title="Time evolution of Phase Space Density",
-            yscale=:log10, clims = (0,maxParticles), minorgrid=true,
-            yticks = ([1, 10,100,1000],["1", "10", "100", "1000"]));
+            yscale=:log10, clims = (1,maxParticles), colorbar_scale=:log10, minorgrid=true,
+            yticks = ([1, 10,100,1000,10000],["1", "10", "100", "1000", "10000"]));
         annotate!(lossConeAngle, 5, text("Lost Particle Count:", :left));
         annotate!(lossConeAngle, 3.5, text((count(i->isnan(i), Ematrix[i,:])), :left))
         annotate!(70, 5, text("t = $(round(tVec[i]*Re*L/(c),digits=4)) s"), :right)
         # count(i->isnan(i), Ematrix[1,:]) # counts number of NaNs (i.e particles lost) at certain time
     end every animDec
-    savename = string("plots/",gifFileName)
+    savename = string("results/",gifFileName)
     gif(anim, savename, fps = (length(tVec)/animDec)/(animScale*endTime*Re*L/(c)))
 end
             
@@ -341,7 +329,7 @@ function animateNewPSD(gifFileName="NewPSDanimation.gif")
         checkDistFunc(f, psd_init, psd_final, initial, i)
         # heatmap(0:5:90, 0:50:1000, psd_final, clim = (0,.01), title = "PSD at t = $(round(tVec[i]*Re*L/(c),digits=3)) s")
     end every animDec
-    savename = string("plots/",gifFileName)
+    savename = string("results/",gifFileName)
     gif(anim, savename, fps = (length(tVec)/animDec)/(animScale*endTime*Re*L/(c)))
 end
 
