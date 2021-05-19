@@ -1,18 +1,32 @@
-dirname = "results/4200testrun"
+directoryname = "results/63000run"
 conffile = "setupasrun.conf"
-basename = "ghost_4200"
-num_batches = 20
+basename = "63000"
+num_batches = 300
 
 include("plotHelpers.jl")
 
 # Load in data
-@time allZ, allPZ, allT, allPA, allE = loadData(dirname, basename, num_batches);
+# @time allZ, allPZ, allT, allPA, allE = loadData(directoryname, basename, num_batches);
+# jldsave("example.jld2"; allZ, allPZ, allT, allPA, allE)
+
+JLD2.@load "results/63000run/63000run.jld2" allT
+JLD2.@load "results/63000run/63000run.jld2" allZ
+JLD2.@load "results/63000run/63000run.jld2" allPZ
+JLD2.@load "results/63000run/63000run.jld2" allPA
+JLD2.@load "results/63000run/63000run.jld2" allE
+
+JLD2.@load "results/63000run/63000run.jld2" allT
+JLD2.@load "results/63000run/63000run.jld2" allE
+@time tVec, Ematrix = postProcessor2(allT, allE);
+
+allPrecip, indexArray = precipitatingParticles(tVec, Ematrix, 10);
+
 
 
 # Count lost particles
-lostParticles = countLostParticles(allT);
+@time lostParticles = countLostParticles(allT);
 
-tVec, Zmatrix, PZmatrix, Ematrix, PAmatrix = postProcessor(allT, allZ, allPZ, allE, allPA);
+@time tVec, Zmatrix, PZmatrix, Ematrix, PAmatrix = postProcessor(allT, allZ, allPZ, allE, allPA);
 
 #define dist function here
 f0 = ((C::Float64, E::Float64, PA::Float64) -> ((C*(E/10)^-3)*sin(deg2rad(PA))))
@@ -39,7 +53,7 @@ plot4 = plot(
 bigplot = plot(plot3,plot4, dpi = 300, layout = (2,1))
 
 # animatePAD("10000PADevolution.gif", 2000, 5)
-# animateESD("10000ESDevolution.gif", 1500, 50)
+animateESD("4200ESDevolution.gif", 4200, 50)
 # animatePSD("10000PSDevolution.gif", 5, 50, 150)
 
 
@@ -62,3 +76,4 @@ bigplot = plot(plot3,plot4, dpi = 300, layout = (2,1))
 # trajectory of conjunctions for mms and elfin
 # plot whistler wave spectrum
 # elfin data
+

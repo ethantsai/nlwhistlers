@@ -147,6 +147,25 @@ function postProcessor(allT::Vector{Vector{Float64}}, allZ::Vector{Vector{Float6
     return tVec, Zmatrix, PZmatrix, Ematrix, PAmatrix
 end
 
+function postProcessor2(allT::Vector{Vector{Float64}}, allE::Vector{Vector{Float64}})
+    #=
+    This function will take the output of the model and convert them into usable m x n matrices
+    where m is max number of timesteps for the longest trajectory and N is number of particles
+    Arrays that are not m long are filled with NaNs
+    =#
+    N = length(allT); # num particles from data
+    tVec = allT[findall(i->i==maximum(length.(allT)),length.(allT))[1]]; # turns all time vectors into a single time vector spanning over the longest trajectory
+    timeseriesLength = length(tVec); # all vectors must be this tall to ride
+    Ematrix = fill(NaN,timeseriesLength,N); 
+    # iterate over each matrix column and fill with each vector
+    for i = 1:N
+        @views Ematrix[1:length(allT[i]),i] = allE[i]
+    end
+
+    return tVec, Ematrix
+end
+
+
 function animatePAD(gifFileName="PADanimation.gif", maxParticles=1000, binwidth=5)
     pyplot()
     animDec = 10; # make a png for animation every 10 points
@@ -334,3 +353,55 @@ function animateNewPSD(gifFileName="NewPSDanimation.gif")
     gif(anim, savename, fps = (length(tVec)/animDec)/(animScale*endTime*Re*L/(c)))
 end
 
+function precipitatingParticles(tVec, Ematrix, timeBin=10)
+    unitSimTime = mean(diff(tVec[begin:end-1]));
+    simTimeBin = convert(Int64, round(timeBin/unitSimTime, digits=0))
+    tVec[begin]:timeBin:tVec[end]
+
+    # produce a vector with indices demarcating time bin boundaries
+    indexArray = [minimum([i*simTimeBin length(tVec)]) for i in 1:convert(Int64,floor(endTime/timeBin))]
+    if length(tVec)!=indexArray[end] push!(indexArray, length(tVec)-1) end #guarantee last index corresponds with proper end
+    testEmatrix = Ematrix
+    # remove all particles that didn't get lost
+    testEmatrix = @views Matrix(Ematrix[:,findall(isnan, Ematrix[indexArray[end-1],:])]) # this is a new matrix that only has particles that have precipitated
+
+    allPrecip = Vector{Vector{Float64}}()
+    for i in indexArray[1:end-1]
+        @debug "$(length(testEmatrix[1,:])) remaining particles" size(testEmatrix)
+        precipitatingIndices = @views findall(isnan, testEmatrix[simTimeBin,:])
+        notPrecipitatingIndices = @views findall(!isnan, testEmatrix[simTimeBin,:])
+        @debug "$(length(precipitatingIndices)) particles precipitated by index $i" precipitatingIndices
+        push!(allPrecip,[@views mean(testEmatrix[:,j][findall(!isnan, testEmatrix[:,j])]) for j in precipitatingIndices])
+        @debug "added stuff" size(testEmatrix)
+        if !isempty(notPrecipitatingIndices)
+            testEmatrix = @views Matrix(testEmatrix[simTimeBin:end,notPrecipitatingIndices]) # purposely including one extra index in case particle is lost right after
+        else
+            break
+        end
+    end
+
+    return allPrecip, indexArray
+
+end
+
+
+
+
+function animatePrecipE()(gifFileName="NewPRECIPanimation.gif", allPrecip, indexArray,binwidth=50,maxParticles=500, maxEnergy = 1000)
+    pyplot()
+    animDec = 1; # make a png for animation every 100 points
+    animScale = 300; # i.e. animscale = 10 means every 10 seconds in animation is 1 second of simulation time (increase for longer animation)
+    anim = @animate for i=1:length(allPrecip)
+            histogram(allPrecip[i],bins=(0:binwidth:maxEnergy), ylim = [1, 1.1*maxParticles], #xminorticks = 4, yminorticks = 2,
+            legend = false, dpi = 100, xscale=:log10, yscale=:log10, xticks = ([20,100,1000],["20", "100", "1000"]), xlim = [20,maxEnergy],
+            xlabel="Energy (KeV)", ylabel="Number of Particles", title="Energy Spectra of Precipitating Particles");
+        annotate!(20, 1.05*maxParticles, text("t = $(round(tVec[indexArray[i]]*Re*L/(c),digits=4)) s"), :left)
+    end every animDec
+    savename = string("results/",gifFileName)
+    gif(anim, savename, fps = (length(tVec)/animDec)/(animScale*endTime*Re*L/(c)))
+end
+
+
+
+df = DataFrame([allPrecip], :auto)
+CSV.write("for_james.csv",df)
