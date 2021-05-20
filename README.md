@@ -59,3 +59,15 @@ Using Profile and PProf
   - View: `pprof(;webport=58599)`
 
 Make sure graphviz is installed. The arrows a -> b are a calls b and the numbers provide run time information, with second percentage being percent total run time and first percentage being how much itself takes (as compared to its subroutines).
+
+
+
+## Miscellaneous
+
+Batch rename:
+
+```
+ls|while read file; do mv "$file" "$(echo "$file"|sed -e 's/[() ]//g')";done
+```
+
+where stuff in square brackets is stuff you want to remove, and stuff between `//` is what you'll replace it with.

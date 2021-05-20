@@ -11,6 +11,7 @@ using JLD2
 using Plots
 using LoopVectorization
 using BenchmarkTools
+using StatsPlots
 
 #######################
 ## Constants n stuff ##
@@ -121,8 +122,6 @@ function countLostParticles(allT::Vector{Vector{Float64}})
     return lostParticles
 end
 
-
-
 function postProcessor(allT::Vector{Vector{Float64}}, allZ::Vector{Vector{Float64}}, allPZ::Vector{Vector{Float64}}, allE::Vector{Vector{Float64}}, allPA::Vector{Vector{Float64}})
     #=
     This function will take the output of the model and convert them into usable m x n matrices
@@ -147,7 +146,12 @@ function postProcessor(allT::Vector{Vector{Float64}}, allZ::Vector{Vector{Float6
     return tVec, Zmatrix, PZmatrix, Ematrix, PAmatrix
 end
 
-function postProcessor2(allT::Vector{Vector{Float64}}, allE::Vector{Vector{Float64}})
+function postProcessor2(allT::Vector{Vector{Float64}},
+                        # allZ::Vector{Vector{Float64}},
+                        # allPZ::Vector{Vector{Float64}},
+                        allE::Vector{Vector{Float64}},
+                        allPA::Vector{Vector{Float64}}
+                        )
     #=
     This function will take the output of the model and convert them into usable m x n matrices
     where m is max number of timesteps for the longest trajectory and N is number of particles
@@ -156,13 +160,19 @@ function postProcessor2(allT::Vector{Vector{Float64}}, allE::Vector{Vector{Float
     N = length(allT); # num particles from data
     tVec = allT[findall(i->i==maximum(length.(allT)),length.(allT))[1]]; # turns all time vectors into a single time vector spanning over the longest trajectory
     timeseriesLength = length(tVec); # all vectors must be this tall to ride
+    Zmatrix = fill(NaN,timeseriesLength,N); 
+    PZmatrix = fill(NaN,timeseriesLength,N); 
     Ematrix = fill(NaN,timeseriesLength,N); 
+    PAmatrix = fill(NaN,timeseriesLength,N); 
     # iterate over each matrix column and fill with each vector
     for i = 1:N
+        # @views Zmatrix[1:length(allT[i]),i] = allZ[i]
+        # @views PZmatrix[1:length(allT[i]),i] = allPZ[i]
         @views Ematrix[1:length(allT[i]),i] = allE[i]
+        @views PAmatrix[1:length(allT[i]),i] = allPA[i]
     end
 
-    return tVec, Ematrix
+    return tVec, Ematrix, PAmatrix
 end
 
 
@@ -207,7 +217,7 @@ function animatePSD(gifFileName="PSDanimation.gif", PAbinwidth=3, Ebinwidth=100,
             yscale=:log10, clims = (1,maxParticles), colorbar_scale=:log10, minorgrid=true,
             yticks = ([1, 10,100,1000,10000],["1", "10", "100", "1000", "10000"]));
         annotate!(lossConeAngle, 5, text("Lost Particle Count:", :left));
-        annotate!(lossConeAngle, 3.5, text((count(i->isnan(i), Ematrix[i,:])), :left))
+        annotate!(lossConeAngle, 3, text((count(i->isnan(i), Ematrix[i,:])), :left))
         annotate!(70, 5, text("t = $(round(tVec[i]*Re*L/(c),digits=4)) s"), :right)
         # count(i->isnan(i), Ematrix[1,:]) # counts number of NaNs (i.e particles lost) at certain time
     end every animDec
@@ -318,36 +328,40 @@ end
     end
 end
 
-function checkDistFunc(f::Array{Float64,2}, psd_init::Array{Float64,2}, psd_final::Array{Float64,2}, initial::Int64, final::Int64)
-    origPlot =  heatmap(0:5:90, 0:50:1000, f, fc = :plasma,
+function checkDistFunc(f::Array{Float64,2}, psd_init::Array{Float64,2}, psd_final::Array{Float64,2}, initial::Int64, final::Int64, Egrid::StepRange{Int64,Int64}, PAgrid::StepRange{Int64,Int64})
+    origPlot =  heatmap(PAgrid, Egrid, f, fc = :plasma,
         xlabel="Pitch Angle (deg)",ylabel="Energy (keV)", title = "Original Flat PSD at t = 0");
 
-    initPlot =  heatmap(0:5:90, 0:50:1000, log10.(psd_init),clims=(-5.5,-2), fc = :plasma,
+    initPlot =  heatmap(PAgrid, Egrid, log10.(psd_init),clims=(-5.5,-2), fc = :plasma,
         xlabel="Pitch Angle (deg)",ylabel="Energy (keV)", title = "Recalculated PSD at t = $(round(tVec[initial]*Re*L/(c),digits=3)) s");
 
-    finalPlot = heatmap(0:5:90, 0:50:1000, log10.(psd_final), fc = :plasma, colorbar = false,
-        xlabel="Pitch Angle (deg)",ylabel="Energy (keV)", title = "Recalculated PSD at t = $(round(tVec[final]*Re*L/(c),digits=3)) s");
+    # finalPlot = heatmap(PAgrid, Egrid, log10.(psd_final), fc = :plasma, colorbar = false,
+    #     xlabel="Pitch Angle (deg)",ylabel="Energy (keV)", title = "Recalculated PSD at t = $(round(tVec[final]*Re*L/(c),digits=2)) s");
 
-    origPlotAnime = marginalhist(round.(PAmatrix[final,:]), log10.(round.(Ematrix[final,:])),
-    xlim = (0,90), yscale = :lin ,yticks = ([1, 2,3,3.70],["10", "100", "1000", "5000"]),
-    fc =:plasma, bins= 30);
+    # origPlotAnime = marginalhist(round.(PAmatrix[final,:]), log10.(round.(Ematrix[final,:])),
+    # xlim = (0,90), yscale = :identity ,yticks = ([1, 2,3,3.70],["10", "100", "1000", "5000"]),
+    # fc =:plasma, bins= 30);
 
-    # plot(finalPlot)
+    initial_dist = plot(origPlot, initPlot, layout = (1,2), size = (1500,600)) # want this for just first two plots
+    savefig(initial_dist, string("results/plots/initial_recalced_dist.png"))
 
-    plot(origPlot, initPlot, origPlotAnime, finalPlot, layout = (2,2), size = (1200,1200))
+    # plot(origPlot, initPlot, origPlotAnime, finalPlot, layout = (2,2), size = (1200,1200)) # want this for all plots
+    # plot(finalPlot) # want this for just one plot
+    
 end
 
 
-function animateNewPSD(gifFileName="NewPSDanimation.gif")
+function animateNewPSD(gifFileName, Egrid::StepRange{Int64,Int64}, PAgrid::StepRange{Int64,Int64})
     pyplot()
-    animDec = 10; # make a png for animation every 10 points
+    animDec = 1; # make a png for animation every 10 points
     animScale = 10; # i.e. animscale = 10 means every 10 seconds in animation is 1 second of simulation time (increase for longer animation)
     initial, final = 1, 1
-    f, psd_init, psd_final = recalcDistFunc(Ematrix,PAmatrix,initial,final,f0,0:50:1000,0:5:90);
-    anim = @animate for i=1:length(tVec)
-        _,_,psd_final = recalcDistFunc(Ematrix,PAmatrix,initial,i,f0,0:50:1000,0:5:90);
-        checkDistFunc(f, psd_init, psd_final, initial, i)
-        # heatmap(0:5:90, 0:50:1000, psd_final, clim = (0,.01), title = "PSD at t = $(round(tVec[i]*Re*L/(c),digits=3)) s")
+    f, psd_init, psd_final = recalcDistFunc(Ematrix,PAmatrix,initial,final,f0,Egrid,PAgrid);
+    anim = @animate for i in eachindex(tVec)
+        _,_,psd_final = recalcDistFunc(Ematrix,PAmatrix,initial,i,f0,Egrid,PAgrid);
+        # checkDistFunc(f, psd_init, psd_final, initial, i,Egrid, PAgrid)
+        heatmap(PAgrid, Egrid, log10.(psd_final), fc = :plasma, colorbar = false,
+            xlabel="Pitch Angle (deg)",ylabel="Energy (keV)", title = "Recalculated PSD at t = $(round(tVec[i]*Re*L/(c),digits=2)) s")
     end every animDec
     savename = string("results/",gifFileName)
     gif(anim, savename, fps = (length(tVec)/animDec)/(animScale*endTime*Re*L/(c)))
@@ -356,25 +370,25 @@ end
 function precipitatingParticles(tVec, Ematrix, timeBin=10)
     unitSimTime = mean(diff(tVec[begin:end-1]));
     simTimeBin = convert(Int64, round(timeBin/unitSimTime, digits=0))
-    tVec[begin]:timeBin:tVec[end]
 
     # produce a vector with indices demarcating time bin boundaries
     indexArray = [minimum([i*simTimeBin length(tVec)]) for i in 1:convert(Int64,floor(endTime/timeBin))]
     if length(tVec)!=indexArray[end] push!(indexArray, length(tVec)-1) end #guarantee last index corresponds with proper end
-    testEmatrix = Ematrix
     # remove all particles that didn't get lost
-    testEmatrix = @views Matrix(Ematrix[:,findall(isnan, Ematrix[indexArray[end-1],:])]) # this is a new matrix that only has particles that have precipitated
+    Ematrixprime = @views Matrix(Ematrix[:,findall(isnan, Ematrix[indexArray[end-1],:])]) # this is a new matrix that only has particles that have precipitated
 
     allPrecip = Vector{Vector{Float64}}()
     for i in indexArray[1:end-1]
-        @debug "$(length(testEmatrix[1,:])) remaining particles" size(testEmatrix)
-        precipitatingIndices = @views findall(isnan, testEmatrix[simTimeBin,:])
-        notPrecipitatingIndices = @views findall(!isnan, testEmatrix[simTimeBin,:])
+        @debug "$(length(Ematrixprime[1,:])) remaining particles" size(Ematrixprime)
+        precipitatingIndices = @views findall(isnan, Ematrixprime[simTimeBin,:])
+        notPrecipitatingIndices = @views findall(!isnan, Ematrixprime[simTimeBin,:])
         @debug "$(length(precipitatingIndices)) particles precipitated by index $i" precipitatingIndices
-        push!(allPrecip,[@views mean(testEmatrix[:,j][findall(!isnan, testEmatrix[:,j])]) for j in precipitatingIndices])
-        @debug "added stuff" size(testEmatrix)
+        # push!(allPrecip,[@views mean(Ematrixprime[:,j][findall(!isnan, Ematrixprime[:,j])]) for j in precipitatingIndices]) # provides mean of time bin
+        push!(allPrecip,[Ematrixprime[:,j][last_index_before_nan(Ematrixprime[:,j])] for j in precipitatingIndices]) # provides last energy before precipitating
+
+        @debug "added stuff" size(Ematrixprime)
         if !isempty(notPrecipitatingIndices)
-            testEmatrix = @views Matrix(testEmatrix[simTimeBin:end,notPrecipitatingIndices]) # purposely including one extra index in case particle is lost right after
+            Ematrixprime = @views Matrix(Ematrixprime[simTimeBin:end,notPrecipitatingIndices]) # purposely including one extra index in case particle is lost right after
         else
             break
         end
@@ -384,24 +398,71 @@ function precipitatingParticles(tVec, Ematrix, timeBin=10)
 
 end
 
-
-
-
-function animatePrecipE()(gifFileName="NewPRECIPanimation.gif", allPrecip, indexArray,binwidth=50,maxParticles=500, maxEnergy = 1000)
-    pyplot()
-    animDec = 1; # make a png for animation every 100 points
-    animScale = 300; # i.e. animscale = 10 means every 10 seconds in animation is 1 second of simulation time (increase for longer animation)
-    anim = @animate for i=1:length(allPrecip)
-            histogram(allPrecip[i],bins=(0:binwidth:maxEnergy), ylim = [1, 1.1*maxParticles], #xminorticks = 4, yminorticks = 2,
-            legend = false, dpi = 100, xscale=:log10, yscale=:log10, xticks = ([20,100,1000],["20", "100", "1000"]), xlim = [20,maxEnergy],
-            xlabel="Energy (KeV)", ylabel="Number of Particles", title="Energy Spectra of Precipitating Particles");
-        annotate!(20, 1.05*maxParticles, text("t = $(round(tVec[indexArray[i]]*Re*L/(c),digits=4)) s"), :left)
+function animatePrecipitatingParticles(gifFileName, allPrecip, indexArray, maxFraction=0.004, maxEnergy=1000)
+    animDec = 1; # make a png for animation every 10 points
+    animScale = 50; # i.e. animscale = 10 means every 10 seconds in animation is 1 second of simulation time (increase for longer animation)
+    anim = @animate for i in eachindex(allPrecip)
+        density(allPrecip, color = :gray, alpha = .5);
+        density!(allPrecip[i], color = :orange);
+        plot!(ylim =(0.,maxFraction), yscale=:identity, xlim=(20,maxEnergy), xscale=:log10, legend=false);
+        plot!(xlabel="Energy (keV)", ylabel="Fraction of $numParticles total particles", title="Energy Spectra of Precipitating Particles");
+        annotate!(40, 0.1*maxFraction, text("t = $(round(tVec[indexArray[i]]*Re*L/(c),digits=3)) s"), :left)
     end every animDec
     savename = string("results/",gifFileName)
     gif(anim, savename, fps = (length(tVec)/animDec)/(animScale*endTime*Re*L/(c)))
 end
 
+function trajectoryTracing(tVec, trajectories::StepRange{Int64, Int64})
+    converT = Re*L/(c)
 
+    PAanim = @animate for i in eachindex(tVec)
+        PAplot = plot(xlim=(0,12), ylim = (0,90))
+        for j in trajectories
+            PAplot = plot!(converT*tVec[1:i], PAmatrix[:,j][1:i], label = "")
+            PAplot = scatter!((converT*tVec[i], PAmatrix[:,j][i]), label = "")
+        end
+    end
 
-df = DataFrame([allPrecip], :auto)
-CSV.write("for_james.csv",df)
+    savename1 = string("results/plots/","PAgif.gif")
+    gif(PAanim, savename1, fps = 20)
+    
+    
+    Eanim = @animate for i in eachindex(tVec)
+        Eplot = plot(xlim=(0,12), ylim = (10,5000), yscale = :log10)
+        for j in trajectories
+            Eplot = plot!(converT*tVec[1:i], Ematrix[:,j][1:i], label = "")
+            Eplot = scatter!((converT*tVec[i], Ematrix[:,j][i]), label = "")
+        end
+    end
+
+    savename2 = string("results/plots/","Egif.gif")
+    gif(Eanim, savename2, fps = 20)
+            
+    ZPZanim = @animate for i in eachindex(tVec)
+        ZPZplot = plot(xlim=(-1,1), ylim = (-7,7))
+        for j in trajectories
+            ZPZplot = plot!(Zmatrix[:,j][1:i], PZmatrix[:,j][1:i], alpha = max.((1:i) .+ 10 .- i, 0) / 10, label = "")
+            ZPZplot = scatter!((Zmatrix[:,j][i], PZmatrix[:,j][i]), label = "")
+        end
+    end
+
+    savename3 = string("results/plots/","ZPZgif.gif")
+    gif(ZPZanim, savename3, fps = 20)
+
+end
+
+function last_index_before_nan(x::Vector{Float64})
+    k = 1
+    @inbounds for i in eachindex(x)
+        if isnan(x[i])
+            k = i-1
+            return k
+        end
+    end
+    return
+ end
+
+ logrange(x1, x2, n) = (10^y for y in range(log10(x1), log10(x2), length=n))
+
+# df = DataFrame([allPrecip], :auto)
+# CSV.write("for_james.csv",df)

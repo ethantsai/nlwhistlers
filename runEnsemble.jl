@@ -24,8 +24,13 @@ flush(io)
 
 ## Setup model
 prob = ODEProblem(eom!, ~, tspan, @SVector [eta, epsilon, Omegape, omegam]);
+# _prob, _alg = auto_optimize(prob) TODO: get auto-optimize to work
+
+
 @everywhere probGeneratorList, nPerBatch, percentage = generateModifiableFunction(batches); # consider making all of these constant
 flush(io)
+
+
 
 ## Run simulation
 tick()
