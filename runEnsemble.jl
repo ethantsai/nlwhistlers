@@ -16,14 +16,14 @@ end
 flush(io)
 
 ## Initialize particles
-h0, f0, eta, epsilon, resolution = generateFlatParticleDistribution(numParticles, ICrange, z0, lambda0);
+h0, f0, η, ε, resolution = generateFlatParticleDistribution(numParticles, ICrange, z0, λ0);
 numParticles = length(h0[:,1]);      # new total number of particles may have changed.
 @info "All prepped, running model on $numParticles particles."
 flush(io)
 # hf0 = [h0  f0][shuffle(1:end), :];   # shuffle so batches all take same-ish time
 
 ## Setup model
-prob = ODEProblem(eom!, ~, tspan, @SVector [eta, epsilon, Omegape, omegam]);
+prob = ODEProblem(eom!, ~, tspan, @SVector [η, ε, Omegape, omegam]);
 # _prob, _alg = auto_optimize(prob) TODO: get auto-optimize to work
 
 

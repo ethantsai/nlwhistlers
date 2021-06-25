@@ -343,7 +343,7 @@ function checkDistFunc(f::Array{Float64,2}, psd_init::Array{Float64,2}, psd_fina
     # fc =:plasma, bins= 30);
 
     initial_dist = plot(origPlot, initPlot, layout = (1,2), size = (1500,600)) # want this for just first two plots
-    savefig(initial_dist, string("results/plots/initial_recalced_dist.png"))
+    savefig(initial_dist, string("results/plots/initial_recalced_dist3.png"))
 
     # plot(origPlot, initPlot, origPlotAnime, finalPlot, layout = (2,2), size = (1200,1200)) # want this for all plots
     # plot(finalPlot) # want this for just one plot
@@ -360,7 +360,7 @@ function animateNewPSD(gifFileName, Egrid::StepRange{Int64,Int64}, PAgrid::StepR
     anim = @animate for i in eachindex(tVec)
         _,_,psd_final = recalcDistFunc(Ematrix,PAmatrix,initial,i,f0,Egrid,PAgrid);
         # checkDistFunc(f, psd_init, psd_final, initial, i,Egrid, PAgrid)
-        heatmap(PAgrid, Egrid, log10.(psd_final), fc = :plasma, colorbar = false,
+        heatmap(PAgrid, Egrid, log10.(psd_final), fc = :plasma, colorbar = false, clims=(-5.5,-2), xscale=:log10, yscale=:log10, colorbar_scale=:log10,
             xlabel="Pitch Angle (deg)",ylabel="Energy (keV)", title = "Recalculated PSD at t = $(round(tVec[i]*Re*L/(c),digits=2)) s")
     end every animDec
     savename = string("results/",gifFileName)
@@ -412,16 +412,26 @@ function animatePrecipitatingParticles(gifFileName, allPrecip, indexArray, maxFr
     gif(anim, savename, fps = (length(tVec)/animDec)/(animScale*endTime*Re*L/(c)))
 end
 
-function trajectoryTracing(tVec, trajectories::StepRange{Int64, Int64})
+function trajectoryChecking(index)
+    converT = Re*L/(c)
+    @info "starting PA: $(PAmatrix[1,index]), startin E: $(Ematrix[1,index])"
+    plot(converT*tVec, PAmatrix[:,index]);
+    plot!(converT*tVec, Ematrix[:,index])
+    # plot(Zmatrix[:,index], PZmatrix[:,index])
+end
+
+
+function trajectoryTracing(trajectories, animDec)
     converT = Re*L/(c)
 
     PAanim = @animate for i in eachindex(tVec)
-        PAplot = plot(xlim=(0,12), ylim = (0,90))
+        plot(xlim=(0,12), ylim = (0,90));
+        plot!(converT*tVec, PAmatrix[:,trajectories], color=:gray, alpha = .5, label = "");
         for j in trajectories
-            PAplot = plot!(converT*tVec[1:i], PAmatrix[:,j][1:i], label = "")
-            PAplot = scatter!((converT*tVec[i], PAmatrix[:,j][i]), label = "")
+            plot!(converT*tVec[1:i], PAmatrix[:,j][1:i], label = "")
+            scatter!((converT*tVec[i], PAmatrix[:,j][i]), label = "")
         end
-    end
+    end every animDec
 
     savename1 = string("results/plots/","PAgif.gif")
     gif(PAanim, savename1, fps = 20)
@@ -429,11 +439,12 @@ function trajectoryTracing(tVec, trajectories::StepRange{Int64, Int64})
     
     Eanim = @animate for i in eachindex(tVec)
         Eplot = plot(xlim=(0,12), ylim = (10,5000), yscale = :log10)
+        plot!(converT*tVec, Ematrix[:,trajectories], color=:gray, alpha = .5, label = "");
         for j in trajectories
             Eplot = plot!(converT*tVec[1:i], Ematrix[:,j][1:i], label = "")
             Eplot = scatter!((converT*tVec[i], Ematrix[:,j][i]), label = "")
         end
-    end
+    end every animDec
 
     savename2 = string("results/plots/","Egif.gif")
     gif(Eanim, savename2, fps = 20)
@@ -441,10 +452,10 @@ function trajectoryTracing(tVec, trajectories::StepRange{Int64, Int64})
     ZPZanim = @animate for i in eachindex(tVec)
         ZPZplot = plot(xlim=(-1,1), ylim = (-7,7))
         for j in trajectories
-            ZPZplot = plot!(Zmatrix[:,j][1:i], PZmatrix[:,j][1:i], alpha = max.((1:i) .+ 10 .- i, 0) / 10, label = "")
+            ZPZplot = plot!(Zmatrix[:,j][1:i], PZmatrix[:,j][1:i], alpha = max.((1:i) .+ 100 .- i, 0) / 100, label = "")
             ZPZplot = scatter!((Zmatrix[:,j][i], PZmatrix[:,j][i]), label = "")
         end
-    end
+    end every animDec
 
     savename3 = string("results/plots/","ZPZgif.gif")
     gif(ZPZanim, savename3, fps = 20)

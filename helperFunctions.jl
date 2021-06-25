@@ -38,7 +38,7 @@ const L = parse(Float64, retrieve(conf, "L"));
 const omegam = parse(Float64, retrieve(conf, "omegam"));
 const Omegape = parse(Float64, retrieve(conf, "Omegape"));
 const z0 = parse(Float64, retrieve(conf, "z0"));
-const lambda0 = parse(Float64, retrieve(conf, "lambda0"));
+const λ0 = parse(Float64, retrieve(conf, "lambda0"));
 const waveAmplitudeModifier = parse(Float64, retrieve(conf, "waveAmplitudeModifier"));
 const ELo = parse(Float64, retrieve(conf, "ELo"));
 const EHi = parse(Float64, retrieve(conf, "EHi"));
@@ -87,7 +87,7 @@ outputFileBaseName, io = setupDirectories(directoryname)
 ## Initialization ##
 ####################
 
-function generateFlatParticleDistribution(numParticles::Int64, ICrange, z0=0::Float64, lambda0=0::Float64)
+function generateFlatParticleDistribution(numParticles::Int64, ICrange, z0=0::Float64, λ0=0::Float64)
     ELo, EHi, Esteps, PALo, PAHi, PAsteps = ICrange
     @info "Generating a flat particle distribution with"
     @info "Energy from $ELo KeV to $EHi KeV in $Esteps KeV increments"
@@ -111,23 +111,23 @@ function generateFlatParticleDistribution(numParticles::Int64, ICrange, z0=0::Fl
     end
 
     @views f0 = [[(E+511.)/511. deg2rad(PA)] for PA in PALo:PAsteps:PAHi for E in ELo:Esteps:EHi for i in 1:N] # creates a 2xN array with initial PA and Energy
-    #####       [[z0 pz0                          zeta0       mu0                          lambda0]             ]
-    @views h0 = [[z0 sqrt(IC[1]^2 - 1)*cos(IC[2]) rand()*2*pi .5*(IC[1]^2-1)*sin(IC[2])^2  lambda0] for IC in f0] # creates a 5xN array with inital h0 terms
+    #####       [[z0 pz0                          ζ0          mu0                          λ0]             ]
+    @views h0 = [[z0 sqrt(IC[1]^2 - 1)*cos(IC[2]) rand()*2*pi .5*(IC[1]^2-1)*sin(IC[2])^2  λ0] for IC in f0] # creates a 5xN array with inital h0 terms
     f0 = vcat(f0...) # convert Array{Array{Float64,2},1} to Array{Float64,2}
     h0 = vcat(h0...) # since i used list comprehension it is now a nested list
 
     # Other ICs that are important
     # Define basic ICs and parameters
-    B0          = Beq*sqrt(1. +3. *sin(lambda0)^2.)/L^3.;     # starting B field at eq
+    B0          = Beq*sqrt(1. +3. *sin(λ0)^2.)/L^3.;     # starting B field at eq
     Omegace0    = (1.6e-19*B0)/(9.11e-31);                    # electron gyrofreq @ the equator
-    # todo, make lambda IC a funtion of z and L, get rid of dep on Beq
-    eta         = Omegace0*L*Re/c;              # should be like 10^3
-    epsilon     = waveAmplitudeModifier/eta;    # normalized wave large amplitude, .1 for small, 15 for large
-    resolution  = .1/eta;                       # determines max step size of the integrator
+    # todo, make λ IC a funtion of z and L, get rid of dep on Beq
+    η           = Omegace0*L*Re/c;              # should be like 10^3
+    ε           = waveAmplitudeModifier/η;    # normalized wave large amplitude, .1 for small, 15 for large
+    resolution  = .1/η;                       # determines max step size of the integrator
     @info "Created Initial Conditions for $(length(h0[:,1])) particles"
     flush(io)
     
-    return h0, f0, eta, epsilon, resolution;
+    return h0, f0, η, ε, resolution;
 end
 
 @everywhere function generateModifiableFunction(batches)
@@ -139,7 +139,7 @@ end
     nPerBatch = numParticles÷batches;
     for j in 0:batches-1
         truncatedIC =  h0[nPerBatch*j+1:(nPerBatch*j+nPerBatch),:]
-        push!(probGeneratorList, ((prob,i,repeat) -> remake(prob, u0 = truncatedIC[i,:], p = @SVector [eta, epsilon, Omegape, omegam])))
+        push!(probGeneratorList, ((prob,i,repeat) -> remake(prob, u0 = truncatedIC[i,:], p = @SVector [η, ε, Omegape, omegam])))
     end
     percentage = (round(100/batches))
     @info "Each batch will simulate $nPerBatch particles for $(endTime-startTime) dt and correspond with $percentage%"
@@ -156,33 +156,34 @@ function eom!(dH,H,p::SVector{4, Float64},t::Float64)
 
     # z, pz, zeta, mu, lambda = H
     # eta, epsilon, Omegape, omegam = p
-    sinlambda = sin(H[5]);
-    coslambda = cos(H[5]);
-    sinzeta = sin(H[3]);
-    coszeta = cos(H[3]);
+    sinλ = sin(H[5]);
+    cosλ = cos(H[5]);
+    sinζ = sin(H[3]);
+    cosζ = cos(H[3]);
 
-    u = .5*(tanh(H[5]/deg2rad(1))+1);
-    b = sqrt(1+3*sinlambda^2)/(coslambda^6);
-    db = (3*(27*sinlambda-5*sin(3*H[5])))/(coslambda^8*(4+12*sinlambda^2));
-    gamma = sqrt(1 + H[2]^2 + 2*H[4]*b);
-    K = (p[3] * (coslambda^(-5/2)))/sqrt(b/p[4] - 1);
-    psi = p[1]*p[2]*u*sqrt(2*H[4]*b)/gamma;
+    # u = .5*(tanh(H[5]/deg2rad(1))+1);
+    u = tanh((H[5]/(0.03490658503988659))^2) * (exp(-(H[5]/(0.3490658503988659))^2));
 
-    dH1 = H[2]/gamma;
-    dH2 = -(H[4]*db)/gamma - (psi*coszeta);
-    dH3 = p[1]*(K*dH1 - p[4] + b/gamma) + (psi*sinzeta)/(2*H[4]*K);
-    dH4 = -(psi*coszeta)/K;
-    dH5 = H[2]/(gamma*coslambda*sqrt(1+3*sinlambda^2)); 
+    b = sqrt(1+3*sinλ^2)/(cosλ^6);
+    db = (3*(27*sinλ-5*sin(3*H[5])))/(cosλ^8*(4+12*sinλ^2));
+    γ = sqrt(1 + H[2]^2 + 2*H[4]*b);
+    K = (p[3] * (cosλ^(-5/2)))/sqrt(b/p[4] - 1);
+    psi = p[1]*p[2]*u*sqrt(2*H[4]*b)/γ;
+
+    dH1 = H[2]/γ;
+    dH2 = -(H[4]*db)/γ - (psi*cosζ);
+    dH3 = p[1]*(K*dH1 - p[4] + b/γ) + (psi*sinζ)/(2*H[4]*K);
+    dH4 = -(psi*cosζ)/K;
+    dH5 = H[2]/(γ*cosλ*sqrt(1+3*sinλ^2)); 
 
     dH .= SizedVector{5}([ dH1, dH2, dH3, dH4, dH5 ]);
 end
 
-
 function palostcondition(H,t,integrator)
     # condition: if particle enters loss cone
     b = sqrt(1+3*sin(H[5])^2)/(cos(H[5])^6);
-    gamma = sqrt(1 + H[2]^2 + 2*H[4]*b);
-    return  (rad2deg(asin(sqrt((2*H[4])/(gamma^2 -1))))) < (lossConeAngle)
+    γ = sqrt(1 + H[2]^2 + 2*H[4]*b);
+    return  (rad2deg(asin(sqrt((2*H[4])/(γ^2 -1))))) < (lossConeAngle)
 end
 
 function ixlostcondition(H,t,integrator)
@@ -213,11 +214,11 @@ end
 
 
 # Simple calcs
-calcb(b::Vector{Float64},lambda::Vector{Float64}) = @. b = sqrt(1+3*sin(lambda)^2)/(cos(lambda)^6)
-calcdb(db::Vector{Float64},lambda::Vector{Float64}) = @. db = (3*(27*sin(lambda)-5*sin(3*lambda)))/(cos(lambda)^8*(4+12*sin(lambda)^2))
-calcGamma(gamma::Vector{Float64},pz::Vector{Float64},mu::Vector{Float64},b::Vector{Float64}) = @. gamma = sqrt(1 + pz^2 + 2*mu*b)
-calcK(K::Vector{Float64},b::Vector{Float64},lambda::Vector{Float64}) = @. K = (Omegape * (cos(lambda)^-(5/2)))/sqrt(b/omegam - 1)
-calcAlpha(alpha::Vector{Float64},mu::Vector{Float64}, gamma::Vector{Float64}) = @. alpha = rad2deg(asin(sqrt((2*mu)/(gamma^2 - 1))))
+calcb(b::Vector{Float64},λ::Vector{Float64}) = @. b = sqrt(1+3*sin(λ)^2)/(cos(λ)^6)
+calcdb(db::Vector{Float64},λ::Vector{Float64}) = @. db = (3*(27*sin(λ)-5*sin(3*λ)))/(cos(λ)^8*(4+12*sin(λ)^2))
+calcGamma(γ::Vector{Float64},pz::Vector{Float64},μ::Vector{Float64},b::Vector{Float64}) = @. γ = sqrt(1 + pz^2 + 2*μ*b)
+calcK(K::Vector{Float64},b::Vector{Float64},λ::Vector{Float64}) = @. K = (Omegape * (cos(λ)^-(5/2)))/sqrt(b/omegam - 1)
+calcAlpha(α::Vector{Float64},μ::Vector{Float64}, γ::Vector{Float64}) = @. α = rad2deg(asin(sqrt((2*μ)/(γ^2 - 1))))
 
 
 
