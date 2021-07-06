@@ -39,6 +39,8 @@ const omegam = parse(Float64, retrieve(conf, "omegam"));
 const Omegape = parse(Float64, retrieve(conf, "Omegape"));
 const z0 = parse(Float64, retrieve(conf, "z0"));
 const λ0 = parse(Float64, retrieve(conf, "lambda0"));
+const a = parse(Float64, retrieve(conf, "a"));
+const dPhi = parse(Float64, retrieve(conf, "dPhi"));
 const waveAmplitudeModifier = parse(Float64, retrieve(conf, "waveAmplitudeModifier"));
 const ELo = parse(Float64, retrieve(conf, "ELo"));
 const EHi = parse(Float64, retrieve(conf, "EHi"));
@@ -59,7 +61,7 @@ function setupDirectories(directoryname::String)
     #=
     directory name
      └ jld2_yymmdd_HH
-      | setup_asrun.conf    
+      | setupasrun.conf    
       | yymmdd_HHMMSS.log
       └ basename_numparticles_numbatch.jld2
     =#
@@ -68,7 +70,7 @@ function setupDirectories(directoryname::String)
     mkpath(outputFileDirectory)
     outputFileBaseName = outputFileDirectory*"/"*basename*"_$numParticles";
     loggingFileName = string(outputFileDirectory,"/",Dates.format(now(), DateFormat("yymmdd_HHMMSS")),".log")
-    asrunConfFileName = outputFileDirectory*"/setup asrun.conf"
+    asrunConfFileName = outputFileDirectory*"/setupasrun.conf"
     run(`cp setup.conf $asrunConfFileName`) # copy setup over to as run file
     run(`cp setup.conf $loggingFileName`) # copy setup over to log file
 
@@ -111,8 +113,8 @@ function generateFlatParticleDistribution(numParticles::Int64, ICrange, z0=0::Fl
     end
 
     @views f0 = [[(E+511.)/511. deg2rad(PA)] for PA in PALo:PAsteps:PAHi for E in ELo:Esteps:EHi for i in 1:N] # creates a 2xN array with initial PA and Energy
-    #####       [[z0 pz0                          ζ0          mu0                          λ0]             ]
-    @views h0 = [[z0 sqrt(IC[1]^2 - 1)*cos(IC[2]) rand()*2*pi .5*(IC[1]^2-1)*sin(IC[2])^2  λ0] for IC in f0] # creates a 5xN array with inital h0 terms
+    #####       [[z0 pz0                          ζ0          mu0                          λ0 Φ0         ]             ]
+    @views h0 = [[z0 sqrt(IC[1]^2 - 1)*cos(IC[2]) rand()*2*pi .5*(IC[1]^2-1)*sin(IC[2])^2  λ0 rand()*2*pi] for IC in f0] # creates a 5xN array with inital h0 terms
     f0 = vcat(f0...) # convert Array{Array{Float64,2},1} to Array{Float64,2}
     h0 = vcat(h0...) # since i used list comprehension it is now a nested list
 
@@ -139,7 +141,7 @@ end
     nPerBatch = numParticles÷batches;
     for j in 0:batches-1
         truncatedIC =  h0[nPerBatch*j+1:(nPerBatch*j+nPerBatch),:]
-        push!(probGeneratorList, ((prob,i,repeat) -> remake(prob, u0 = truncatedIC[i,:], p = @SVector [η, ε, Omegape, omegam])))
+        push!(probGeneratorList, ((prob,i,repeat) -> remake(prob, u0 = truncatedIC[i,:], p = @SVector [η, ε, Omegape, omegam, a, dPhi])))
     end
     percentage = (round(100/batches))
     @info "Each batch will simulate $nPerBatch particles for $(endTime-startTime) dt and correspond with $percentage%"
@@ -151,32 +153,37 @@ end
 ## Math n stuff ##
 ##################
 
-function eom!(dH,H,p::SVector{4, Float64},t::Float64)
+function eom!(dH,H,p::SVector{6, Float64},t::Float64)
     # These equations define the motion.
 
-    # z, pz, zeta, mu, lambda = H
-    # eta, epsilon, Omegape, omegam = p
+    # z, pz, zeta, mu, lambda, phi = H
+    # eta, epsilon, Omegape, omegam, a, dPhi = p
     sinλ = sin(H[5]);
     cosλ = cos(H[5]);
-    sinζ = sin(H[3]);
-    cosζ = cos(H[3]);
+    g = exp(-p[5] * (cos(H[6]/p[6])^2))
+    sinζ = g*sin(H[3]);
+    cosζ = g*cos(H[3]);
 
+    # single sided wave, grows to max at 1 deg, infinitely long
     # u = .5*(tanh(H[5]/deg2rad(1))+1);
-    u = tanh((H[5]/(0.03490658503988659))^2) * (exp(-(H[5]/(0.3490658503988659))^2));
-
+    # double sided wave, grows to max at 2 deg, dissipates by 20 deg
+    u = tanh((H[5]/(0.03490658503988659))^2) * (exp(-(H[5]/(0.3490658503988659))^2)); 
+    
     b = sqrt(1+3*sinλ^2)/(cosλ^6);
     db = (3*(27*sinλ-5*sin(3*H[5])))/(cosλ^8*(4+12*sinλ^2));
     γ = sqrt(1 + H[2]^2 + 2*H[4]*b);
     K = (p[3] * (cosλ^(-5/2)))/sqrt(b/p[4] - 1);
     psi = p[1]*p[2]*u*sqrt(2*H[4]*b)/γ;
+    
 
     dH1 = H[2]/γ;
     dH2 = -(H[4]*db)/γ - (psi*cosζ);
     dH3 = p[1]*(K*dH1 - p[4] + b/γ) + (psi*sinζ)/(2*H[4]*K);
     dH4 = -(psi*cosζ)/K;
-    dH5 = H[2]/(γ*cosλ*sqrt(1+3*sinλ^2)); 
+    dH5 = H[2]/(γ*cosλ*sqrt(1+3*sinλ^2));
+    dH6 = p[1]*(K*dH1 - p[4]);
 
-    dH .= SizedVector{5}([ dH1, dH2, dH3, dH4, dH5 ]);
+    dH .= SizedVector{6}([ dH1, dH2, dH3, dH4, dH5, dH6 ]);
 end
 
 function palostcondition(H,t,integrator)

@@ -23,7 +23,7 @@ flush(io)
 # hf0 = [h0  f0][shuffle(1:end), :];   # shuffle so batches all take same-ish time
 
 ## Setup model
-prob = ODEProblem(eom!, ~, tspan, @SVector [η, ε, Omegape, omegam]);
+prob = ODEProblem(eom!, ~, tspan, @SVector [η, ε, Omegape, omegam, a, dPhi]);
 # _prob, _alg = auto_optimize(prob) TODO: get auto-optimize to work
 
 

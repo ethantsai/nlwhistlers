@@ -343,7 +343,7 @@ function checkDistFunc(f::Array{Float64,2}, psd_init::Array{Float64,2}, psd_fina
     # fc =:plasma, bins= 30);
 
     initial_dist = plot(origPlot, initPlot, layout = (1,2), size = (1500,600)) # want this for just first two plots
-    savefig(initial_dist, string("results/plots/initial_recalced_dist3.png"))
+    # savefig(initial_dist, string("results/plots/initial_recalced_dist3.png"))
 
     # plot(origPlot, initPlot, origPlotAnime, finalPlot, layout = (2,2), size = (1200,1200)) # want this for all plots
     # plot(finalPlot) # want this for just one plot
@@ -360,7 +360,7 @@ function animateNewPSD(gifFileName, Egrid::StepRange{Int64,Int64}, PAgrid::StepR
     anim = @animate for i in eachindex(tVec)
         _,_,psd_final = recalcDistFunc(Ematrix,PAmatrix,initial,i,f0,Egrid,PAgrid);
         # checkDistFunc(f, psd_init, psd_final, initial, i,Egrid, PAgrid)
-        heatmap(PAgrid, Egrid, log10.(psd_final), fc = :plasma, colorbar = false, clims=(-5.5,-2), xscale=:log10, yscale=:log10, colorbar_scale=:log10,
+        heatmap(PAgrid, Egrid, log10.(psd_final), fc = :plasma, colorbar = false, clims=(-5.5,-2),
             xlabel="Pitch Angle (deg)",ylabel="Energy (keV)", title = "Recalculated PSD at t = $(round(tVec[i]*Re*L/(c),digits=2)) s")
     end every animDec
     savename = string("results/",gifFileName)
