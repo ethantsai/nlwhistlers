@@ -1,7 +1,7 @@
-directoryname = "results/jld2_210626_00"
+directoryname = "results/420testrun"
 conffile = "setupasrun.conf"
-basename = "ghost_21000"
-num_batches = 21
+basename = "ghost_420"
+num_batches = 4
 
 include("plotHelpers.jl")
 
@@ -16,7 +16,7 @@ jldsave("4200_nonducted.jld2"; allZ, allPZ, allT, allPA, allE)
 JLD2.@load "results/63000run/63000run.jld2" allT
 JLD2.@load "results/63000run/63000run.jld2" allPA
 JLD2.@load "results/63000run/63000run.jld2" allE
-
+ 
 
 
 # @time tVec,  Ematrix, PAmatrix = postProcessor2(allT, allE, allPA);
@@ -26,18 +26,32 @@ JLD2.@load "results/63000run/63000run.jld2" allE
 
 @time tVec, Zmatrix, PZmatrix, Ematrix, PAmatrix = postProcessor(allT, allZ, allPZ, allE, allPA);
 
-#define dist function here
-A = 5.1
-B = .3
-f0 = ((C::Float64, E::Float64, PA::Float64) -> ((C*(E/70)^-A)*(sin(deg2rad(PA)))^B))
+# define dist function here
+# f0 = ((C::Float64, E::Float64, PA::Float64) -> ((C*(E/70)^-3)*(sin(deg2rad(PA)))))
+f0 = function (C::Float64, E::Float64, PA::Float64)
+    A = -5.1#6
+    B0 = .2
+    B1 = .3
+    E0 = 300
+    E1 = 70
+    if E < 70
+        B = B0
+    elseif E <= 300
+        B = B0 + (B1-B0)*(E-E0)/(E1-E0)
+    elseif E > 300
+        B = B1
+    end
+    return ((C*(E/70)^-A)*(sin(deg2rad(PA)))^B)
+end
 
-initial, final = 1, 1
+
+initial, final = 1, 200
 Egrid, PAgrid = 0:50:1000,2:4:90
 f, psd_init, psd_final = recalcDistFunc(Ematrix,PAmatrix,initial,final,f0, Egrid, PAgrid);
 checkDistFunc(f, psd_init, psd_final, initial, final, Egrid, PAgrid)
 # savefig(plot_numLostParticles, string("particleLosses.png"))
 
-animateNewPSD("21000_finitewaves_recalculatedAnimation.gif", Egrid, PAgrid)
+animateNewPSD("21000_animation.gif", Egrid, PAgrid)
 
 plot_numLostParticles = plot(lostParticles[:,1]*Re/(c), lostParticles[:,2], legend=false,
     xlim = [0,maximum(maximum(allT))*Re/(c)], ylim = [0,numParticles],
@@ -60,7 +74,7 @@ animatePSD("63000PSDevolution2.gif", 5, 50, 450)
 
 # makes 
 allPrecip, indexArray = precipitatingParticles(tVec, Ematrix, 10);
-animatePrecipitatingParticles("NewPRECIPanimation.gif", allPrecip, indexArray)
+animatePrecipitatingParticles("21000_precipanimation.gif", allPrecip, indexArray)
 
 
 # function f0(E, alpha)

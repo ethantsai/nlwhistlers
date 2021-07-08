@@ -190,7 +190,7 @@ function palostcondition(H,t,integrator)
     # condition: if particle enters loss cone
     b = sqrt(1+3*sin(H[5])^2)/(cos(H[5])^6);
     γ = sqrt(1 + H[2]^2 + 2*H[4]*b);
-    return  (rad2deg(asin(sqrt((2*H[4])/(γ^2 -1))))) < (lossConeAngle)
+    return (rad2deg(asin(sqrt((2*H[4])/(γ^2 -1))))) < (lossConeAngle)
 end
 
 function ixlostcondition(H,t,integrator)
