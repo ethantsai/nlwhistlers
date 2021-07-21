@@ -1,34 +1,21 @@
-directoryname = "results/420testrun"
+directoryname = "results/63000run2"
 conffile = "setupasrun.conf"
-basename = "ghost_420"
-num_batches = 4
+basename = "63000_2"
+num_batches = 126
 
 include("plotHelpers.jl")
 
 # Load in data
 @time allZ, allPZ, allT, allPA, allE = loadData(directoryname, basename, num_batches);
-# jldsave("example.jld2"; allZ, allPZ, allT, allPA, allE)
-jldsave("4200_nonducted.jld2"; allZ, allPZ, allT, allPA, allE)
-# JLD2.@load "results/63000run/63000run.jld2" allT
-# JLD2.@load "results/63000run/63000run.jld2" allZ
-# JLD2.@load "results/63000run/63000run.jld2" allPZ
-
-JLD2.@load "results/63000run/63000run.jld2" allT
-JLD2.@load "results/63000run/63000run.jld2" allPA
-JLD2.@load "results/63000run/63000run.jld2" allE
- 
-
-
-# @time tVec,  Ematrix, PAmatrix = postProcessor2(allT, allE, allPA);
-
 # Count lost particles
 @time lostParticles = countLostParticles(allT);
-
 @time tVec, Zmatrix, PZmatrix, Ematrix, PAmatrix = postProcessor(allT, allZ, allPZ, allE, allPA);
+# Makes an array of lost particles 
+@time allPrecip, indexArray, allPrecipInitial = precipitatingParticles(tVec, Ematrix, 10);
 
 # define dist function here
 # f0 = ((C::Float64, E::Float64, PA::Float64) -> ((C*(E/70)^-3)*(sin(deg2rad(PA)))))
-f0 = function (C::Float64, E::Float64, PA::Float64)
+f0 = function (C::Float64, E::Float64, PA)
     A = -5.1#6
     B0 = .2
     B1 = .3
@@ -47,9 +34,25 @@ end
 
 initial, final = 1, 200
 Egrid, PAgrid = 0:50:1000,2:4:90
-f, psd_init, psd_final = recalcDistFunc(Ematrix,PAmatrix,initial,final,f0, Egrid, PAgrid);
-checkDistFunc(f, psd_init, psd_final, initial, final, Egrid, PAgrid)
-# savefig(plot_numLostParticles, string("particleLosses.png"))
+
+# for i in in
+# f, psd_init, psd_final = recalcDistFunc(Ematrix,PAmatrix,initial,final,f0, Egrid, PAgrid);
+
+
+
+psd_timeseries = precipitating_PSDs(allPrecip, allPrecipInitial, f0, Egrid, lossConeAngle)
+
+
+
+
+
+
+
+
+
+
+
+
 
 animateNewPSD("21000_animation.gif", Egrid, PAgrid)
 
@@ -75,6 +78,13 @@ animatePSD("63000PSDevolution2.gif", 5, 50, 450)
 # makes 
 allPrecip, indexArray = precipitatingParticles(tVec, Ematrix, 10);
 animatePrecipitatingParticles("21000_precipanimation.gif", allPrecip, indexArray)
+
+
+initial, final = 1, 200
+Egrid, PAgrid = 0:50:1000,2:4:90
+f, psd_init, psd_final = recalcDistFunc(Ematrix,PAmatrix,initial,final,f0, Egrid, PAgrid);
+checkDistFunc(f, psd_init, psd_final, initial, final, Egrid, PAgrid)
+savefig(plot_numLostParticles, string("particleLosses.png"))
 
 
 # function f0(E, alpha)

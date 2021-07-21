@@ -284,6 +284,70 @@ function recalcDistFunc(Ematrix::Array{Float64,2},PAmatrix::Array{Float64,2},ini
     return f, psd_init, psd_final
 end
 
+function precipitating_PSDs(allPrecip, allPrecipInitial, distFunc, Egrid::StepRange{Int64,Int64}, lossConeAngle)
+    #=
+    Takes in a list of the energies particles precipitated at, a matching list of their initial energies,
+    the binning energy grid, the new distribution function, and the loss cone angle in order to recalculate
+    the phase space density of just the precipitating distribution of particles as a timeseries.
+    =#
+    psd_timeseries = Vector{Vector{Float64}}()
+    for i in eachindex(allPrecipInitial)
+        if length(allPrecipInitial[i])<=1
+            push!(psd_timeseries,Float64[])
+            @info "you really need more particles T_T"
+            break
+        end
+        N = length(allPrecipInitial[i]) # num particles
+        f = zeros(N)
+        psd_init = zeros(length(Egrid))
+        psd_final = zeros(length(Egrid))
+        # initialize vectors to be filled in
+        f0Vec = Vector{Float64}();
+        indices = Vector{Int64}();
+        excludedParticles = 0;
+        @info N, length(allPrecip[i])
+
+        for Ei in allPrecip[i]
+            k = 1;
+            while Egrid[k] < Ei; k+=1; end # energy
+            push!(indices, k-1)
+            push!(f0Vec, distFunc(1., Ei, lossConeAngle))
+            f[k-1] += 1;
+        end       
+
+        psdVec = [(f0Vec[i]/f[i]) for i in eachindex(f0Vec)]
+
+        for j in eachindex(allPrecip[i])
+            if ~(allPrecip[i][j]>maximum(Egrid)) # skip loop if data is outside of range
+                k = 1;
+                while Egrid[k] < allPrecipInitial[i][j]; k+=1; end
+                psd_init[k-1] += psdVec[j]
+                k = 1;
+                while Egrid[k] < allPrecip[i][j]; k+=1; @info allPrecip[i][j], Egrid[k]; end
+                psd_final[k-1] += psdVec[j]
+            else
+                excludedParticles += 1;
+            end
+        end
+        @info "Excluded $excludedParticles particles due to out of range."
+        push!(psd_timeseries, psd_final)
+    end
+    return psd_timeseries
+end
+
+function animate_a_thing(thing)
+    pyplot()
+    animDec = 10; # make a png for animation every 10 points
+    animScale = 10; # i.e. animscale = 10 means every 10 seconds in animation is 1 second of simulation time (increase for longer animation)
+    initial, final = 1, 1
+    anim = @animate for i in eachindex(tVec)
+        histogram(thing[i][:,2])
+    end every animDec
+    # savename = string("results/",gifFileName)
+    # gif(anim, savename, fps = (length(tVec)/animDec)/(animScale*endTime*Re*L/(c)))
+    return anim
+end
+
 @userplot MarginalHist
 @recipe function f(h::MarginalHist)
     if length(h.args) != 2 || !(typeof(h.args[1]) <: AbstractVector) ||
@@ -377,6 +441,7 @@ function precipitatingParticles(tVec, Ematrix, timeBin=10)
     # remove all particles that didn't get lost
     Ematrixprime = @views Matrix(Ematrix[:,findall(isnan, Ematrix[indexArray[end-1],:])]) # this is a new matrix that only has particles that have precipitated
 
+    allPrecipInitial = Vector{Vector{Float64}}()
     allPrecip = Vector{Vector{Float64}}()
     for i in indexArray[1:end-1]
         @debug "$(length(Ematrixprime[1,:])) remaining particles" size(Ematrixprime)
@@ -385,6 +450,8 @@ function precipitatingParticles(tVec, Ematrix, timeBin=10)
         @debug "$(length(precipitatingIndices)) particles precipitated by index $i" precipitatingIndices
         # push!(allPrecip,[@views mean(Ematrixprime[:,j][findall(!isnan, Ematrixprime[:,j])]) for j in precipitatingIndices]) # provides mean of time bin
         push!(allPrecip,[Ematrixprime[:,j][last_index_before_nan(Ematrixprime[:,j])] for j in precipitatingIndices]) # provides last energy before precipitating
+        push!(allPrecipInitial,[Ematrixprime[:,j][1] for j in precipitatingIndices]) # provides the initial energy of particle about to precipitate
+
 
         @debug "added stuff" size(Ematrixprime)
         if !isempty(notPrecipitatingIndices)
@@ -394,7 +461,7 @@ function precipitatingParticles(tVec, Ematrix, timeBin=10)
         end
     end
 
-    return allPrecip, indexArray
+    return allPrecip, indexArray, allPrecipInitial
 
 end
 
