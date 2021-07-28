@@ -6,6 +6,9 @@
   2. Once installed, edit path variables.
      -  `JULIA_HOME` variable should be set to `C:\Users\ethan\AppData\Local\Programs\Julia-X.X.X\bin` if default install location
      - `NUMBER_OF_PROCESSORS` should be set to whatever your max number of threads are e.g. `16`
+  3. Install dependencies.
+     - add TickTock, ConfParser, Profile, Dates, Random, StaticArrays, Distributed, OrdinaryDiffEq, JLD2, Plots
+
 
 
 ## For Ubuntu
