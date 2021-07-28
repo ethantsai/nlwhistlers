@@ -31,26 +31,13 @@ f0 = function (C::Float64, E::Float64, PA)
     return ((C*(E/70)^-A)*(sin(deg2rad(PA)))^B)
 end
 
-
-initial, final = 1, 200
 Egrid, PAgrid = 0:50:1000,2:4:90
-
-# for i in in
-# f, psd_init, psd_final = recalcDistFunc(Ematrix,PAmatrix,initial,final,f0, Egrid, PAgrid);
-
+@time f_timeseries, psd_timeseries, psd_prec_timeseries = make_psd_timeseries(Ematrix,PAmatrix,initial,tVec, f0, Egrid, PAgrid);
+@time binned_psd_prec_timeseries = bin_psd_prec_timeseries(psd_prec_timeseries, indexArray);
 
 
-psd_timeseries = precipitating_PSDs(allPrecip, allPrecipInitial, f0, Egrid, lossConeAngle)
-
-
-
-
-
-
-
-
-
-
+animate_a_thing("recalculated_psd.gif", psd_timeseries)
+animate_a_thing("recalculated_psd_prec.gif", binned_psd_prec_timeseries)
 
 
 

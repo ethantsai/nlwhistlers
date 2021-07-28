@@ -237,6 +237,7 @@ function recalcDistFunc(Ematrix::Array{Float64,2},PAmatrix::Array{Float64,2},ini
 
     EPAinitial = @views @. round([Ematrix[initial,:] PAmatrix[initial,:]])
     EPAfinal = @views @. round([Ematrix[final,:] PAmatrix[final,:]])
+    EPAfinal_next = @views @. round([Ematrix[final+1,:] PAmatrix[final+1,:]])
 
     # initialize matrices to be used based on grid size
     f = zeros(length(Egrid), length(PAgrid));
@@ -245,13 +246,21 @@ function recalcDistFunc(Ematrix::Array{Float64,2},PAmatrix::Array{Float64,2},ini
     # initialize vectors to be filled in
     f0Vec = Vector{Float64}();
     indices = Vector{Tuple{Int64,Int64}}();
+    psd_prec = zeros(length(Egrid));
     excludedParticles = 0;
     
     ### HANDLE NANS HERE ###
     # diff = @. abs(EPAinitial - EPAfinal)
     valid_rows = @. ~isnan(EPAfinal)[:,1] & ~isnan(EPAfinal[:,2]); # non-lost particles from final state
+    valid_rows_next = @. ~isnan(EPAfinal_next)[:,1] & ~isnan(EPAfinal_next[:,2]); # non-lost particles from state at next timestep
+    # if valid_rows!=valid_rows_next # this means that at least one of the particles will precipitate
+        prec_rows = valid_rows .!= valid_rows_next # these are the indices of particles who are about to precipitate
+        prec_indices = (ones(N).*vec(prec_rows))[vec(valid_rows)]
+        @info "$(length(ones(N)[prec_rows])) particles are about to precipitate"
+    # end
     EPAinitial = EPAinitial[vec(valid_rows), :]; # new vec with no NaNs
     EPAfinal = EPAfinal[vec(valid_rows), :]; # new vec with no NaNs
+    
     lostParticles = length(valid_rows) - length(EPAfinal[:,1]);
     @info "$lostParticles particles lost at index $final."
 
@@ -264,9 +273,9 @@ function recalcDistFunc(Ematrix::Array{Float64,2},PAmatrix::Array{Float64,2},ini
         f[k-1,l-1] += 1;
     end
 
-    psdVec = [(f0Vec[i]/f[indices[i][1],indices[i][2]]) for i in 1:length(f0Vec[:,1])]
+    psdVec = [(f0Vec[i]/f[indices[i][1],indices[i][2]]) for i in eachindex(f0Vec[:,1])]
 
-    for i in 1:length(EPAinitial[:,1])
+    for i in eachindex(EPAinitial[:,1]) # i iterates over each particle
         if ~(EPAfinal[i,1]>maximum(Egrid) || EPAfinal[i,2]>maximum(PAgrid)) # skip loop if data is outside of range
             k,l = 1, 1;
             while Egrid[k] < EPAinitial[i,1]; k+=1; end
@@ -276,75 +285,128 @@ function recalcDistFunc(Ematrix::Array{Float64,2},PAmatrix::Array{Float64,2},ini
             while Egrid[k] < EPAfinal[i,1]; k+=1; end
             while PAgrid[l] < EPAfinal[i,2]; l+=1; end
             psd_final[k-1,l-1] += psdVec[i]
+
+            # handle precipitaitng particles here
+            if prec_indices[i] == 1.0
+                psd_prec[k-1] += psdVec[i]
+            end
         else
             excludedParticles += 1;
         end
     end
     @info "Excluded $excludedParticles particles due to out of range."
-    return f, psd_init, psd_final
+
+    return f, psd_init, psd_final, psd_prec
 end
 
-function precipitating_PSDs(allPrecip, allPrecipInitial, distFunc, Egrid::StepRange{Int64,Int64}, lossConeAngle)
-    #=
-    Takes in a list of the energies particles precipitated at, a matching list of their initial energies,
-    the binning energy grid, the new distribution function, and the loss cone angle in order to recalculate
-    the phase space density of just the precipitating distribution of particles as a timeseries.
-    =#
-    psd_timeseries = Vector{Vector{Float64}}()
-    for i in eachindex(allPrecipInitial)
-        if length(allPrecipInitial[i])<=1
-            push!(psd_timeseries,Float64[])
-            @info "you really need more particles T_T"
-            break
-        end
-        N = length(allPrecipInitial[i]) # num particles
-        f = zeros(N)
-        psd_init = zeros(length(Egrid))
-        psd_final = zeros(length(Egrid))
-        # initialize vectors to be filled in
-        f0Vec = Vector{Float64}();
-        indices = Vector{Int64}();
-        excludedParticles = 0;
-        @info N, length(allPrecip[i])
-
-        for Ei in allPrecip[i]
-            k = 1;
-            while Egrid[k] < Ei; k+=1; end # energy
-            push!(indices, k-1)
-            push!(f0Vec, distFunc(1., Ei, lossConeAngle))
-            f[k-1] += 1;
-        end       
-
-        psdVec = [(f0Vec[i]/f[i]) for i in eachindex(f0Vec)]
-
-        for j in eachindex(allPrecip[i])
-            if ~(allPrecip[i][j]>maximum(Egrid)) # skip loop if data is outside of range
-                k = 1;
-                while Egrid[k] < allPrecipInitial[i][j]; k+=1; end
-                psd_init[k-1] += psdVec[j]
-                k = 1;
-                while Egrid[k] < allPrecip[i][j]; k+=1; @info allPrecip[i][j], Egrid[k]; end
-                psd_final[k-1] += psdVec[j]
-            else
-                excludedParticles += 1;
-            end
-        end
-        @info "Excluded $excludedParticles particles due to out of range."
+function make_psd_timeseries(Ematrix,PAmatrix,initial,tVec, dist_func, Egrid, PAgrid)
+    psd_timeseries = Vector{Matrix{Float64}}()
+    f_timeseries = copy(psd_timeseries)
+    psd_prec_timeseries = Vector{Vector{Float64}}()
+    @inbounds for time_index in eachindex(tVec[1:end-1])
+        f, _, psd_final, psd_prec = recalcDistFunc(Ematrix, PAmatrix, initial, time_index, dist_func, Egrid, PAgrid);
+        push!(f_timeseries, f)
         push!(psd_timeseries, psd_final)
+        push!(psd_prec_timeseries, psd_prec)
     end
-    return psd_timeseries
+    return f_timeseries, psd_timeseries, psd_prec_timeseries
 end
 
-function animate_a_thing(thing)
+function bin_psd_prec_timeseries(psd_prec_timeseries, indexArray)
+    binned_psd_prec_timeseries = Vector{Vector{Float64}}()
+    index = 1
+
+    for time_bin_index in indexArray
+        binned_psd = zeros(length(psd_prec_timeseries[1]))
+        while index <= time_bin_index
+            binned_psd += psd_prec_timeseries[index]
+            index += 1
+        end
+        push!(binned_psd_prec_timeseries, binned_psd)
+    end
+    return binned_psd_prec_timeseries
+end
+
+# function precipitating_PSDs(allPrecip, allPrecipInitial, distFunc, Egrid::StepRange{Int64,Int64}, lossConeAngle, f)
+#     #=
+#     Takes in a list of the energies particles precipitated at, a matching list of their initial energies,
+#     the binning energy grid, the new distribution function, and the loss cone angle in order to recalculate
+#     the phase space density of just the precipitating distribution of particles as a timeseries.
+#     =#
+#     psd_timeseries = Vector{Vector{Float64}}()
+#     for i in eachindex(allPrecipInitial)
+#         if length(allPrecipInitial[i])<=1
+#             push!(psd_timeseries,Float64[])
+#             @info "you really need more particles T_T"
+#             break
+#         end
+#         N = length(allPrecipInitial[i]) # num particles
+#         f = zeros(N)
+#         psd_init = zeros(length(Egrid))
+#         psd_final = zeros(length(Egrid))
+#         # initialize vectors to be filled in
+#         f0Vec = Vector{Float64}();
+#         indices = Vector{Int64}();
+#         excludedParticles = 0;
+#         @info N, length(allPrecip[i])
+
+#         for Ei in allPrecip[i]
+#             k = 1;
+#             while Egrid[k] < Ei; k+=1; end # energy
+#             push!(indices, k-1)
+#             push!(f0Vec, distFunc(1., Ei, lossConeAngle))
+#             f[k-1] += 1;
+#         end       
+
+#         psdVec = [(f0Vec[i]/f[i]) for i in eachindex(f0Vec)]
+
+#         for j in eachindex(allPrecip[i])
+#             if ~(allPrecip[i][j]>maximum(Egrid)) # skip loop if data is outside of range
+#                 k = 1;
+#                 while Egrid[k] < allPrecipInitial[i][j]; k+=1; end
+#                 psd_init[k-1] += psdVec[j]
+#                 k = 1;
+#                 while Egrid[k] < allPrecip[i][j]; k+=1; @info allPrecip[i][j], Egrid[k]; end
+#                 psd_final[k-1] += psdVec[j]
+#             else
+#                 excludedParticles += 1;
+#             end
+#         end
+#         @info "Excluded $excludedParticles particles due to out of range."
+#         push!(psd_timeseries, psd_final)
+#     end
+#     return psd_timeseries
+# end
+
+function animate_a_thing(gifFileName::String, thing::Vector{Matrix{Float64}})
     pyplot()
     animDec = 10; # make a png for animation every 10 points
-    animScale = 10; # i.e. animscale = 10 means every 10 seconds in animation is 1 second of simulation time (increase for longer animation)
+    animScale = 1; # i.e. animscale = 10 means every 10 seconds in animation is 1 second of simulation time (increase for longer animation)
     initial, final = 1, 1
-    anim = @animate for i in eachindex(tVec)
-        histogram(thing[i][:,2])
+    anim = @animate for i in eachindex(thing)
+        heatmap(PAgrid, Egrid, log10.(thing[i]), fc = :plasma, colorbar = false, 
+            xlabel="Pitch Angle (deg)",ylabel="Energy (keV)", title = "Recalculated PSD at t = $(round(tVec[i]*Re*L/(c),digits=2)) s")
     end every animDec
-    # savename = string("results/",gifFileName)
-    # gif(anim, savename, fps = (length(tVec)/animDec)/(animScale*endTime*Re*L/(c)))
+    savename = string("results/",gifFileName)
+    gif(anim, savename, fps = (length(tVec)/animDec)/(animScale*endTime*Re*L/(c)))
+    return anim
+end
+
+function animate_a_thing(gifFileName::String, thing::Vector{Vector{Float64}})
+    pyplot()
+    animDec = 1; # make a png for animation every 10 points
+    animScale = 50; # i.e. animscale = 10 means every 10 seconds in animation is 1 second of simulation time (increase for longer animation)
+    maxEnergy=1000
+    maxPSD = 1e5
+    anim = @animate for i in eachindex(thing[1:end-1])
+        plot(Egrid, thing[1:end-1], color = :gray, alpha = .5);
+        plot!(Egrid,thing[i], color = :orange);
+        plot!(ylim =(1,maxPSD), xlim=(20,maxEnergy), yscale=:log10, xscale=:log10, legend=false);
+        plot!(xlabel="Energy (keV)", ylabel="PSD", title="Energy Spectra of Precipitating Particles");
+        annotate!(40, 0.1*maxPSD, text("t = $(round(tVec[indexArray[i]]*Re*L/(c),digits=3)) s"), :left)
+    end every animDec
+    savename = string("results/",gifFileName)
+    gif(anim, savename, fps = (length(tVec)/animDec)/(animScale*endTime*Re*L/(c)))
     return anim
 end
 
@@ -440,6 +502,10 @@ function precipitatingParticles(tVec, Ematrix, timeBin=10)
     if length(tVec)!=indexArray[end] push!(indexArray, length(tVec)-1) end #guarantee last index corresponds with proper end
     # remove all particles that didn't get lost
     Ematrixprime = @views Matrix(Ematrix[:,findall(isnan, Ematrix[indexArray[end-1],:])]) # this is a new matrix that only has particles that have precipitated
+    # replace last value with second to last value to prevent off by one problems
+    if indexArray[end] == length(tVec)
+        indexArray[end] = indexArray[end]-1
+    end
 
     allPrecipInitial = Vector{Vector{Float64}}()
     allPrecip = Vector{Vector{Float64}}()
