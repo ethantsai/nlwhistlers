@@ -175,7 +175,6 @@ function postProcessor2(allT::Vector{Vector{Float64}},
     return tVec, Ematrix, PAmatrix
 end
 
-
 function animatePAD(gifFileName="PADanimation.gif", maxParticles=1000, binwidth=5)
     pyplot()
     animDec = 10; # make a png for animation every 10 points
@@ -299,12 +298,12 @@ function recalcDistFunc(Ematrix::Array{Float64,2},PAmatrix::Array{Float64,2},ini
     return f, psd_init, psd_final, psd_prec
 end
 
-function make_psd_timeseries(Ematrix,PAmatrix,initial,tVec, dist_func, Egrid, PAgrid)
+function make_psd_timeseries(Ematrix,PAmatrix,tVec, dist_func, Egrid, PAgrid)
     psd_timeseries = Vector{Matrix{Float64}}()
     f_timeseries = copy(psd_timeseries)
     psd_prec_timeseries = Vector{Vector{Float64}}()
     @inbounds for time_index in eachindex(tVec[1:end-1])
-        f, _, psd_final, psd_prec = recalcDistFunc(Ematrix, PAmatrix, initial, time_index, dist_func, Egrid, PAgrid);
+        f, _, psd_final, psd_prec = recalcDistFunc(Ematrix, PAmatrix, 1, time_index, dist_func, Egrid, PAgrid);
         push!(f_timeseries, f)
         push!(psd_timeseries, psd_final)
         push!(psd_prec_timeseries, psd_prec)
@@ -313,13 +312,14 @@ function make_psd_timeseries(Ematrix,PAmatrix,initial,tVec, dist_func, Egrid, PA
 end
 
 function bin_psd_prec_timeseries(psd_prec_timeseries, indexArray)
-    binned_psd_prec_timeseries = Vector{Vector{Float64}}()
-    index = 1
-
+    binned_psd_prec_timeseries = Vector{Vector{Float64}}() 
+    index = 0
+    # loop through each time bin
     for time_bin_index in indexArray
         binned_psd = zeros(length(psd_prec_timeseries[1]))
-        while index <= time_bin_index
-            binned_psd += psd_prec_timeseries[index]
+        index += 1
+        while index < time_bin_index # at every index, add in the 
+            @. binned_psd += psd_prec_timeseries[index]
             index += 1
         end
         push!(binned_psd_prec_timeseries, binned_psd)

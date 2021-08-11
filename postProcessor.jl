@@ -1,6 +1,6 @@
-directoryname = "results/63000run2"
+directoryname = "results/jld2_210804_21"
 conffile = "setupasrun.conf"
-basename = "63000_2"
+basename = "ghost_63000"
 num_batches = 126
 
 include("plotHelpers.jl")
@@ -32,12 +32,11 @@ f0 = function (C::Float64, E::Float64, PA)
 end
 
 Egrid, PAgrid = 0:50:1000,2:4:90
-@time f_timeseries, psd_timeseries, psd_prec_timeseries = make_psd_timeseries(Ematrix,PAmatrix,initial,tVec, f0, Egrid, PAgrid);
+@time f_timeseries, psd_timeseries, psd_prec_timeseries = make_psd_timeseries(Ematrix,PAmatrix,tVec, f0, Egrid, PAgrid);
 @time binned_psd_prec_timeseries = bin_psd_prec_timeseries(psd_prec_timeseries, indexArray);
 
-
-animate_a_thing("recalculated_psd.gif", psd_timeseries)
-animate_a_thing("recalculated_psd_prec.gif", binned_psd_prec_timeseries)
+animate_a_thing("recalculated_psd_merp.gif", psd_timeseries)
+animate_a_thing("recalculated_psd_prec_merp.gif", binned_psd_prec_timeseries)
 
 
 
