@@ -11,12 +11,12 @@ include("plotHelpers.jl")
 @time lostParticles = countLostParticles(allT);
 @time tVec, Zmatrix, PZmatrix, Ematrix, PAmatrix = postProcessor(allT, allZ, allPZ, allE, allPA);
 # Makes an array of lost particles 
-@time allPrecip, indexArray, allPrecipInitial = precipitatingParticles(tVec, Ematrix, 10);
+@time allPrecip, indexArray, allPrecipInitial = precipitatingParticles(tVec, Ematrix, 30);
 
 # define dist function here
-# f0 = ((C::Float64, E::Float64, PA::Float64) -> ((C*(E/70)^-3)*(sin(deg2rad(PA)))))
+f0 = ((C::Float64, E::Float64, PA::Float64) -> ((C*(E/70)^-3)*(sin(deg2rad(PA)))))
 f0 = function (C::Float64, E::Float64, PA)
-    A = -5.1#6
+    A = 5.1#6
     B0 = .2
     B1 = .3
     E0 = 300
@@ -31,12 +31,12 @@ f0 = function (C::Float64, E::Float64, PA)
     return ((C*(E/70)^-A)*(sin(deg2rad(PA)))^B)
 end
 
-Egrid, PAgrid = 0:50:1000,2:4:90
+Egrid, PAgrid = logrange(10,1000,11), 2:4:90
 @time f_timeseries, psd_timeseries, psd_prec_timeseries = make_psd_timeseries(Ematrix,PAmatrix,tVec, f0, Egrid, PAgrid);
 @time binned_psd_prec_timeseries = bin_psd_prec_timeseries(psd_prec_timeseries, indexArray);
 
-animate_a_thing("recalculated_psd_merp.gif", psd_timeseries)
-animate_a_thing("recalculated_psd_prec_merp.gif", binned_psd_prec_timeseries)
+animate_a_thing("recalculated_psd_merp3.gif", psd_timeseries)
+animate_a_thing("recalculated_psd_prec_merp3.gif", binned_psd_prec_timeseries)
 
 
 
@@ -63,11 +63,12 @@ animatePSD("63000PSDevolution2.gif", 5, 50, 450)
 
 # makes 
 allPrecip, indexArray = precipitatingParticles(tVec, Ematrix, 10);
-animatePrecipitatingParticles("21000_precipanimation.gif", allPrecip, indexArray)
+animatePrecipitatingParticles("test_precipanimation.gif", allPrecip, indexArray)
 
 
 initial, final = 1, 200
-Egrid, PAgrid = 0:50:1000,2:4:90
+Egrid = logrange(10,1000,21)
+PAgrid = 0:50:1000,2:4:90
 f, psd_init, psd_final = recalcDistFunc(Ematrix,PAmatrix,initial,final,f0, Egrid, PAgrid);
 checkDistFunc(f, psd_init, psd_final, initial, final, Egrid, PAgrid)
 savefig(plot_numLostParticles, string("particleLosses.png"))

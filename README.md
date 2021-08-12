@@ -30,7 +30,7 @@ sudo cp -r julia-X.X.X /usr/lib/
   4. create a symlink in `/usr/local/bin`
 
 ```
-sudo ln -s /usr/lib/julia-1.6.0/bin/julia /usr/local/bin/julia
+sudo ln -s /usr/lib/julia-X.X.X/bin/julia /usr/local/bin/julia
 ```
 
   5. Ensure `bashrc` has the num_threads variable set correctly. I.e. `export JULIA_NUM_THREADS=16`

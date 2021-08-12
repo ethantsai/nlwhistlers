@@ -225,7 +225,7 @@ function animatePSD(gifFileName="PSDanimation.gif", PAbinwidth=3, Ebinwidth=100,
 end
             
 function recalcDistFunc(Ematrix::Array{Float64,2},PAmatrix::Array{Float64,2},initial::Int64,final::Int64,distFunc,
-    Egrid::StepRange{Int64,Int64}, PAgrid::StepRange{Int64,Int64})
+    Egrid::Vector{Float64}, PAgrid::StepRange{Int64,Int64})
     #=
     Takes in matrix of Energy and PA, initial and final indices, and grid values as stepranges.
     Recalculates out a new PSD given a a distribution function at the initial and final indices.
@@ -327,57 +327,6 @@ function bin_psd_prec_timeseries(psd_prec_timeseries, indexArray)
     return binned_psd_prec_timeseries
 end
 
-# function precipitating_PSDs(allPrecip, allPrecipInitial, distFunc, Egrid::StepRange{Int64,Int64}, lossConeAngle, f)
-#     #=
-#     Takes in a list of the energies particles precipitated at, a matching list of their initial energies,
-#     the binning energy grid, the new distribution function, and the loss cone angle in order to recalculate
-#     the phase space density of just the precipitating distribution of particles as a timeseries.
-#     =#
-#     psd_timeseries = Vector{Vector{Float64}}()
-#     for i in eachindex(allPrecipInitial)
-#         if length(allPrecipInitial[i])<=1
-#             push!(psd_timeseries,Float64[])
-#             @info "you really need more particles T_T"
-#             break
-#         end
-#         N = length(allPrecipInitial[i]) # num particles
-#         f = zeros(N)
-#         psd_init = zeros(length(Egrid))
-#         psd_final = zeros(length(Egrid))
-#         # initialize vectors to be filled in
-#         f0Vec = Vector{Float64}();
-#         indices = Vector{Int64}();
-#         excludedParticles = 0;
-#         @info N, length(allPrecip[i])
-
-#         for Ei in allPrecip[i]
-#             k = 1;
-#             while Egrid[k] < Ei; k+=1; end # energy
-#             push!(indices, k-1)
-#             push!(f0Vec, distFunc(1., Ei, lossConeAngle))
-#             f[k-1] += 1;
-#         end       
-
-#         psdVec = [(f0Vec[i]/f[i]) for i in eachindex(f0Vec)]
-
-#         for j in eachindex(allPrecip[i])
-#             if ~(allPrecip[i][j]>maximum(Egrid)) # skip loop if data is outside of range
-#                 k = 1;
-#                 while Egrid[k] < allPrecipInitial[i][j]; k+=1; end
-#                 psd_init[k-1] += psdVec[j]
-#                 k = 1;
-#                 while Egrid[k] < allPrecip[i][j]; k+=1; @info allPrecip[i][j], Egrid[k]; end
-#                 psd_final[k-1] += psdVec[j]
-#             else
-#                 excludedParticles += 1;
-#             end
-#         end
-#         @info "Excluded $excludedParticles particles due to out of range."
-#         push!(psd_timeseries, psd_final)
-#     end
-#     return psd_timeseries
-# end
-
 function animate_a_thing(gifFileName::String, thing::Vector{Matrix{Float64}})
     pyplot()
     animDec = 10; # make a png for animation every 10 points
@@ -397,11 +346,10 @@ function animate_a_thing(gifFileName::String, thing::Vector{Vector{Float64}})
     animDec = 1; # make a png for animation every 10 points
     animScale = 50; # i.e. animscale = 10 means every 10 seconds in animation is 1 second of simulation time (increase for longer animation)
     maxEnergy=1000
-    maxPSD = 1e5
     anim = @animate for i in eachindex(thing[1:end-1])
         plot(Egrid, thing[1:end-1], color = :gray, alpha = .5);
         plot!(Egrid,thing[i], color = :orange);
-        plot!(ylim =(1,maxPSD), xlim=(20,maxEnergy), yscale=:log10, xscale=:log10, legend=false);
+        plot!(ylim =(10e-10,10), xlim=(20,maxEnergy), yscale=:log10, xscale=:log10, legend=false);
         plot!(xlabel="Energy (keV)", ylabel="PSD", title="Energy Spectra of Precipitating Particles");
         annotate!(40, 0.1*maxPSD, text("t = $(round(tVec[indexArray[i]]*Re*L/(c),digits=3)) s"), :left)
     end every animDec
@@ -531,6 +479,8 @@ function precipitatingParticles(tVec, Ematrix, timeBin=10)
 
 end
 
+
+
 function animatePrecipitatingParticles(gifFileName, allPrecip, indexArray, maxFraction=0.004, maxEnergy=1000)
     animDec = 1; # make a png for animation every 10 points
     animScale = 50; # i.e. animscale = 10 means every 10 seconds in animation is 1 second of simulation time (increase for longer animation)
@@ -606,7 +556,6 @@ function last_index_before_nan(x::Vector{Float64})
     return
  end
 
- logrange(x1, x2, n) = (10^y for y in range(log10(x1), log10(x2), length=n))
 
 # df = DataFrame([allPrecip], :auto)
 # CSV.write("for_james.csv",df)
