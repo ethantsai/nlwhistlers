@@ -284,11 +284,10 @@ function recalcDistFunc(Ematrix::Array{Float64,2},PAmatrix::Array{Float64,2},ini
             while Egrid[k] < EPAfinal[i,1]; k+=1; end
             while PAgrid[l] < EPAfinal[i,2]; l+=1; end
             psd_final[k-1,l-1] += psdVec[i]
-
-            # handle precipitaitng particles here
-            if prec_indices[i] == 1.0
-                psd_prec[k-1] += psdVec[i]
+            if prec_indices[i] == 1.0;  # handle precipitaitng particles here
+                psd_prec[k-1] += psdVec[i];
             end
+
         else
             excludedParticles += 1;
         end
@@ -322,61 +321,10 @@ function bin_psd_prec_timeseries(psd_prec_timeseries, indexArray)
             @. binned_psd += psd_prec_timeseries[index]
             index += 1
         end
-        push!(binned_psd_prec_timeseries, binned_psd)
+        push!(binned_psd_prec_timeseries, binned_psd) 
     end
     return binned_psd_prec_timeseries
 end
-
-# function precipitating_PSDs(allPrecip, allPrecipInitial, distFunc, Egrid::StepRange{Int64,Int64}, lossConeAngle, f)
-#     #=
-#     Takes in a list of the energies particles precipitated at, a matching list of their initial energies,
-#     the binning energy grid, the new distribution function, and the loss cone angle in order to recalculate
-#     the phase space density of just the precipitating distribution of particles as a timeseries.
-#     =#
-#     psd_timeseries = Vector{Vector{Float64}}()
-#     for i in eachindex(allPrecipInitial)
-#         if length(allPrecipInitial[i])<=1
-#             push!(psd_timeseries,Float64[])
-#             @info "you really need more particles T_T"
-#             break
-#         end
-#         N = length(allPrecipInitial[i]) # num particles
-#         f = zeros(N)
-#         psd_init = zeros(length(Egrid))
-#         psd_final = zeros(length(Egrid))
-#         # initialize vectors to be filled in
-#         f0Vec = Vector{Float64}();
-#         indices = Vector{Int64}();
-#         excludedParticles = 0;
-#         @info N, length(allPrecip[i])
-
-#         for Ei in allPrecip[i]
-#             k = 1;
-#             while Egrid[k] < Ei; k+=1; end # energy
-#             push!(indices, k-1)
-#             push!(f0Vec, distFunc(1., Ei, lossConeAngle))
-#             f[k-1] += 1;
-#         end       
-
-#         psdVec = [(f0Vec[i]/f[i]) for i in eachindex(f0Vec)]
-
-#         for j in eachindex(allPrecip[i])
-#             if ~(allPrecip[i][j]>maximum(Egrid)) # skip loop if data is outside of range
-#                 k = 1;
-#                 while Egrid[k] < allPrecipInitial[i][j]; k+=1; end
-#                 psd_init[k-1] += psdVec[j]
-#                 k = 1;
-#                 while Egrid[k] < allPrecip[i][j]; k+=1; @info allPrecip[i][j], Egrid[k]; end
-#                 psd_final[k-1] += psdVec[j]
-#             else
-#                 excludedParticles += 1;
-#             end
-#         end
-#         @info "Excluded $excludedParticles particles due to out of range."
-#         push!(psd_timeseries, psd_final)
-#     end
-#     return psd_timeseries
-# end
 
 function animate_a_thing(gifFileName::String, thing::Vector{Matrix{Float64}})
     pyplot()
@@ -493,6 +441,17 @@ function animateNewPSD(gifFileName, Egrid::StepRange{Int64,Int64}, PAgrid::StepR
     gif(anim, savename, fps = (length(tVec)/animDec)/(animScale*endTime*Re*L/(c)))
 end
 
+function get_Nloss_Ntotal_per_Energy(tVec, Ematrix)
+    # get Nloss and Ntotal for each energy at each timestep 
+    # should return a length(tVec) long vector of vectors, each w/ dimension length(Egrid)
+    for index in eachindex(tVec)
+        Ematrix()
+        #wip
+    end
+end
+
+
+
 function precipitatingParticles(tVec, Ematrix, timeBin=10)
     unitSimTime = mean(diff(tVec[begin:end-1]));
     simTimeBin = convert(Int64, round(timeBin/unitSimTime, digits=0))
@@ -607,6 +566,20 @@ function last_index_before_nan(x::Vector{Float64})
  end
 
  logrange(x1, x2, n) = (10^y for y in range(log10(x1), log10(x2), length=n))
+
+
+
+function find_lost_particles(row1::Vector{Float64}, row2::Vector{Float64})
+    # compares two rows and returns the index of all particles from row 1 that will be lost in row 2
+    
+    # valid_rows = @. ~isnan(EPAfinal)[:,1] & ~isnan(EPAfinal[:,2]); # non-lost particles from final state
+    # valid_rows_next = @. ~isnan(EPAfinal_next)[:,1] & ~isnan(EPAfinal_next[:,2]); # non-lost particles from state at next timestep
+    # # if valid_rows!=valid_rows_next # this means that at least one of the particles will precipitate
+    # prec_rows = valid_rows .!= valid_rows_next # these are the indices of particles who are about to precipitate
+    # prec_indices = (ones(N).*vec(prec_rows))[vec(valid_rows)]
+    # @info "$(length(ones(N)[prec_rows])) particles are about to precipitate"
+
+end
 
 # df = DataFrame([allPrecip], :auto)
 # CSV.write("for_james.csv",df)
