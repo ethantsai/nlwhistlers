@@ -225,7 +225,7 @@ function animatePSD(gifFileName="PSDanimation.gif", PAbinwidth=3, Ebinwidth=100,
 end
             
 function recalcDistFunc(Ematrix::Array{Float64,2},PAmatrix::Array{Float64,2},initial::Int64,final::Int64,distFunc,
-    Egrid::StepRange{Int64,Int64}, PAgrid::StepRange{Int64,Int64})
+    Egrid::Vector{Float64}, PAgrid::StepRange{Int64,Int64})
     #=
     Takes in matrix of Energy and PA, initial and final indices, and grid values as stepranges.
     Recalculates out a new PSD given a a distribution function at the initial and final indices.
@@ -345,11 +345,10 @@ function animate_a_thing(gifFileName::String, thing::Vector{Vector{Float64}})
     animDec = 1; # make a png for animation every 10 points
     animScale = 50; # i.e. animscale = 10 means every 10 seconds in animation is 1 second of simulation time (increase for longer animation)
     maxEnergy=1000
-    maxPSD = 1e5
     anim = @animate for i in eachindex(thing[1:end-1])
         plot(Egrid, thing[1:end-1], color = :gray, alpha = .5);
         plot!(Egrid,thing[i], color = :orange);
-        plot!(ylim =(1,maxPSD), xlim=(20,maxEnergy), yscale=:log10, xscale=:log10, legend=false);
+        plot!(ylim =(10e-10,10), xlim=(20,maxEnergy), yscale=:log10, xscale=:log10, legend=false);
         plot!(xlabel="Energy (keV)", ylabel="PSD", title="Energy Spectra of Precipitating Particles");
         annotate!(40, 0.1*maxPSD, text("t = $(round(tVec[indexArray[i]]*Re*L/(c),digits=3)) s"), :left)
     end every animDec
@@ -490,6 +489,8 @@ function precipitatingParticles(tVec, Ematrix, timeBin=10)
 
 end
 
+
+
 function animatePrecipitatingParticles(gifFileName, allPrecip, indexArray, maxFraction=0.004, maxEnergy=1000)
     animDec = 1; # make a png for animation every 10 points
     animScale = 50; # i.e. animscale = 10 means every 10 seconds in animation is 1 second of simulation time (increase for longer animation)
@@ -565,7 +566,6 @@ function last_index_before_nan(x::Vector{Float64})
     return
  end
 
- logrange(x1, x2, n) = (10^y for y in range(log10(x1), log10(x2), length=n))
 
 
 
