@@ -350,7 +350,7 @@ function animate_a_thing(gifFileName::String, thing::Vector{Vector{Float64}})
         plot!(Egrid,thing[i], color = :orange);
         plot!(ylim =(10e-10,10), xlim=(20,maxEnergy), yscale=:log10, xscale=:log10, legend=false);
         plot!(xlabel="Energy (keV)", ylabel="PSD", title="Energy Spectra of Precipitating Particles");
-        annotate!(40, 0.1*maxPSD, text("t = $(round(tVec[indexArray[i]]*Re*L/(c),digits=3)) s"), :left)
+        annotate!(40, 0.1*10, text("t = $(round(tVec[indexArray[i]]*Re*L/(c),digits=3)) s"), :left)
     end every animDec
     savename = string("results/",gifFileName)
     gif(anim, savename, fps = (length(tVec)/animDec)/(animScale*endTime*Re*L/(c)))
@@ -580,6 +580,10 @@ function find_lost_particles(row1::Vector{Float64}, row2::Vector{Float64})
     # @info "$(length(ones(N)[prec_rows])) particles are about to precipitate"
 
 end
+
+
+# Useful helpers
+logrange(x1, x2, n::Int64) = [10^y for y in range(log10(x1), log10(x2), length=n)]
 
 # df = DataFrame([allPrecip], :auto)
 # CSV.write("for_james.csv",df)

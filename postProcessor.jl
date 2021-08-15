@@ -1,4 +1,4 @@
-directoryname = "results/jld2_210804_21"
+directoryname = "results/jld2_210813_09"
 conffile = "setupasrun.conf"
 basename = "ghost_63000"
 num_batches = 126
