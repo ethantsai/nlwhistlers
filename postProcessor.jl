@@ -1,4 +1,4 @@
-directoryname = "results/jld2_210813_09"
+directoryname = "results/jld2_210804_21"
 conffile = "setupasrun.conf"
 basename = "ghost_63000"
 num_batches = 126
@@ -9,12 +9,13 @@ include("plotHelpers.jl")
 @time allZ, allPZ, allT, allPA, allE = loadData(directoryname, basename, num_batches);
 # Count lost particles
 @time lostParticles = countLostParticles(allT);
+# Convert into a workable matrix
 @time tVec, Zmatrix, PZmatrix, Ematrix, PAmatrix = postProcessor(allT, allZ, allPZ, allE, allPA);
 # Makes an array of lost particles 
-@time allPrecip, indexArray, allPrecipInitial = precipitatingParticles(tVec, Ematrix, 30);
+@time allPrecip, indexArray, allPrecipInitial = precipitatingParticles(tVec, Ematrix, 20);
 
 # define dist function here
-f0 = ((C::Float64, E::Float64, PA::Float64) -> ((C*(E/70)^-3)*(sin(deg2rad(PA)))))
+# f0 = ((C::Float64, E::Float64, PA::Float64) -> ((C*(E/70)^-3)*(sin(deg2rad(PA)))))
 f0 = function (C::Float64, E::Float64, PA)
     A = 5.1#6
     B0 = .2
@@ -35,8 +36,8 @@ Egrid, PAgrid = logrange(10,1000,11), 2:4:90
 @time f_timeseries, psd_timeseries, psd_prec_timeseries = make_psd_timeseries(Ematrix,PAmatrix,tVec, f0, Egrid, PAgrid);
 @time binned_psd_prec_timeseries = bin_psd_prec_timeseries(psd_prec_timeseries, indexArray);
 
-animate_a_thing("recalculated_psd_merp3.gif", psd_timeseries)
-animate_a_thing("recalculated_psd_prec_merp3.gif", binned_psd_prec_timeseries)
+animate_a_thing("recalculated_psd4.gif", psd_timeseries)
+animate_a_thing("recalculated_psd_prec4.gif", binned_psd_prec_timeseries)
 
 
 
@@ -68,7 +69,7 @@ animatePrecipitatingParticles("test_precipanimation.gif", allPrecip, indexArray)
 
 initial, final = 1, 200
 Egrid = logrange(10,1000,21)
-PAgrid = 0:50:1000,2:4:90
+PAgrid = 2:4:90
 f, psd_init, psd_final = recalcDistFunc(Ematrix,PAmatrix,initial,final,f0, Egrid, PAgrid);
 checkDistFunc(f, psd_init, psd_final, initial, final, Egrid, PAgrid)
 savefig(plot_numLostParticles, string("particleLosses.png"))

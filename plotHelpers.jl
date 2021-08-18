@@ -146,35 +146,6 @@ function postProcessor(allT::Vector{Vector{Float64}}, allZ::Vector{Vector{Float6
     return tVec, Zmatrix, PZmatrix, Ematrix, PAmatrix
 end
 
-function postProcessor2(allT::Vector{Vector{Float64}},
-                        # allZ::Vector{Vector{Float64}},
-                        # allPZ::Vector{Vector{Float64}},
-                        allE::Vector{Vector{Float64}},
-                        allPA::Vector{Vector{Float64}}
-                        )
-    #=
-    This function will take the output of the model and convert them into usable m x n matrices
-    where m is max number of timesteps for the longest trajectory and N is number of particles
-    Arrays that are not m long are filled with NaNs
-    =#
-    N = length(allT); # num particles from data
-    tVec = allT[findall(i->i==maximum(length.(allT)),length.(allT))[1]]; # turns all time vectors into a single time vector spanning over the longest trajectory
-    timeseriesLength = length(tVec); # all vectors must be this tall to ride
-    Zmatrix = fill(NaN,timeseriesLength,N); 
-    PZmatrix = fill(NaN,timeseriesLength,N); 
-    Ematrix = fill(NaN,timeseriesLength,N); 
-    PAmatrix = fill(NaN,timeseriesLength,N); 
-    # iterate over each matrix column and fill with each vector
-    for i = 1:N
-        # @views Zmatrix[1:length(allT[i]),i] = allZ[i]
-        # @views PZmatrix[1:length(allT[i]),i] = allPZ[i]
-        @views Ematrix[1:length(allT[i]),i] = allE[i]
-        @views PAmatrix[1:length(allT[i]),i] = allPA[i]
-    end
-
-    return tVec, Ematrix, PAmatrix
-end
-
 function animatePAD(gifFileName="PADanimation.gif", maxParticles=1000, binwidth=5)
     pyplot()
     animDec = 10; # make a png for animation every 10 points
@@ -333,7 +304,7 @@ function animate_a_thing(gifFileName::String, thing::Vector{Matrix{Float64}})
     initial, final = 1, 1
     anim = @animate for i in eachindex(thing)
         heatmap(PAgrid, Egrid, log10.(thing[i]), fc = :plasma, colorbar = false, 
-            xlabel="Pitch Angle (deg)",ylabel="Energy (keV)", title = "Recalculated PSD at t = $(round(tVec[i]*Re*L/(c),digits=2)) s")
+            xlabel="Pitch Angle (deg)",ylabel="Energy (keV)", yscale=:log10, title = "Recalculated PSD at t = $(round(tVec[i]*Re*L/(c),digits=2)) s")
     end every animDec
     savename = string("results/",gifFileName)
     gif(anim, savename, fps = (length(tVec)/animDec)/(animScale*endTime*Re*L/(c)))
@@ -348,9 +319,9 @@ function animate_a_thing(gifFileName::String, thing::Vector{Vector{Float64}})
     anim = @animate for i in eachindex(thing[1:end-1])
         plot(Egrid, thing[1:end-1], color = :gray, alpha = .5);
         plot!(Egrid,thing[i], color = :orange);
-        plot!(ylim =(10e-10,10), xlim=(20,maxEnergy), yscale=:log10, xscale=:log10, legend=false);
+        plot!(ylim =(10e-10,10), xlim=(10,maxEnergy), yscale=:log10, xscale=:log10, legend=false);
         plot!(xlabel="Energy (keV)", ylabel="PSD", title="Energy Spectra of Precipitating Particles");
-        annotate!(40, 0.1*10, text("t = $(round(tVec[indexArray[i]]*Re*L/(c),digits=3)) s"), :left)
+        annotate!(300, 0.1*10, text("t = $(round(tVec[indexArray[i]]*Re*L/(c),digits=3)) s"), :left)
     end every animDec
     savename = string("results/",gifFileName)
     gif(anim, savename, fps = (length(tVec)/animDec)/(animScale*endTime*Re*L/(c)))
@@ -401,11 +372,11 @@ end
     end
 end
 
-function checkDistFunc(f::Array{Float64,2}, psd_init::Array{Float64,2}, psd_final::Array{Float64,2}, initial::Int64, final::Int64, Egrid::StepRange{Int64,Int64}, PAgrid::StepRange{Int64,Int64})
-    origPlot =  heatmap(PAgrid, Egrid, f, fc = :plasma,
+function checkDistFunc(f::Array{Float64,2}, psd_init::Array{Float64,2}, psd_final::Array{Float64,2}, initial::Int64, final::Int64, Egrid::Vector{Float64}, PAgrid::StepRange{Int64,Int64})
+    origPlot =  heatmap(PAgrid, Egrid, f, fc = :plasma, yscale=:log10,
         xlabel="Pitch Angle (deg)",ylabel="Energy (keV)", title = "Original Flat PSD at t = 0");
 
-    initPlot =  heatmap(PAgrid, Egrid, log10.(psd_init),clims=(-5.5,-2), fc = :plasma,
+    initPlot =  heatmap(PAgrid, Egrid, log10.(psd_init),clims=(-5.5,-2), fc = :plasma, yscale=:log10,
         xlabel="Pitch Angle (deg)",ylabel="Energy (keV)", title = "Recalculated PSD at t = $(round(tVec[initial]*Re*L/(c),digits=3)) s");
 
     # finalPlot = heatmap(PAgrid, Egrid, log10.(psd_final), fc = :plasma, colorbar = false,
