@@ -239,7 +239,7 @@ function recalcDistFunc(Ematrix::Array{Float64,2},PAmatrix::Array{Float64,2},ini
         while Egrid[k] < EPAi[1]; k+=1; end # energy
         while PAgrid[l] < EPAi[2]; l+=1; end # PA
         push!(indices, (k-1,l-1))
-        push!(f0Vec, distFunc(1., EPAi[1], EPAi[2]))
+        push!(f0Vec, distFunc(EPAi[1], EPAi[2]))
         f[k-1,l-1] += 1;
     end
 
@@ -269,6 +269,7 @@ function recalcDistFunc(Ematrix::Array{Float64,2},PAmatrix::Array{Float64,2},ini
 end
 
 function make_psd_timeseries(Ematrix,PAmatrix,tVec, dist_func, Egrid, PAgrid)
+    # recalc psd at every 
     psd_timeseries = Vector{Matrix{Float64}}()
     f_timeseries = copy(psd_timeseries)
     psd_prec_timeseries = Vector{Vector{Float64}}()
@@ -282,10 +283,12 @@ function make_psd_timeseries(Ematrix,PAmatrix,tVec, dist_func, Egrid, PAgrid)
 end
 
 function bin_psd_prec_timeseries(psd_prec_timeseries, indexArray)
+    # given indexArray (an array with the start indices of each time bin)
+    # iterate through and sum PSD to produce PSD of given time bins
     binned_psd_prec_timeseries = Vector{Vector{Float64}}() 
     index = 0
     # loop through each time bin
-    for time_bin_index in indexArray
+    @inbounds for time_bin_index in indexArray
         binned_psd = zeros(length(psd_prec_timeseries[1]))
         index += 1
         while index < time_bin_index # at every index, add in the 
@@ -295,6 +298,35 @@ function bin_psd_prec_timeseries(psd_prec_timeseries, indexArray)
         push!(binned_psd_prec_timeseries, binned_psd) 
     end
     return binned_psd_prec_timeseries
+end
+
+function calc_equatorial_fluxes(Ematrix,PAmatrix, dist_func, Egrid, PAgrid)
+    # initial electron PSD is PSD_0i = flux(E0)/E0 of the recalced distribution
+    _, psd_init, _, _ = recalcDistFunc(Ematrix,PAmatrix, 1, 1,dist_func, Egrid, PAgrid);
+    return [sum(Erow) for Erow in eachrow(psd_init)]  .* Egrid .* 1000 ./ (length(PAgrid))
+end
+
+function calc_precipitating_flux_timeseries(binned_psd_prec_timeseries, psd_0i)
+    # convert prec flux into units of 1/cm^2/s/MeV where [s] is actually the width of timebin
+    return [prec_psd.*Egrid.*1000 for prec_psd in binned_psd_prec_timeseries]
+end
+
+function animate_flux_comparison(gifFileName::String, equatorial_flux, thing::Vector{Vector{Float64}}, minY, maxY)
+    pyplot()
+    animDec = 1; # make a png for animation every 10 points
+    animScale = 50; # i.e. animscale = 10 means every 10 seconds in animation is 1 second of simulation time (increase for longer animation)
+    maxEnergy=1000
+    anim = @animate for i in eachindex(thing[1:end-1])
+        plot(Egrid, equatorial_flux)
+        plot!(Egrid, thing[1:end-1], color = :gray, alpha = .5);
+        plot!(Egrid,thing[i], color = :orange);
+        plot!(ylim =(minY,maxY), xlim=(10,maxEnergy), yscale=:log10, legend=false);
+        plot!(xlabel="Energy (keV)", ylabel="Flux (1/cm^2/s/sr/MeV)", title="Energy Fluxes of Precipitating Particles");
+        annotate!(300, 0.1*maxY, text("t = $(round(tVec[indexArray[i]]*Re*L/(c),digits=3)) s"), :left)
+    end every animDec
+    savename = string("results/",gifFileName)
+    gif(anim, savename, fps = (length(tVec)/animDec)/(animScale*endTime*Re*L/(c)))
+    return anim
 end
 
 function animate_a_thing(gifFileName::String, thing::Vector{Matrix{Float64}})
@@ -311,7 +343,7 @@ function animate_a_thing(gifFileName::String, thing::Vector{Matrix{Float64}})
     return anim
 end
 
-function animate_a_thing(gifFileName::String, thing::Vector{Vector{Float64}})
+function animate_a_thing(gifFileName::String, thing::Vector{Vector{Float64}}, minY, maxY)
     pyplot()
     animDec = 1; # make a png for animation every 10 points
     animScale = 50; # i.e. animscale = 10 means every 10 seconds in animation is 1 second of simulation time (increase for longer animation)
@@ -319,9 +351,9 @@ function animate_a_thing(gifFileName::String, thing::Vector{Vector{Float64}})
     anim = @animate for i in eachindex(thing[1:end-1])
         plot(Egrid, thing[1:end-1], color = :gray, alpha = .5);
         plot!(Egrid,thing[i], color = :orange);
-        plot!(ylim =(10e-10,10), xlim=(10,maxEnergy), yscale=:log10, xscale=:log10, legend=false);
+        plot!(ylim =(minY,maxY), xlim=(10,maxEnergy), yscale=:log10, xscale=:log10, legend=false);
         plot!(xlabel="Energy (keV)", ylabel="PSD", title="Energy Spectra of Precipitating Particles");
-        annotate!(300, 0.1*10, text("t = $(round(tVec[indexArray[i]]*Re*L/(c),digits=3)) s"), :left)
+        annotate!(300, 0.1*maxY, text("t = $(round(tVec[indexArray[i]]*Re*L/(c),digits=3)) s"), :left)
     end every animDec
     savename = string("results/",gifFileName)
     gif(anim, savename, fps = (length(tVec)/animDec)/(animScale*endTime*Re*L/(c)))

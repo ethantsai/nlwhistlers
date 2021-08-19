@@ -92,49 +92,6 @@ outputFileBaseName, io = setupDirectories(directoryname)
 function generateFlatParticleDistribution(numParticles::Int64, ICrange, z0=0::Float64, λ0=0::Float64)
     ELo, EHi, Esteps, PALo, PAHi, PAsteps = ICrange
     @info "Generating a flat particle distribution with"
-    @info "Energy from $ELo KeV to $EHi KeV in $Esteps KeV increments"
-    @info "PA from $PALo deg to $PAHi deg in $PAsteps deg increments"
-    flush(io)
-
-    nBins = ((EHi-ELo)÷Esteps + 1) * ((PAHi-PALo)÷PAsteps + 1)
-    N = numParticles ÷ nBins # num of particles per bin
-    @info "Flat distribution with $N particles/bin in $nBins bins"
-    flush(io)
-
-    if numParticles%nBins != 0
-        @warn "Truncating $(numParticles%nBins) particles for an even distribution"
-        flush(io)
-    end
-    if iszero(N)
-        N = 1;
-        @warn "Use higher number of particles next time. Simulating 1 trajectory/bin."
-        @warn "Minimum number of particles to simulate is 1 particles/bin."
-        flush(io)
-    end
-
-    @views f0 = [[(E+511.)/511. deg2rad(PA)] for PA in PALo:PAsteps:PAHi for E in ELo:Esteps:EHi for i in 1:N] # creates a 2xN array with initial PA and Energy
-    #####       [[z0 pz0                          ζ0          mu0                          λ0 Φ0         ]             ]
-    @views h0 = [[z0 sqrt(IC[1]^2 - 1)*cos(IC[2]) rand()*2*pi .5*(IC[1]^2-1)*sin(IC[2])^2  λ0 rand()*2*pi] for IC in f0] # creates a 5xN array with inital h0 terms
-    f0 = vcat(f0...) # convert Array{Array{Float64,2},1} to Array{Float64,2}
-    h0 = vcat(h0...) # since i used list comprehension it is now a nested list
-
-    # Other ICs that are important
-    # Define basic ICs and parameters
-    B0          = Beq*sqrt(1. +3. *sin(λ0)^2.)/L^3.;     # starting B field at eq
-    Omegace0    = (1.6e-19*B0)/(9.11e-31);                    # electron gyrofreq @ the equator
-    # todo, make λ IC a funtion of z and L, get rid of dep on Beq
-    η           = Omegace0*L*Re/c;              # should be like 10^3
-    ε           = waveAmplitudeModifier/η;    # normalized wave large amplitude, .1 for small, 15 for large
-    resolution  = .1/η;                       # determines max step size of the integrator
-    @info "Created Initial Conditions for $(length(h0[:,1])) particles"
-    flush(io)
-    
-    return h0, f0, η, ε, resolution;
-end
-
-function generateFlatParticleDistributionLog(numParticles::Int64, ICrange, z0=0::Float64, λ0=0::Float64)
-    ELo, EHi, Esteps, PALo, PAHi, PAsteps = ICrange
-    @info "Generating a flat particle distribution with"
     @info "$Esteps steps of energy from $ELo KeV to $EHi KeV"
     @info "$PAsteps steps of pitch angles from $PALo deg to $PAHi deg"
     flush(io)
