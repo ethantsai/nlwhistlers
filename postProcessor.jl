@@ -1,6 +1,6 @@
-directoryname = "results/jld2_210804_21"
+directoryname = "results/jld2_210821_19"
 conffile = "setupasrun.conf"
-basename = "ghost_63000"
+basename = "ghostlog_63000"
 num_batches = 126
 
 include("plotHelpers.jl")
@@ -12,12 +12,28 @@ include("plotHelpers.jl")
 # Convert into a workable matrix
 @time tVec, Zmatrix, PZmatrix, Ematrix, PAmatrix = postProcessor(allT, allZ, allPZ, allE, allPA);
 # Makes an array of lost particles 
-@time allPrecip, indexArray, allPrecipInitial = precipitatingParticles(tVec, Ematrix, 10);
+@time allPrecip, indexArray, allPrecipInitial = precipitatingParticles(tVec, Ematrix, 20);
 
 # define dist function here
-# f0 = ((C::Float64, E::Float64, PA::Float64) -> ((C*(E/70)^-3)*(sin(deg2rad(PA)))))
-f0 = function (E::Float64, PA)
-    A = 5.1#6
+f0 = ((C::Float64, E::Float64, PA::Float64) -> ((C*(E/70)^-3)*(sin(deg2rad(PA)))))
+f0_092220 = function (E::Float64, PA)
+    A = 3
+    B0 = 1
+    B1 = 2.5
+    C = 1e4
+    E0 = 300
+    E1 = 70
+    if E < 70
+        B = B0
+    elseif E <= 300
+        B = B0 + (B1-B0)*(E-E0)/(E1-E0)
+    elseif E > 300
+        B = B1
+    end
+    return ((C*(E/70)^-A)*(sin(deg2rad(PA))-sin(deg2rad(8)))^B)
+end
+f0_102720 = function (E::Float64, PA)
+    A = 3
     B0 = .2
     B1 = .3
     C = 1.5e5
@@ -33,29 +49,47 @@ f0 = function (E::Float64, PA)
     return ((C*(E/70)^-A)*(sin(deg2rad(PA)))^B)
 end
 
-Egrid, PAgrid = logrange(30,1000,8), 2:4:90
-@time f_timeseries, psd_timeseries, psd_prec_timeseries = make_psd_timeseries(Ematrix,PAmatrix,tVec, f0, Egrid, PAgrid);
-@time binned_psd_prec_timeseries = bin_psd_prec_timeseries(psd_prec_timeseries, indexArray);
 
-animate_a_thing("recalculated_psd4.gif", psd_timeseries)
-animate_a_thing("recalculated_psd_prec4.gif", binned_psd_prec_timeseries, 1e-2, 1e7)
+Egrid, PAgrid = logrange(10,1000,21), 2:4:90
 
-# precipitation stuff ^^^^^^^^^^^^
+equatorial_fluxes, elfin_measurements, prec_flux_timeseries = generate_flux_comparison(
+                                                                20, f0_092220, 1.0,     # timebins, dist_func, whistler occurence rate
+                                                                Egrid, PAgrid, # Ebins and PA bins to use
+                                                                "092220_time.csv", "092220_prec.csv", "ebins.csv", # csvs containing ELFIN measurements
+                                                                DateTime(2020,9,22,9,16,15), DateTime(2020,9,22,9,16,50)) # time to sample from ELFIN measurements
+animate_flux_comparison("recalc_prec_flux_092220_3.gif", equatorial_fluxes, elfin_measurements, prec_flux_timeseries,1e2,1e11)
 
-# time to convert to ELFIN land
-equatorial_fluxes = calc_equatorial_fluxes(Ematrix,PAmatrix, dist_func, Egrid, PAgrid);
-prec_flux_timeseries = calc_precipitating_flux_timeseries(binned_psd_prec_timeseries, psd_0i);
-animate_flux_comparison("recalc_prec_flux2.gif", equatorial_fluxes, prec_flux_timeseries,1e2,1e11)
+equatorial_fluxes, elfin_measurements, prec_flux_timeseries = equatorial_fluxes, elfin_measurements, prec_flux_timeseries = generate_flux_comparison(
+                                                                20, f0_102720, 0.1,     # timebins, dist_func, whistler occurence rate
+                                                                Egrid, PAgrid, # Ebins and PA bins to use
+                                                                "102720_time.csv", "102720_prec.csv", "ebins.csv", # csvs containing ELFIN measurements
+                                                                DateTime(2020,10,27,10,34,7),DateTime(2020,10,27,10,34,40)) # time to sample from ELFIN measurements
+animate_flux_comparison("recalc_prec_flux_102720.gif", equatorial_fluxes, elfin_measurements, prec_flux_timeseries,1e2,1e11)
 
 
 
+trapped_fluxes = generate_trapped_psd(f0_092220, 1.0)
+simulated_ratio = [prec_flux_timeseries[i]./((trapped_fluxes[i]).-prec_flux_timeseries[i]) for i in 1:length(trapped_fluxes)]
+plot(Egrid, simulated_ratio, xlim=(50,1000),legend=false, xscale=:log10)
+elfin_prec = extract_idl_csv("092220_time.csv", "092220_prec.csv", "ebins.csv", DateTime(2020,9,22,9,16,15), DateTime(2020,9,22,9,16,50))
+elfin_trap = extract_idl_csv("092220_time.csv", "092220_perp.csv", "ebins.csv", DateTime(2020,9,22,9,16,15), DateTime(2020,9,22,9,16,50))
+plot!(elfin_prec[1], elfin_prec[2] ./ elfin_trap[2], xlim=(50,1000), yscale=:log10)
 
+trapped_fluxes = generate_trapped_psd(f0_102720, 0.1)
+simulated_ratio = [prec_flux_timeseries[i]./((trapped_fluxes[i]./45.).-prec_flux_timeseries[i]) for i in 1:length(trapped_fluxes)]
+plot(Egrid, simulated_ratio, xlim=(50,1000),legend=false, xscale=:log10)
+elfin_prec = extract_idl_csv("102720_time.csv", "102720_prec.csv", "ebins.csv", DateTime(2020,10,27,10,34,7),DateTime(2020,10,27,10,34,40))
+elfin_trap = extract_idl_csv("102720_time.csv", "102720_perp.csv", "ebins.csv", DateTime(2020,10,27,10,34,7),DateTime(2020,10,27,10,34,40))
+plot!(elfin_prec[1], elfin_prec[2] ./ elfin_trap[2], xlim=(50,1000), yscale=:log10)
 
 
 plot(Egrid,binned_psd_prec_timeseries[14].*psd_0i.*Egrid./1000,xlim=(Egrid[1], Egrid[end]), xscale=:log10)
+extract_idl_csv("time.csv", "prec.csv", "ebins.csv", DateTime(2020,9,22,9,16,30),DateTime(2020,9,22,9,16,35))
+plot(ebins,flux, xlim = (ebins[1], 1e3), xscale =:log10, ylim = (1, 1e8), yscale = :log10)
 
 
 
+plot!(xlim=(10,1000), ylim=(1e2,1e11), yscale=:log10)
 
 
 
@@ -87,9 +121,9 @@ animatePrecipitatingParticles("test_precipanimation.gif", allPrecip, indexArray)
 
 
 initial, final = 1, 5
-Egrid = logrange(10,1000,21)
+Egrid = logrange(10,1000,20)
 PAgrid = 2:4:90
-f, psd_init, psd_final = recalcDistFunc(Ematrix,PAmatrix,initial,final,f0, Egrid, PAgrid);
+f, psd_init, psd_final = recalcDistFunc(Ematrix,PAmatrix,initial,final,f0_102720, Egrid, PAgrid, 1.0);
 checkDistFunc(f, psd_init, psd_final, initial, final, Egrid, PAgrid)
 savefig(plot_numLostParticles, string("particleLosses.png"))
 

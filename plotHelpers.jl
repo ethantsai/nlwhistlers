@@ -12,6 +12,8 @@ using Plots
 using LoopVectorization
 using BenchmarkTools
 using StatsPlots
+using DataFrames
+using CSV
 
 #######################
 ## Constants n stuff ##
@@ -196,7 +198,7 @@ function animatePSD(gifFileName="PSDanimation.gif", PAbinwidth=3, Ebinwidth=100,
 end
             
 function recalcDistFunc(Ematrix::Array{Float64,2},PAmatrix::Array{Float64,2},initial::Int64,final::Int64,distFunc,
-    Egrid::Vector{Float64}, PAgrid::StepRange{Int64,Int64})
+    Egrid::Vector{Float64}, PAgrid::StepRange{Int64,Int64}, whistler_occurence_rate::Float64)
     #=
     Takes in matrix of Energy and PA, initial and final indices, and grid values as stepranges.
     Recalculates out a new PSD given a a distribution function at the initial and final indices.
@@ -226,15 +228,15 @@ function recalcDistFunc(Ematrix::Array{Float64,2},PAmatrix::Array{Float64,2},ini
     # if valid_rows!=valid_rows_next # this means that at least one of the particles will precipitate
         prec_rows = valid_rows .!= valid_rows_next # these are the indices of particles who are about to precipitate
         prec_indices = (ones(N).*vec(prec_rows))[vec(valid_rows)]
-        @info "$(length(ones(N)[prec_rows])) particles are about to precipitate"
+        # @info "$(length(ones(N)[prec_rows])) particles are about to precipitate"
     # end
     EPAinitial = EPAinitial[vec(valid_rows), :]; # new vec with no NaNs
     EPAfinal = EPAfinal[vec(valid_rows), :]; # new vec with no NaNs
     
     lostParticles = length(valid_rows) - length(EPAfinal[:,1]);
-    @info "$lostParticles particles lost at index $final."
+    # @info "$lostParticles particles lost at index $final."
 
-    for EPAi in eachrow(EPAinitial)
+    @inbounds for EPAi in eachrow(EPAinitial)
         k,l = 1, 1;
         while Egrid[k] < EPAi[1]; k+=1; end # energy
         while PAgrid[l] < EPAi[2]; l+=1; end # PA
@@ -245,36 +247,35 @@ function recalcDistFunc(Ematrix::Array{Float64,2},PAmatrix::Array{Float64,2},ini
 
     psdVec = [(f0Vec[i]/f[indices[i][1],indices[i][2]]) for i in eachindex(f0Vec[:,1])]
 
-    for i in eachindex(EPAinitial[:,1]) # i iterates over each particle
+    @inbounds for i in eachindex(EPAinitial[:,1]) # i iterates over each particle
         if ~(EPAfinal[i,1]>maximum(Egrid) || EPAfinal[i,2]>maximum(PAgrid)) # skip loop if data is outside of range
             k,l = 1, 1;
             while Egrid[k] < EPAinitial[i,1]; k+=1; end
             while PAgrid[l] < EPAinitial[i,2]; l+=1; end
-            psd_init[k-1,l-1] += psdVec[i]
+            if k!=1 && l!=1; psd_init[k-1,l-1] += psdVec[i]; end
             k,l = 1, 1;
             while Egrid[k] < EPAfinal[i,1]; k+=1; end
             while PAgrid[l] < EPAfinal[i,2]; l+=1; end
-            psd_final[k-1,l-1] += psdVec[i]
-            if prec_indices[i] == 1.0;  # handle precipitaitng particles here
-                psd_prec[k-1] += psdVec[i];
+            if k!=1 && l!=1; psd_final[k-1,l-1] += psdVec[i]; end
+            if k!=1 && prec_indices[i] == 1.0;  # handle precipitaitng particles here
+                psd_prec[k-1] += psdVec[i]*whistler_occurence_rate;
             end
-
         else
             excludedParticles += 1;
         end
     end
-    @info "Excluded $excludedParticles particles due to out of range."
+    # @info "Excluded $excludedParticles particles due to out of range."
 
     return f, psd_init, psd_final, psd_prec
 end
 
-function make_psd_timeseries(Ematrix,PAmatrix,tVec, dist_func, Egrid, PAgrid)
+function make_psd_timeseries(Ematrix,PAmatrix,tVec, dist_func, Egrid, PAgrid, whistler_occurence_rate)
     # recalc psd at every 
     psd_timeseries = Vector{Matrix{Float64}}()
     f_timeseries = copy(psd_timeseries)
     psd_prec_timeseries = Vector{Vector{Float64}}()
     @inbounds for time_index in eachindex(tVec[1:end-1])
-        f, _, psd_final, psd_prec = recalcDistFunc(Ematrix, PAmatrix, 1, time_index, dist_func, Egrid, PAgrid);
+        f, _, psd_final, psd_prec = recalcDistFunc(Ematrix, PAmatrix, 1, time_index, dist_func, Egrid, PAgrid, whistler_occurence_rate);
         push!(f_timeseries, f)
         push!(psd_timeseries, psd_final)
         push!(psd_prec_timeseries, psd_prec)
@@ -302,22 +303,23 @@ end
 
 function calc_equatorial_fluxes(Ematrix,PAmatrix, dist_func, Egrid, PAgrid)
     # initial electron PSD is PSD_0i = flux(E0)/E0 of the recalced distribution
-    _, psd_init, _, _ = recalcDistFunc(Ematrix,PAmatrix, 1, 1,dist_func, Egrid, PAgrid);
+    _, psd_init, _, _ = recalcDistFunc(Ematrix,PAmatrix, 1, 1,dist_func, Egrid, PAgrid, 1.);
     return [sum(Erow) for Erow in eachrow(psd_init)]  .* Egrid .* 1000 ./ (length(PAgrid))
 end
 
-function calc_precipitating_flux_timeseries(binned_psd_prec_timeseries, psd_0i)
+function calc_precipitating_flux_timeseries(binned_psd_prec_timeseries)
     # convert prec flux into units of 1/cm^2/s/MeV where [s] is actually the width of timebin
     return [prec_psd.*Egrid.*1000 for prec_psd in binned_psd_prec_timeseries]
 end
 
-function animate_flux_comparison(gifFileName::String, equatorial_flux, thing::Vector{Vector{Float64}}, minY, maxY)
+function animate_flux_comparison(gifFileName::String, equatorial_flux, elfin_measurements, thing::Vector{Vector{Float64}}, minY, maxY)
     pyplot()
     animDec = 1; # make a png for animation every 10 points
     animScale = 50; # i.e. animscale = 10 means every 10 seconds in animation is 1 second of simulation time (increase for longer animation)
     maxEnergy=1000
     anim = @animate for i in eachindex(thing[1:end-1])
         plot(Egrid, equatorial_flux)
+        plot!(elfin_measurements)
         plot!(Egrid, thing[1:end-1], color = :gray, alpha = .5);
         plot!(Egrid,thing[i], color = :orange);
         plot!(ylim =(minY,maxY), xlim=(10,maxEnergy), yscale=:log10, legend=false);
@@ -432,9 +434,9 @@ function animateNewPSD(gifFileName, Egrid::StepRange{Int64,Int64}, PAgrid::StepR
     animDec = 1; # make a png for animation every 10 points
     animScale = 10; # i.e. animscale = 10 means every 10 seconds in animation is 1 second of simulation time (increase for longer animation)
     initial, final = 1, 1
-    f, psd_init, psd_final = recalcDistFunc(Ematrix,PAmatrix,initial,final,f0,Egrid,PAgrid);
+    f, psd_init, psd_final = recalcDistFunc(Ematrix,PAmatrix,initial,final,f0,Egrid,PAgrid, 1.);
     anim = @animate for i in eachindex(tVec)
-        _,_,psd_final = recalcDistFunc(Ematrix,PAmatrix,initial,i,f0,Egrid,PAgrid);
+        _,_,psd_final = recalcDistFunc(Ematrix,PAmatrix,initial,i,f0,Egrid,PAgrid, 1.);
         # checkDistFunc(f, psd_init, psd_final, initial, i,Egrid, PAgrid)
         heatmap(PAgrid, Egrid, log10.(psd_final), fc = :plasma, colorbar = false, clims=(-5.5,-2),
             xlabel="Pitch Angle (deg)",ylabel="Energy (keV)", title = "Recalculated PSD at t = $(round(tVec[i]*Re*L/(c),digits=2)) s")
@@ -584,6 +586,48 @@ function find_lost_particles(row1::Vector{Float64}, row2::Vector{Float64})
 
 end
 
+function extract_idl_csv(time_name, data_name, ebin_name, start, stop)
+    time_csv_name = "idl_csvs/"*time_name
+    data_csv_name = "idl_csvs/"*data_name
+    ebins_csv_name = "idl_csvs/"*ebin_name
+
+    times_df =  CSV.File(time_csv_name; header=false, delim=',', type=Float64) |> DataFrame
+    time = unix2datetime.(times_df.Column1)
+    indices = findall((time.>start).&(time.<stop)) # these are the indices corresponding to the time range to sum over
+    time_of_interest = time[indices]
+    @info "Summing over $(time_of_interest[end]-time_of_interest[1])"
+
+    # import particle flux data 
+    data_df  =  CSV.File(data_csv_name; header=false, delim=',', type=Float64) |> DataFrame
+    data = [[data_df[row,col] for col in 1:length(data_df[1,:])] for row in 1:16]
+    # get rid of NaNs and Infs
+    data_of_interest = data
+    for i = 1:16
+        data_of_interest[i][findall(.!isfinite.(data[i]))] .= 0.0
+    end
+    flux = [sum(data_of_interest[energy][indices]) for energy in 1:16]
+
+    ebins_df = CSV.File(ebins_csv_name; header=false, delim=',', type=Float64) |> DataFrame
+    ebins = ebins_df.Column1
+
+    return (ebins, flux)
+end
+
+
+function generate_flux_comparison(timeBin, dist_func, whistler_occurence_rate, Egrid, PAgrid,time_name, data_name, ebin_name, start, stop)
+    allPrecip, indexArray, allPrecipInitial = precipitatingParticles(tVec, Ematrix, timeBin);
+    f_timeseries, psd_timeseries, psd_prec_timeseries = make_psd_timeseries(Ematrix,PAmatrix,tVec, dist_func, Egrid, PAgrid, whistler_occurence_rate);
+    binned_psd_prec_timeseries = bin_psd_prec_timeseries(psd_prec_timeseries, indexArray);
+    equatorial_fluxes = calc_equatorial_fluxes(Ematrix,PAmatrix, dist_func, Egrid, PAgrid);
+    prec_flux_timeseries = calc_precipitating_flux_timeseries(binned_psd_prec_timeseries);
+    elfin_measurements = extract_idl_csv(time_name, data_name, ebin_name, start, stop);
+    return equatorial_fluxes, elfin_measurements, prec_flux_timeseries
+end
+
+function generate_trapped_psd(dist_func, whistler_occurence_rate::Float64)
+    f_timeseries, psd_timeseries, psd_prec_timeseries = make_psd_timeseries(Ematrix, PAmatrix, tVec, dist_func, Egrid, 8:2:90, whistler_occurence_rate)
+    return calc_precipitating_flux_timeseries(bin_psd_prec_timeseries([psd_timeseries[particle][:,1] for particle in 1:length(tVec)-1], indexArray))
+end
 
 # Useful helpers
 logrange(x1, x2, n::Int64) = [10^y for y in range(log10(x1), log10(x2), length=n)]
