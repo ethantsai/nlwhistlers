@@ -14,6 +14,9 @@ using BenchmarkTools
 using StatsPlots
 using DataFrames
 using CSV
+using LaTeXStrings
+
+using Plots.PlotMeasures
 
 #######################
 ## Constants n stuff ##
