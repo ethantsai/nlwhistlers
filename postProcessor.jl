@@ -1,7 +1,7 @@
-directoryname = "results/jld2_210821_19"
+directoryname = "results/jld2_210823_21"
 conffile = "setupasrun.conf"
-basename = "ghostlog_63000"
-num_batches = 126
+basename = "ghostlog_96600"
+num_batches = 161
 
 include("plotHelpers.jl")
 
@@ -52,20 +52,44 @@ end
 
 Egrid, PAgrid = logrange(10,1000,21), 2:4:90
 
-equatorial_fluxes, elfin_measurements, prec_flux_timeseries = generate_flux_comparison(
-                                                                20, f0_092220, 1.0,     # timebins, dist_func, whistler occurence rate
+equatorial_fluxes_092220, elfin_measurements_092220, prec_flux_timeseries_092220 = generate_flux_comparison(
+                                                                20, f0_092220, 1.2,     # timebins, dist_func, whistler occurence rate
                                                                 Egrid, PAgrid, # Ebins and PA bins to use
                                                                 "092220_time.csv", "092220_prec.csv", "ebins.csv", # csvs containing ELFIN measurements
                                                                 DateTime(2020,9,22,9,16,15), DateTime(2020,9,22,9,16,50)) # time to sample from ELFIN measurements
-animate_flux_comparison("recalc_prec_flux_092220_3.gif", equatorial_fluxes, elfin_measurements, prec_flux_timeseries,1e2,1e11)
 
-equatorial_fluxes, elfin_measurements, prec_flux_timeseries = equatorial_fluxes, elfin_measurements, prec_flux_timeseries = generate_flux_comparison(
-                                                                20, f0_102720, 0.1,     # timebins, dist_func, whistler occurence rate
+equatorial_fluxes_102720, elfin_measurements_102720, prec_flux_timeseries_102720 = generate_flux_comparison(
+                                                                20, f0_102720, .05,     # timebins, dist_func, whistler occurence rate
                                                                 Egrid, PAgrid, # Ebins and PA bins to use
                                                                 "102720_time.csv", "102720_prec.csv", "ebins.csv", # csvs containing ELFIN measurements
                                                                 DateTime(2020,10,27,10,34,7),DateTime(2020,10,27,10,34,40)) # time to sample from ELFIN measurements
-animate_flux_comparison("recalc_prec_flux_102720.gif", equatorial_fluxes, elfin_measurements, prec_flux_timeseries,1e2,1e11)
 
+using Plots.PlotMeasures
+bipride_pink = RGB(234/255, 2/255, 112/255)
+bipride_lavender = RGB(155/255, 79/255, 150/255)
+bipride_blue = RGB(0/255, 56/255, 168/255)
+
+# Plots for 9/22/20
+plot(Egrid, equatorial_fluxes_092220, label = "Equatorial Flux", color = bipride_blue, linewidth=2, markershape=:circle);
+plot!(Egrid, prec_flux_timeseries_092220[2:end-1], color = bipride_lavender, alpha = .5, label=false, markershape=:x);
+plot!(Egrid, prec_flux_timeseries_092220[1], color = bipride_lavender, alpha = .5, label="Modelled Precipitating Flux", markershape=:x);
+plot!(elfin_measurements_092220, label = "ELFIN Measured Precipitating Flux", color = bipride_pink, linewidth=3, markershape=:dtriangle);
+plot!(ylim =(1e1,1e9), xlim=(50,800), yscale=:log10);
+plot!(xlabel=L"\mathrm{Energy\ (keV)}", ylabel=L"\mathrm{Flux\ (1/cm^{2}/s/sr/MeV)}", title=L"\mathrm{Flux\ Comparison\ of\ Precipitating\ Particles\ on\ 09/22/20}",
+xtickfontsize=12, ytickfontsize=12, xguidefontsize=16, yguidefontsize=16, legendfontsize=10, titlefontsize=16);
+plot1 = plot!(dpi = 300,size=(800,450), margin=3mm, bottom_margin=4mm)
+savefig(plot1, "092220_flux_comparison.pdf")
+
+# Plots for 10/27/20
+plot(Egrid, equatorial_fluxes_102720, label = "Equatorial Flux", color = bipride_blue, linewidth=2, markershape=:circle);
+plot!(Egrid, prec_flux_timeseries_102720[2:end-1], color = bipride_lavender, alpha = .5, label=false, markershape=:x);
+plot!(Egrid, prec_flux_timeseries_102720[1], color = bipride_lavender, alpha = .5, label="Modelled Precipitating Flux", markershape=:x);
+plot!(elfin_measurements_102720, label = "ELFIN Measured Precipitating Flux", color = bipride_pink, linewidth=3, markershape=:dtriangle);
+plot!(ylim =(1e4,1e11), xlim=(50,800), yscale=:log10);
+plot!(xlabel=L"\mathrm{Energy\ (keV)}", ylabel=L"\mathrm{Flux\ (1/cm^{2}/s/sr/MeV)}", title=L"\mathrm{Flux\ Comparison\ of\ Precipitating\ Particles\ on\ 10/27/20}",
+xtickfontsize=12, ytickfontsize=12, xguidefontsize=16, yguidefontsize=16, legendfontsize=10, titlefontsize=16);
+plot2 = plot!(dpi = 300,size=(800,450), margin=3mm, bottom_margin=4mm)
+savefig(plot2, "102720_flux_comparison.pdf")
 
 
 trapped_fluxes = generate_trapped_psd(f0_092220, 1.0)
