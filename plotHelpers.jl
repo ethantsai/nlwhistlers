@@ -410,11 +410,13 @@ end
 end
 
 function checkDistFunc(f::Array{Float64,2}, psd_init::Array{Float64,2}, psd_final::Array{Float64,2}, initial::Int64, final::Int64, Egrid::Vector{Float64}, PAgrid::StepRange{Int64,Int64})
-    origPlot =  heatmap(PAgrid, Egrid, f, fc = :plasma, yscale=:log10,
-        xlabel="Pitch Angle (deg)",ylabel="Energy (keV)", title = "Original Flat PSD at t = 0");
+    origPlot =  heatmap(PAgrid, Egrid, f, fc = :plasma,
+    ylim = (35,1000), yscale=:log10, xlim = (8,90),
+    xlabel="Pitch Angle (deg)",ylabel="Energy (keV)", title = "Original Flat PSD at t = 0");
 
-    initPlot =  heatmap(PAgrid, Egrid, log10.(psd_init),clims=(-5.5,-2), fc = :plasma, yscale=:log10,
-        xlabel="Pitch Angle (deg)",ylabel="Energy (keV)", title = "Recalculated PSD at t = $(round(tVec[initial]*Re*L/(c),digits=3)) s");
+    initPlot =  heatmap(PAgrid, Egrid, psd_init, fc = :plasma, colorbar_scale=:log10, clim = (1e3,1e4),
+    ylim = (35,1000), yscale=:log10, xlim = (8,90),
+    xlabel="Pitch Angle (deg)",ylabel="Energy (keV)", title = "Recalculated PSD at t = $(round(tVec[initial]*Re*L/(c),digits=3)) s");
 
     # finalPlot = heatmap(PAgrid, Egrid, log10.(psd_final), fc = :plasma, colorbar = false,
     #     xlabel="Pitch Angle (deg)",ylabel="Energy (keV)", title = "Recalculated PSD at t = $(round(tVec[final]*Re*L/(c),digits=2)) s");
@@ -432,17 +434,16 @@ function checkDistFunc(f::Array{Float64,2}, psd_init::Array{Float64,2}, psd_fina
 end
 
 
-function animateNewPSD(gifFileName, Egrid::StepRange{Int64,Int64}, PAgrid::StepRange{Int64,Int64})
+function animatePSD(gifFileName, psd_timeseries)
     pyplot()
-    animDec = 1; # make a png for animation every 10 points
+    animDec = 5; # make a png for animation every 10 points
     animScale = 10; # i.e. animscale = 10 means every 10 seconds in animation is 1 second of simulation time (increase for longer animation)
-    initial, final = 1, 1
-    f, psd_init, psd_final = recalcDistFunc(Ematrix,PAmatrix,initial,final,f0,Egrid,PAgrid, 1.);
-    anim = @animate for i in eachindex(tVec)
-        _,_,psd_final = recalcDistFunc(Ematrix,PAmatrix,initial,i,f0,Egrid,PAgrid, 1.);
-        # checkDistFunc(f, psd_init, psd_final, initial, i,Egrid, PAgrid)
-        heatmap(PAgrid, Egrid, log10.(psd_final), fc = :plasma, colorbar = false, clims=(-5.5,-2),
-            xlabel="Pitch Angle (deg)",ylabel="Energy (keV)", title = "Recalculated PSD at t = $(round(tVec[i]*Re*L/(c),digits=2)) s")
+    maxval=minimum(maximum.(psd_timeseries))
+    anim = @inbounds @animate for i in eachindex(psd_timeseries)
+        heatmap(PAgrid, Egrid,(psd_timeseries[i]), fc = :plasma, colorbar = true,
+        colorbar_scale=:log10, clims=(1e3, maxval), ylim = (35,1000), yscale=:log10,
+        xlim = (8,90),
+        xlabel="Pitch Angle (deg)",ylabel="Energy (keV)", title = "Recalculated PSD at t = $(round(tVec[i]*Re*L/(c),digits=2)) s")
     end every animDec
     savename = string("results/",gifFileName)
     gif(anim, savename, fps = (length(tVec)/animDec)/(animScale*endTime*Re*L/(c)))
@@ -456,8 +457,6 @@ function get_Nloss_Ntotal_per_Energy(tVec, Ematrix)
         #wip
     end
 end
-
-
 
 function precipitatingParticles(tVec, Ematrix, timeBin=10)
     unitSimTime = mean(diff(tVec[begin:end-1]));
