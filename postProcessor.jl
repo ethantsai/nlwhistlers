@@ -56,22 +56,19 @@ f0_042921 = function (E::Float64, PA)
     b2 = 9
     b3 = 200
     if E < 5
-        a = 4e-16
         b = 0.5
     elseif E <= 20
-        a = 7e-17
         b = 0.5
     elseif E > 40
-        a = 2.5e-19
         b = 0
     end
     Epsd = (a1 * (1 + E/b1)^-5) + (a2 * (1 + E/b2)^-5) + (a3 * (1 + E/b3)^-3)
-    PApsd = a*(sin(deg2rad(PA))-sin(deg2rad(8)))^b
+    PApsd = (sin(deg2rad(PA))-sin(deg2rad(8)))^b
     return Epsd*PApsd
 end   
 
 
-Egrid, PAgrid = logrange(10,1000,21), 2:4:90
+Egrid, PAgrid = logrange(10,1000,21), 6:4:90
 
 allPrecip, indexArray, allPrecipInitial = precipitatingParticles(tVec, Ematrix, 10);
 f_timeseries, psd_timeseries, psd_prec_timeseries = make_psd_timeseries(Ematrix,PAmatrix,tVec, f0_092220, Egrid, PAgrid, 1.);
@@ -93,7 +90,7 @@ equatorial_fluxes_102720, elfin_measurements_102720, prec_flux_timeseries_102720
                                                                 DateTime(2020,10,27,10,34,7),DateTime(2020,10,27,10,34,40)) # time to sample from ELFIN measurements
 
 equatorial_fluxes_042921, elfin_measurements_042921, prec_flux_timeseries_042921 = generate_flux_comparison(
-                                                                10, f0_042921, 1,     # timebins, dist_func, whistler occurence rate
+                                                                10, f0_042921, 1.,     # timebins, dist_func, whistler occurence rate
                                                                 Egrid, PAgrid, # Ebins and PA bins to use
                                                                 "042921_time.csv", "042921_prec.csv", "ebins.csv", # csvs containing ELFIN measurements
                                                                 DateTime(2021,4,29,3,14,45),DateTime(2021,4,29,3,15,0)) # time to sample from ELFIN measurements                                                                
