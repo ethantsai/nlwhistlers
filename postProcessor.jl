@@ -1,6 +1,6 @@
-directoryname = "results/finalrun_15_8_10_25_7"
+directoryname = "results/jld2_210823_21"
 conffile = "setupasrun.conf"
-basename = "finalrun_15_8_10_25_7_96800"
+basename = "ghostlog_96600"
 num_batches = 161
 
 include("plotHelpers.jl")
@@ -64,18 +64,18 @@ f0_042921 = function (E::Float64, PA)
     end
     Epsd = (a1 * (1 + E/b1)^-5) + (a2 * (1 + E/b2)^-5) + (a3 * (1 + E/b3)^-3)
     PApsd = (sin(deg2rad(PA))-sin(deg2rad(8)))^b
-    return Epsd*PApsd
+    return 1e-6*9.11e31*(Epsd*PApsd) # km^2 --> m^2 and times electron mass
 end   
 
 
 Egrid, PAgrid = logrange(10,1000,21), 6:4:90
 
-allPrecip, indexArray, allPrecipInitial = precipitatingParticles(tVec, Ematrix, 10);
-f_timeseries, psd_timeseries, psd_prec_timeseries = make_psd_timeseries(Ematrix,PAmatrix,tVec, f0_092220, Egrid, PAgrid, 1.);
-binned_psd_prec_timeseries = bin_psd_prec_timeseries(psd_prec_timeseries, indexArray);
-prec_flux_timeseries = calc_precipitating_flux_timeseries(binned_psd_prec_timeseries);
-plot(Egrid, prec_flux_timeseries_092220);
-plot!(ylim =(1e1,1e9), xlim=(50,800), yscale=:log10);
+# allPrecip, indexArray, allPrecipInitial = precipitatingParticles(tVec, Ematrix, 10);
+# f_timeseries, psd_timeseries, psd_prec_timeseries = make_psd_timeseries(Ematrix,PAmatrix,tVec, f0_092220, Egrid, PAgrid, 1.);
+# binned_psd_prec_timeseries = bin_psd_prec_timeseries(psd_prec_timeseries, indexArray);
+# prec_flux_timeseries = calc_precipitating_flux_timeseries(binned_psd_prec_timeseries);
+# plot(Egrid, prec_flux_timeseries_092220);
+# plot!(ylim =(1e1,1e9), xlim=(50,800), yscale=:log10);
 
 equatorial_fluxes_092220, elfin_measurements_092220, prec_flux_timeseries_092220 = generate_flux_comparison(
                                                                 10, f0_092220, 1.2,     # timebins, dist_func, whistler occurence rate
@@ -127,7 +127,7 @@ plot(Egrid, equatorial_fluxes_042921, label = "Equatorial Flux", color = bipride
 plot!(Egrid, prec_flux_timeseries_042921[2:end-1], color = bipride_lavender, alpha = .5, label=false, markershape=:x);
 plot!(Egrid, prec_flux_timeseries_042921[1], color = bipride_lavender, alpha = .5, label="Modelled Precipitating Flux", markershape=:x);
 plot!(elfin_measurements_042921, label = "ELFIN Measured Precipitating Flux", color = bipride_pink, linewidth=3, markershape=:dtriangle);
-plot!(ylim =(1e4,1e11), xlim=(50,800), yscale=:log10);
+plot!(ylim =(1e4,1e12), xlim=(50,800), yscale=:log10);
 plot!(xlabel=L"\mathrm{Energy\ (keV)}", ylabel=L"\mathrm{Flux\ (1/cm^{2}/s/sr/MeV)}", title=L"\mathrm{Flux\ Comparison\ of\ Precipitating\ Particles\ on\ 10/27/20}",
 xtickfontsize=12, ytickfontsize=12, xguidefontsize=16, yguidefontsize=16, legendfontsize=10, titlefontsize=16);
 plot3 = plot!(dpi = 300,size=(800,450), margin=3mm, bottom_margin=4mm)
