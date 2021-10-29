@@ -64,7 +64,9 @@ f0_042921 = function (E::Float64, PA)
     end
     Epsd = (a1 * (1 + E/b1)^-5) + (a2 * (1 + E/b2)^-5) + (a3 * (1 + E/b3)^-3)
     PApsd = (sin(deg2rad(PA))-sin(deg2rad(8)))^b
-    return 1e-6*9.11e31*(Epsd*PApsd) # km^2 --> m^2 and times electron mass
+    # km --> cm and 1/v^4 --> 1/E^2 conversion
+    # since v = 438 * sqrt(1836 KeV)
+    return (1e5*438^4*1836^2)*(Epsd*PApsd)
 end   
 
 
@@ -90,7 +92,7 @@ equatorial_fluxes_102720, elfin_measurements_102720, prec_flux_timeseries_102720
                                                                 DateTime(2020,10,27,10,34,7),DateTime(2020,10,27,10,34,40)) # time to sample from ELFIN measurements
 
 equatorial_fluxes_042921, elfin_measurements_042921, prec_flux_timeseries_042921 = generate_flux_comparison(
-                                                                10, f0_042921, 1.,     # timebins, dist_func, whistler occurence rate
+                                                                10, f0_042921, .5,     # timebins, dist_func, whistler occurence rate
                                                                 Egrid, PAgrid, # Ebins and PA bins to use
                                                                 "042921_time.csv", "042921_prec.csv", "ebins.csv", # csvs containing ELFIN measurements
                                                                 DateTime(2021,4,29,3,14,45),DateTime(2021,4,29,3,15,0)) # time to sample from ELFIN measurements                                                                
@@ -102,7 +104,7 @@ bipride_blue = RGB(0/255, 56/255, 168/255);
 
 # Plots for 9/22/20
 plot(Egrid, equatorial_fluxes_092220, label = "Equatorial Flux", color = bipride_blue, linewidth=2, markershape=:circle);
-plot!(Egrid, prec_flux_timeseries_092220[2:end-1], color = bipride_lavender, alpha = .5, label=false, markershape=:x)
+plot!(Egrid, prec_flux_timeseries_092220[2:end-1], color = bipride_lavender, alpha = .5, label=false, markershape=:x);
 plot!(Egrid, prec_flux_timeseries_092220[1], color = bipride_lavender, alpha = .5, label="Modelled Precipitating Flux", markershape=:x);
 plot!(elfin_measurements_092220, label = "ELFIN Measured Precipitating Flux", color = bipride_pink, linewidth=3, markershape=:dtriangle);
 plot!(ylim =(1e1,1e9), xlim=(50,800), yscale=:log10);
@@ -127,8 +129,8 @@ plot(Egrid, equatorial_fluxes_042921, label = "Equatorial Flux", color = bipride
 plot!(Egrid, prec_flux_timeseries_042921[2:end-1], color = bipride_lavender, alpha = .5, label=false, markershape=:x);
 plot!(Egrid, prec_flux_timeseries_042921[1], color = bipride_lavender, alpha = .5, label="Modelled Precipitating Flux", markershape=:x);
 plot!(elfin_measurements_042921, label = "ELFIN Measured Precipitating Flux", color = bipride_pink, linewidth=3, markershape=:dtriangle);
-plot!(ylim =(1e4,1e12), xlim=(50,800), yscale=:log10);
-plot!(xlabel=L"\mathrm{Energy\ (keV)}", ylabel=L"\mathrm{Flux\ (1/cm^{2}/s/sr/MeV)}", title=L"\mathrm{Flux\ Comparison\ of\ Precipitating\ Particles\ on\ 10/27/20}",
+plot!(ylim =(1e4,1e9), xlim=(50,800), yscale=:log10);
+plot!(xlabel=L"\mathrm{Energy\ (keV)}", ylabel=L"\mathrm{Flux\ (1/cm^{2}/s/sr/MeV)}", title=L"\mathrm{Flux\ Comparison\ of\ Precipitating\ Particles\ on\ 4/29/21}",
 xtickfontsize=12, ytickfontsize=12, xguidefontsize=16, yguidefontsize=16, legendfontsize=10, titlefontsize=16);
 plot3 = plot!(dpi = 300,size=(800,450), margin=3mm, bottom_margin=4mm)
 #savefig(plot3, "042921_flux_comparison.pdf")
