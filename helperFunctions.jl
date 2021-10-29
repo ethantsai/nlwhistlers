@@ -123,9 +123,9 @@ function generateFlatParticleDistribution(numParticles::Int64, ICrange, z0=0::Fl
 
     # Other ICs that are important
     # Define basic ICs and parameters
-    B0          = Beq*sqrt(1. +3. *sin(λ0)^2.)/L^3.;     # starting B field at eq
+    # B0          = Beq*sqrt(1. +3. *sin(λ0)^2.)/L^3.;     # starting B field at eq
+    B0          = 188 # nT as measured from THEMIS A at L = 5.2
     Omegace0    = (1.6e-19*B0)/(9.11e-31);                    # electron gyrofreq @ the equator
-    # todo, make λ IC a funtion of z and L, get rid of dep on Beq
     η           = Omegace0*L*Re/c;              # should be like 10^3
     ε           = waveAmplitudeModifier/η;    # normalized wave large amplitude, .1 for small, 15 for large
     resolution  = .1/η;                       # determines max step size of the integrator
@@ -171,7 +171,7 @@ function eom!(dH,H,p::SVector{6, Float64},t::Float64)
     # single sided wave, grows to max at 1 deg, infinitely long
     # u = .5*(tanh(H[5]/deg2rad(1))+1);
     # double sided wave, grows to max at 2 deg, dissipates by 20 deg
-    u = tanh((H[5]/(deg2rad(2)))^2) * (exp(-(H[5]/(deg2rad(10)))^2)); 
+    u = tanh((H[5]/(deg2rad(2)))^2) * (exp(-(H[5]/(deg2rad(40)))^2)); 
     
     b = sqrt(1+3*sinλ^2)/(cosλ^6);
     db = (3*(27*sinλ-5*sin(3*H[5])))/(cosλ^8*(4+12*sinλ^2));
