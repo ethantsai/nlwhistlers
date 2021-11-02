@@ -15,7 +15,6 @@ using StatsPlots
 using DataFrames
 using CSV
 using LaTeXStrings
-
 using Plots.PlotMeasures
 
 #######################
@@ -26,31 +25,139 @@ const Re   = 6370e3;        # Earth radius, f64
 const c    = 3e8;           # speedo lite, f64
 const Beq  = 3.e-5;         # B field at equator (T), f64
 
-# Parsing the conf file
-conf = ConfParse(directoryname*"/"*conffile)
-parse_conf!(conf)
-numParticles = parse(Int64, retrieve(conf, "numberOfParticles"));
-startTime = parse(Float64, retrieve(conf, "startTime"));
-endTime = parse(Float64, retrieve(conf, "endTime"));
-tspan = (startTime, endTime); # integration time
-lossConeAngle = parse(Float64, retrieve(conf, "lossConeAngle"));
-saveDecimation = parse(Float64, retrieve(conf, "saveDecimation"));
-L = parse(Float64, retrieve(conf, "L"));
-omegam = parse(Float64, retrieve(conf, "omegam"));
-Omegape = parse(Float64, retrieve(conf, "Omegape"));
-z0 = parse(Float64, retrieve(conf, "z0"));
-lambda0 = parse(Float64, retrieve(conf, "lambda0"));
-waveAmplitudeModifier = parse(Float64, retrieve(conf, "waveAmplitudeModifier"));
-ELo = parse(Float64, retrieve(conf, "ELo"));
-EHi = parse(Float64, retrieve(conf, "EHi"));
-Esteps = parse(Float64, retrieve(conf, "Esteps"));
-PALo = parse(Float64, retrieve(conf, "PALo"));
-PAHi = parse(Float64, retrieve(conf, "PAHi"));
-PAsteps = parse(Float64, retrieve(conf, "PAsteps"));
-ICrange = [ELo, EHi, Esteps, PALo, PAHi, PAsteps];
-batches = parse(Int64, retrieve(conf, "batches"));
-numThreads = parse(Int64, retrieve(conf, "numberOfThreads"))
-@info "Parsed Config file: $conffile"
+##################
+## Loading data ##
+##################
+
+struct Resultant_Matrix
+    label::String
+    numParticles::Int64
+    endTime::Float64
+    allZ::Vector{Vector{Float64}}
+    allPZ::Vector{Vector{Float64}}
+    allT::Vector{Vector{Float64}}
+    allPA::Vector{Vector{Float64}}
+    allE::Vector{Vector{Float64}}
+    lostParticles::Matrix{Float64}
+    tVec::Vector{Float64}
+    Zmatrix::Matrix{Float64}
+    PZmatrix::Matrix{Float64}
+    Ematrix::Matrix{Float64}
+    PAmatrix::Matrix{Float64}
+end
+
+function parse_conf_file(directoryname::String, conffile::String)
+    # Parsing the conf file
+    conf = ConfParse(directoryname*"/"*conffile)
+    parse_conf!(conf)
+    numParticles = parse(Int64, retrieve(conf, "numberOfParticles"));
+    startTime = parse(Float64, retrieve(conf, "startTime"));
+    endTime = parse(Float64, retrieve(conf, "endTime"));
+    tspan = (startTime, endTime); # integration time
+    lossConeAngle = parse(Float64, retrieve(conf, "lossConeAngle"));
+    saveDecimation = parse(Float64, retrieve(conf, "saveDecimation"));
+    L = parse(Float64, retrieve(conf, "L"));
+    omegam = parse(Float64, retrieve(conf, "omegam"));
+    Omegape = parse(Float64, retrieve(conf, "Omegape"));
+    z0 = parse(Float64, retrieve(conf, "z0"));
+    lambda0 = parse(Float64, retrieve(conf, "lambda0"));
+    waveAmplitudeModifier = parse(Float64, retrieve(conf, "waveAmplitudeModifier"));
+    ELo = parse(Float64, retrieve(conf, "ELo"));
+    EHi = parse(Float64, retrieve(conf, "EHi"));
+    Esteps = parse(Float64, retrieve(conf, "Esteps"));
+    PALo = parse(Float64, retrieve(conf, "PALo"));
+    PAHi = parse(Float64, retrieve(conf, "PAHi"));
+    PAsteps = parse(Float64, retrieve(conf, "PAsteps"));
+    ICrange = [ELo, EHi, Esteps, PALo, PAHi, PAsteps];
+    batches = parse(Int64, retrieve(conf, "batches"));
+    numThreads = parse(Int64, retrieve(conf, "numberOfThreads"))
+    @info "Parsed Config file: $conffile"
+    return numParticles, endTime
+end
+
+function load_resultant_matrix(label::String, directoryname::String, basename::String, conffile::String, num_batches::Int64)
+    # Parse conf file
+    @time numParticles, endTime = parse_conf_file(directoryname, conffile)    
+    # Load in data
+    @time allZ, allPZ, allT, allPA, allE = loadData(directoryname, basename, num_batches);
+    # Count lost particles
+    @time lostParticles = countLostParticles(allT, endTime);
+    # Convert into a workable matrix
+    @time tVec, Zmatrix, PZmatrix, Ematrix, PAmatrix = postProcessor(allT, allZ, allPZ, allE, allPA);
+    return Resultant_Matrix(label, numParticles, endTime, allZ, allPZ, allT, allPA, allE, lostParticles,tVec, Zmatrix, PZmatrix, Ematrix, PAmatrix)
+end
+
+###################
+## PSD Functions ##
+###################
+# define dist function here
+
+# generic
+f0 = ((C::Float64, E::Float64, PA::Float64) -> ((C*(E/70)^-3)*(sin(deg2rad(PA)))))
+# mms fit for 9/22/20
+f0_092220 = function (E::Float64, PA)
+    A = 3
+    B0 = 1
+    B1 = 2.5
+    C = 1e4
+    E0 = 300
+    E1 = 70
+    if E < 70
+        B = B0
+    elseif E <= 300
+        B = B0 + (B1-B0)*(E-E0)/(E1-E0)
+    elseif E > 300
+        B = B1
+    end
+    return ((C*(E/70)^-A)*(sin(deg2rad(PA))-sin(deg2rad(8)))^B)
+end
+# mms fit for 10/27/20
+f0_102720 = function (E::Float64, PA)
+    A = 3
+    B0 = .2
+    B1 = .3
+    C = 1.5e5
+    E0 = 300
+    E1 = 70
+    if E < 70
+        B = B0
+    elseif E <= 300
+        B = B0 + (B1-B0)*(E-E0)/(E1-E0)
+    elseif E > 300
+        B = B1
+    end
+    return ((C*(E/70)^-A)*(sin(deg2rad(PA))-sin(deg2rad(8)))^B)
+end
+# themis fit for 4/29/21
+f0_042921 = function (E::Float64, PA)
+    a1 = 5e-13
+    a2 = 8e-16
+    a3 = 2e-19
+    b1 = .2
+    b2 = 9
+    b3 = 200
+    if E < 5
+        b = 0.5
+    elseif E <= 20
+        b = 0.5
+    elseif E > 40
+        b = 0
+    end
+    Epsd = (a1 * (1 + E/b1)^-5) + (a2 * (1 + E/b2)^-5) + (a3 * (1 + E/b3)^-3)
+    PApsd = (sin(deg2rad(PA))-sin(deg2rad(8)))^b
+    # km --> cm and 1/v^4 --> 1/E^2 conversion
+    # since v = 438 * sqrt(1836 KeV)
+    return (1e5*438^4*1836^2)*(Epsd*PApsd)
+end   
+
+#################
+## Plot Colors ##
+#################
+
+using Plots.PlotMeasures
+bipride_pink = RGB(234/255, 2/255, 112/255);
+bipride_lavender = RGB(155/255, 79/255, 150/255);
+bipride_blue = RGB(0/255, 56/255, 168/255);
 
 
 ###############################
@@ -99,7 +206,7 @@ function loadData(directory::String, basename::String, num_batches::Int64)
     return allZ, allPZ, allT, allPA, allE
 end
 
-function countLostParticles(allT::Vector{Vector{Float64}})
+function countLostParticles(allT::Vector{Vector{Float64}}, endTime::Float64)
     #=
     Based on time vectors, counts which ones were lost
     and at what time. Returns a Nx2 array where the first
@@ -458,7 +565,7 @@ function get_Nloss_Ntotal_per_Energy(tVec, Ematrix)
     end
 end
 
-function precipitatingParticles(tVec, Ematrix, timeBin=10)
+function precipitatingParticles(tVec, Ematrix, endTime, timeBin=10)
     unitSimTime = mean(diff(tVec[begin:end-1]));
     simTimeBin = convert(Int64, round(timeBin/unitSimTime, digits=0))
 
@@ -616,11 +723,11 @@ function extract_idl_csv(time_name, data_name, ebin_name, start, stop)
 end
 
 
-function generate_flux_comparison(timeBin, dist_func, whistler_occurence_rate, Egrid, PAgrid,time_name, data_name, ebin_name, start, stop)
-    allPrecip, indexArray, allPrecipInitial = precipitatingParticles(tVec, Ematrix, timeBin);
-    f_timeseries, psd_timeseries, psd_prec_timeseries = make_psd_timeseries(Ematrix,PAmatrix,tVec, dist_func, Egrid, PAgrid, whistler_occurence_rate);
+function generate_flux_comparison(result_matrix::Resultant_Matrix, timeBin, dist_func, whistler_occurence_rate, Egrid, PAgrid,time_name, data_name, ebin_name, start, stop)
+    allPrecip, indexArray, allPrecipInitial = precipitatingParticles(result_matrix.tVec, result_matrix.Ematrix, result_matrix.endTime, timeBin);
+    f_timeseries, psd_timeseries, psd_prec_timeseries = make_psd_timeseries(result_matrix.Ematrix,result_matrix.PAmatrix,result_matrix.tVec, dist_func, Egrid, PAgrid, whistler_occurence_rate);
     binned_psd_prec_timeseries = bin_psd_prec_timeseries(psd_prec_timeseries, indexArray);
-    equatorial_fluxes = calc_equatorial_fluxes(Ematrix,PAmatrix, dist_func, Egrid, PAgrid);
+    equatorial_fluxes = calc_equatorial_fluxes(result_matrix.Ematrix,result_matrix.PAmatrix, dist_func, Egrid, PAgrid);
     prec_flux_timeseries = calc_precipitating_flux_timeseries(binned_psd_prec_timeseries);
     elfin_measurements = extract_idl_csv(time_name, data_name, ebin_name, start, stop);
     return equatorial_fluxes, elfin_measurements, prec_flux_timeseries
