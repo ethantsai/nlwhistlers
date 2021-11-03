@@ -169,9 +169,10 @@ function eom!(dH,H,p::SVector{6, Float64},t::Float64)
     cosζ = g*cos(H[3]);
 
     # single sided wave, grows to max at 1 deg, infinitely long
-    # u = .5*(tanh(H[5]/deg2rad(1))+1);
-    # double sided wave, grows to max at 2 deg, dissipates by 20 deg
-    u = tanh((H[5]/(deg2rad(2)))^2) * (exp(-(H[5]/(deg2rad(40)))^2)); 
+    # u = .5*(tanh(lambda/deg2rad(1))+1);
+    # double sided wave, grows to max at 2 deg, dissipates by 10 deg
+    # λ (H[5]) is in radians
+    u = tanh((H[5]/(deg2rad(2)))) * (exp(-(H[5]/(deg2rad(10)))^2)); 
     
     b = sqrt(1+3*sinλ^2)/(cosλ^6);
     db = (3*(27*sinλ-5*sin(3*H[5])))/(cosλ^8*(4+12*sinλ^2));
