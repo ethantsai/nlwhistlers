@@ -1,5 +1,6 @@
 @info "Hello! It's sim time!"
 include("helperFunctions.jl")
+outputFileBaseName, io = setupDirectories(directoryname)
 @info "Imported helperFunctions.jl"
 flush(io)
 
@@ -23,7 +24,7 @@ flush(io)
 # hf0 = [h0  f0][shuffle(1:end), :];   # shuffle so batches all take same-ish time
 
 ## Setup model
-prob = ODEProblem(eom!, ~, tspan, @SVector [η, ε, Omegape, omegam, a, dPhi]);
+prob = ODEProblem(eom!, ~, tspan, @SVector [η, ε, Omegape, omegam, a, dPhi, dλ1, dλ2]);
 # _prob, _alg = auto_optimize(prob) TODO: get auto-optimize to work
 
 
@@ -34,6 +35,7 @@ flush(io)
 
 ## Run simulation
 tick()
+flush(io)
 ensemble()
 @info "Total sim time:"
 tock()
