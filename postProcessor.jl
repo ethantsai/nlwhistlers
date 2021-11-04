@@ -1,7 +1,6 @@
 include("plotHelpers.jl")
 
-themis_hilat = load_resultant_matrix("210429_themis_hilat", "results/jld2_211031_22", "210429_themis_lolat_96600", "setupasrun.conf", 161);
-themis_lolat = load_resultant_matrix("210429_themis_hilat", "results/jld2_211031_22", "210429_themis_lolat_96600", "setupasrun.conf", 161);
+themis_hilat = load_resultant_matrix("210429_themis_hilat", "results/jld2_211031_22", "210429_themis_hilat_96600", "setupasrun.conf", 161);
 
 Egrid, PAgrid = logrange(10,1000,21), 6:4:90
 
@@ -10,19 +9,6 @@ equatorial_fluxes_092220, elfin_measurements_092220, prec_flux_timeseries_092220
                                                                 Egrid, PAgrid, # Ebins and PA bins to use
                                                                 "092220_time.csv", "092220_prec.csv", "ebins.csv", # csvs containing ELFIN measurements
                                                                 DateTime(2020,9,22,9,16,15), DateTime(2020,9,22,9,16,50)) # time to sample from ELFIN measurements
-
-equatorial_fluxes_102720, elfin_measurements_102720, prec_flux_timeseries_102720 = generate_flux_comparison(themis_hilat,
-                                                                10, f0_102720, .05,     # timebins, dist_func, whistler occurence rate
-                                                                Egrid, PAgrid, # Ebins and PA bins to use
-                                                                "102720_time.csv", "102720_prec.csv", "ebins.csv", # csvs containing ELFIN measurements
-                                                                DateTime(2020,10,27,10,34,7),DateTime(2020,10,27,10,34,40)) # time to sample from ELFIN measurements
-
-equatorial_fluxes_042921, elfin_measurements_042921, prec_flux_timeseries_042921 = generate_flux_comparison(themis_hilat,
-                                                                10, f0_042921, .1,     # timebins, dist_func, whistler occurence rate
-                                                                Egrid, PAgrid, # Ebins and PA bins to use
-                                                                "042921_time.csv", "042921_prec.csv", "ebins.csv", # csvs containing ELFIN measurements
-                                                                DateTime(2021,4,29,3,14,45),DateTime(2021,4,29,3,15,0)) # time to sample from ELFIN measurements                                                                
-
 
 # Plots for 9/22/20
 plot(Egrid, equatorial_fluxes_092220, label = "Equatorial Flux", color = bipride_blue, linewidth=2, markershape=:circle);
@@ -34,6 +20,11 @@ plot!(xlabel=L"\mathrm{Energy\ (keV)}", ylabel=L"\mathrm{Flux\ (1/cm^{2}/s/sr/Me
 xtickfontsize=12, ytickfontsize=12, xguidefontsize=16, yguidefontsize=16, legendfontsize=10, titlefontsize=16);
 plot1 = plot!(dpi = 300,size=(800,450), margin=3mm, bottom_margin=4mm)
 #savefig(plot1, "092220_flux_comparison.pdf")
+equatorial_fluxes_102720, elfin_measurements_102720, prec_flux_timeseries_102720 = generate_flux_comparison(themis_hilat,
+                                                                10, f0_102720, .05,     # timebins, dist_func, whistler occurence rate
+                                                                Egrid, PAgrid, # Ebins and PA bins to use
+                                                                "102720_time.csv", "102720_prec.csv", "ebins.csv", # csvs containing ELFIN measurements
+                                                                DateTime(2020,10,27,10,34,7),DateTime(2020,10,27,10,34,40)) # time to sample from ELFIN measurements
 
 # Plots for 10/27/20
 plot(Egrid, equatorial_fluxes_102720, label = "Equatorial Flux", color = bipride_blue, linewidth=2, markershape=:circle);
@@ -46,6 +37,12 @@ xtickfontsize=12, ytickfontsize=12, xguidefontsize=16, yguidefontsize=16, legend
 plot2 = plot!(dpi = 300,size=(800,450), margin=3mm, bottom_margin=4mm)
 #savefig(plot2, "102720_flux_comparison.pdf")
 
+equatorial_fluxes_042921, elfin_measurements_042921, prec_flux_timeseries_042921 = generate_flux_comparison(themis_hilat,
+                                                                10, f0_042921, .05,     # timebins, dist_func, whistler occurence rate
+                                                                Egrid, PAgrid, # Ebins and PA bins to use
+                                                                "042921_time.csv", "042921_prec.csv", "ebins.csv", # csvs containing ELFIN measurements
+                                                                DateTime(2021,4,29,3,14,45),DateTime(2021,4,29,3,15,0)) # time to sample from ELFIN measurements                                                                
+
 # Plots for 04/29/21
 plot(Egrid, equatorial_fluxes_042921, label = "Equatorial Flux", color = bipride_blue, linewidth=2, markershape=:circle);
 plot!(Egrid, prec_flux_timeseries_042921[2:end-1], color = bipride_lavender, alpha = .5, label=false, markershape=:x);
@@ -55,7 +52,16 @@ plot!(ylim =(1e2,1e9), xlim=(50,800), yscale=:log10);
 plot!(xlabel=L"\mathrm{Energy\ (keV)}", ylabel=L"\mathrm{Flux\ (1/cm^{2}/s/sr/MeV)}", title=L"\mathrm{Flux\ Comparison\ of\ Precipitating\ Particles\ on\ 4/29/21}",
 xtickfontsize=12, ytickfontsize=12, xguidefontsize=16, yguidefontsize=16, legendfontsize=10, titlefontsize=16);
 plot3 = plot!(dpi = 300,size=(800,450), margin=3mm, bottom_margin=4mm)
-#savefig(plot3, "042921_flux_comparison.pdf")
+savefig(plot3, "042921_flux_comparison.pdf")
+
+
+
+
+
+
+
+
+
 
 trapped_fluxes = generate_trapped_psd(f0_092220, 1.0)
 simulated_ratio = [prec_flux_timeseries[i]./((trapped_fluxes[i]).-prec_flux_timeseries[i]) for i in 1:length(trapped_fluxes)]
