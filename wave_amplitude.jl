@@ -16,3 +16,24 @@ Bw = (Ew .* N ./ 300 ) # nT
 
 wave_amp_modifier = ( Bw ./ B0 )*eta(L)
 avg_wave_amp_mod = sum(wave_amp_modifier)/(2*length(wave_amp_modifier))
+
+
+
+
+
+
+
+
+
+using Plots
+
+u(lambda) = .5*(tanh(deg2rad(lambda)/deg2rad(1))+1)
+u10(lambda) = tanh((deg2rad(lambda)/(deg2rad(2)))) * (exp(-(deg2rad(lambda)/(deg2rad(10)))^2)); 
+u15(lambda) = tanh((deg2rad(lambda)/(deg2rad(2)))) * (exp(-(deg2rad(lambda)/(deg2rad(15)))^2));
+u40(lambda) = tanh((deg2rad(lambda)/(deg2rad(2)))) * (exp(-(deg2rad(lambda)/(deg2rad(40)))^2)); 
+
+plot(u, 0,90)
+plot!(u10, 0,90)
+plot!(u15, 0,90)
+plot!(u40, 0,90)
+plot!(yscale=:log10, ylim = (1e-4,1.1))
