@@ -1,6 +1,7 @@
 include("plotHelpers.jl")
 
-themis_hilat = load_resultant_matrix("210429_themis_hilat", "results/jld2_211031_22", "210429_themis_hilat_96600", "setupasrun.conf", 161);
+themis_lolat = load_resultant_matrix("210429_themis_lolat", "results/jld2_210429_themis_lolat", "210429_themis_lolat_96600", "setupasrun.conf", 161);
+themis_hilat = load_resultant_matrix("210429_themis_hilat", "results/jld2_210429_themis_hilat", "210429_themis_hilat_96600", "setupasrun.conf", 161);
 
 Egrid, PAgrid = logrange(10,1000,21), 6:4:90
 
