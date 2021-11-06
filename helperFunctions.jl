@@ -124,7 +124,7 @@ function generateFlatParticleDistribution(numParticles::Int64, ICrange, z0=0::Fl
     # Other ICs that are important
     # Define basic ICs and parameters
     # B0          = Beq*sqrt(1. +3. *sin(λ0)^2.)/L^3.;     # starting B field at eq
-    B0          = 188e-9 # nT as measured from THEMIS A at L = 5.2
+    B0          = 220e-9 # nT as measured from MMS-1 at L = 6
     Omegace0    = (1.6e-19*B0)/(9.11e-31);                    # electron gyrofreq @ the equator
     η           = Omegace0*L*Re/c;              # should be like 10^3
     ε           = waveAmplitudeModifier/η;    # normalized wave large amplitude, .1 for small, 15 for large
