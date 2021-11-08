@@ -100,7 +100,7 @@ function export_results(label::String, equatorial_fluxes, precipitating_flux_tim
     ###
     # extract data and save it into 
     ###
-    prec_flux_matrix = hcat(prec_flux_timeseries_042921...)
+    prec_flux_matrix = hcat(precipitating_flux_timeseries...)
     prec_flux_mean = Vector{Float64}()
     prec_flux_plus = Vector{Float64}()
     prec_flux_minus = Vector{Float64}()
@@ -112,15 +112,16 @@ function export_results(label::String, equatorial_fluxes, precipitating_flux_tim
             push!(prec_flux_plus, 1)
             push!(prec_flux_minus, 1)
         else
-            push!(prec_flux_mean,mean(row))
-            push!(prec_flux_plus, maximum(row))
-            push!(prec_flux_minus, minimum(row))
+            avg_val = mean(row)
+            push!(prec_flux_mean, avg_val)
+            push!(prec_flux_plus, maximum(row)-avg_val)
+            push!(prec_flux_minus, avg_val-minimum(row))
         end
     end
     # test plot
     # plot(Egrid, prec_flux_mean, yerror=(prec_flux_minus, prec_flux_plus), ylim =(1e2,1e9), xlim=(50,800), yscale=:log10)
     
-    return Precipitating_Particles(label, equatorial_fluxes, prec_flux_mean, prec_flux_minus, prec_flux_plus)
+    return Precipitating_Particles(label, equatorial_fluxes, prec_flux_mean, prec_flux_plus, prec_flux_minus)
 end
 # themis_lolat = export_results("210429_themis_lolat", equatorial_fluxes_042921, prec_flux_timeseries_042921)
 # @save "210429_data_storage.jld2" themis_lolat themis_hilat
