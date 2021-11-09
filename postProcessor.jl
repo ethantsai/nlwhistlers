@@ -3,6 +3,10 @@ include("plotHelpers.jl")
 # works on mac
 mms_midlat = load_resultant_matrix("200922_mms_midlat", "results/jld2_200922_mms_midlat", "200922_mms_midlat_96600", "setupasrun.conf", 161);
 themis_hilat = load_resultant_matrix("210429_themis_hilat", "results/jld2_210429_themis_hilat", "210429_themis_hilat_96600", "setupasrun.conf", 161);
+# works on pc
+mms_hilat = load_resultant_matrix("200922_mms_midlat", "results/jld2_200922_mms_midlat", "200922_mms_midlat_96600", "setupasrun.conf", 161);
+themis_lolat = load_resultant_matrix("210429_themis_lolat", "results/jld2_210429_themis_lolat", "210429_themis_lolat_96600", "setupasrun.conf", 161);
+
 
 Egrid, PAgrid = logrange(10,1000,21), 6:4:90
 
@@ -39,7 +43,7 @@ xtickfontsize=12, ytickfontsize=12, xguidefontsize=16, yguidefontsize=16, legend
 plot2 = plot!(dpi = 300,size=(800,450), margin=3mm, bottom_margin=4mm)
 #savefig(plot2, "102720_flux_comparison.pdf")
 
-equatorial_fluxes_042921, elfin_measurements_042921, prec_flux_timeseries_042921 = generate_flux_comparison(themis_hilat,
+equatorial_fluxes_042921, elfin_measurements_042921, prec_flux_timeseries_042921 = generate_flux_comparison(themis_lolat,
                                                                 10, f0_042921, .05,     # timebins, dist_func, whistler occurence rate
                                                                 Egrid, PAgrid, # Ebins and PA bins to use
                                                                 "042921_time.csv", "042921_prec.csv", "ebins.csv", # csvs containing ELFIN measurements
@@ -54,17 +58,21 @@ plot!(ylim =(1e2,1e9), xlim=(50,800), yscale=:log10);
 plot!(xlabel=L"\mathrm{Energy\ (keV)}", ylabel=L"\mathrm{Flux\ (1/cm^{2}/s/sr/MeV)}", title=L"\mathrm{Flux\ Comparison\ of\ Precipitating\ Particles\ on\ 4/29/21}",
 xtickfontsize=12, ytickfontsize=12, xguidefontsize=16, yguidefontsize=16, legendfontsize=10, titlefontsize=16);
 plot3 = plot!(dpi = 300,size=(800,450), margin=3mm, bottom_margin=4mm)
-savefig(plot3, "042921_flux_comparison.pdf")
+# savefig(plot3, "042921_flux_comparison.pdf")
 
 
 
 
-mms_midlat = export_results("200922_mms_midlat", equatorial_fluxes_092220, prec_flux_timeseries_092220)
-plot(Egrid, mms_midlat.precipitating_fluxes_mean, yerror=(mms_midlat.precipitating_fluxes_minus, mms_midlat.precipitating_fluxes_plus), ylim =(1e2,1e9), xlim=(50,800), yscale=:log10)
-plot!(Egrid, mms_midlat.equatorial_fluxes)
+mms_hilat = export_results("200922_mms_hilat", equatorial_fluxes_092220, prec_flux_timeseries_092220)
+plot(Egrid, mms_hilat.precipitating_fluxes_mean, yerror=(mms_hilat.precipitating_fluxes_minus, mms_hilat.precipitating_fluxes_plus), ylim =(1e2,1e9), xlim=(50,800), yscale=:log10)
+plot!(Egrid, mms_hilat.equatorial_fluxes)
 @save "200922_data_storage.jld2" mms_midlat
 
-@save "210429_data_storage.jld2" themis_lolat themis_hilat
+themis_hilat = export_results("210429_themis_hilat", equatorial_fluxes_042921, prec_flux_timeseries_042921)
+plot(Egrid, themis_hilat.precipitating_fluxes_mean, yerror=(themis_hilat.precipitating_fluxes_minus, themis_hilat.precipitating_fluxes_plus), ylim =(1e2,1e9), xlim=(50,800), yscale=:log10)
+plot!(Egrid, themis_hilat.equatorial_fluxes)
+
+@save "210429_data_storage.jld2" themis_hilat
 
 
 
