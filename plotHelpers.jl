@@ -195,10 +195,18 @@ end
 #################
 
 using Plots.PlotMeasures
+function hexcolor(r::UInt8, g::UInt8, b::UInt8)
+    return RGB(Int(r)/255,Int(g)/255,Int(b)/255)
+end
 bipride_pink = RGB(234/255, 2/255, 112/255);
 bipride_orange = RGB(255/255, 79/255, 0/255);
 bipride_lavender = RGB(155/255, 79/255, 150/255);
 bipride_blue = RGB(0/255, 56/255, 168/255);
+c1 = hexcolor(0xff,0x4f,0x00)
+c2 = hexcolor(0xf8,0x00,0x4d)
+c3 = hexcolor(0xd3,0x00,0x7d)
+c4 = hexcolor(0x8f,0x19,0x9f)
+c5 = hexcolor(0x00,0x38,0xa8)
 
 
 ###############################
