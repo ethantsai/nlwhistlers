@@ -1,6 +1,10 @@
 include("plotHelpers.jl")
 
-# works on mac
+# works on mac m1
+themis_hilat_nopkts = load_resultant_matrix("210429_themis_hilat_nopkts", "results/jld2_211106_17", "210429_themis_hilat_nopkts_96600", "setupasrun.conf", 161);
+themis_hilat_100pkts = load_resultant_matrix("210429_themis_hilat_pkts", "results/jld2_211105_21", "210429_themis_hilat_pkts_96600", "setupasrun.conf", 161);
+themis_midlat = load_resultant_matrix("210429_themis_midlat", "results/jld2_211105_00", "210429_themis_midlat_96600", "setupasrun.conf", 161);
+# works on mac m1pro
 mms_midlat = load_resultant_matrix("200922_mms_midlat", "results/jld2_200922_mms_midlat", "200922_mms_midlat_96600", "setupasrun.conf", 161);
 themis_hilat = load_resultant_matrix("210429_themis_hilat", "results/jld2_210429_themis_hilat", "210429_themis_hilat_96600", "setupasrun.conf", 161);
 # works on pc
@@ -45,7 +49,7 @@ xtickfontsize=12, ytickfontsize=12, xguidefontsize=16, yguidefontsize=16, legend
 plot2 = plot!(dpi = 300,size=(800,450), margin=3mm, bottom_margin=4mm)
 #savefig(plot2, "102720_flux_comparison.pdf")
 
-equatorial_fluxes_042921, elfin_measurements_042921, prec_flux_timeseries_042921 = generate_flux_comparison(themis_lolat,
+equatorial_fluxes_042921, elfin_measurements_042921, prec_flux_timeseries_042921 = generate_flux_comparison(themis_midlat,
                                                                 10, f0_042921, .05,     # timebins, dist_func, whistler occurence rate
                                                                 Egrid, PAgrid, # Ebins and PA bins to use
                                                                 "042921_time.csv", "042921_prec.csv", "ebins.csv", # csvs containing ELFIN measurements
@@ -70,10 +74,10 @@ plot(Egrid, mms_hilat.precipitating_fluxes_mean, yerror=(mms_hilat.precipitating
 plot!(Egrid, mms_hilat.equatorial_fluxes)
 @save "200922_data_storage.jld2" mms_midlat
 
-themis_hilat = export_results("210429_themis_hilat", equatorial_fluxes_042921, prec_flux_timeseries_042921)
-plot(Egrid, themis_hilat.precipitating_fluxes_mean, yerror=(themis_hilat.precipitating_fluxes_minus, themis_hilat.precipitating_fluxes_plus), ylim =(1e2,1e9), xlim=(50,800), yscale=:log10)
-plot!(Egrid, themis_hilat.equatorial_fluxes)
-@save "210429_data_storage.jld2" themis_hilat themis_lolat
+themis_midlat = export_results("210429_themis_midlat", equatorial_fluxes_042921, prec_flux_timeseries_042921)
+plot(Egrid, themis_midlat.precipitating_fluxes_mean, yerror=(themis_midlat.precipitating_fluxes_minus, themis_midlat.precipitating_fluxes_plus), ylim =(1e2,1e9), xlim=(50,800), yscale=:log10)
+plot!(Egrid, themis_midlat.equatorial_fluxes)
+@save "210429_data_storage.jld2" themis_hilat_100wav themis_hilat_nowav themis_hilat themis_midlat themis_lolat
 
 
 
