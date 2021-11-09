@@ -196,6 +196,7 @@ end
 
 using Plots.PlotMeasures
 bipride_pink = RGB(234/255, 2/255, 112/255);
+bipride_orange = RGB(255/255, 79/255, 0/255);
 bipride_lavender = RGB(155/255, 79/255, 150/255);
 bipride_blue = RGB(0/255, 56/255, 168/255);
 

@@ -7,6 +7,8 @@ themis_hilat = load_resultant_matrix("210429_themis_hilat", "results/jld2_210429
 mms_hilat = load_resultant_matrix("200922_mms_midlat", "results/jld2_200922_mms_midlat", "200922_mms_midlat_96600", "setupasrun.conf", 161);
 themis_lolat = load_resultant_matrix("210429_themis_lolat", "results/jld2_210429_themis_lolat", "210429_themis_lolat_96600", "setupasrun.conf", 161);
 
+themis_100pkts = load_resultant_matrix("210429_themis_100pkts", "results/jld2_210429_themis_hilat_100pkts", "210429_themis_hilat_pkts_96600", "setupasrun.conf", 161);
+
 
 Egrid, PAgrid = logrange(10,1000,21), 6:4:90
 
@@ -71,8 +73,7 @@ plot!(Egrid, mms_hilat.equatorial_fluxes)
 themis_hilat = export_results("210429_themis_hilat", equatorial_fluxes_042921, prec_flux_timeseries_042921)
 plot(Egrid, themis_hilat.precipitating_fluxes_mean, yerror=(themis_hilat.precipitating_fluxes_minus, themis_hilat.precipitating_fluxes_plus), ylim =(1e2,1e9), xlim=(50,800), yscale=:log10)
 plot!(Egrid, themis_hilat.equatorial_fluxes)
-
-@save "210429_data_storage.jld2" themis_hilat
+@save "210429_data_storage.jld2" themis_hilat themis_lolat
 
 
 
