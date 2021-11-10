@@ -25,15 +25,21 @@ avg_wave_amp_mod = sum(wave_amp_modifier)/(2*length(wave_amp_modifier))
 
 
 
-using Plots
+using Plots, LaTeXStrings
 
 u(lambda) = .5*(tanh(deg2rad(lambda)/deg2rad(1))+1)
-u10(lambda) = tanh((deg2rad(lambda)/(deg2rad(2)))) * (exp(-(deg2rad(lambda)/(deg2rad(10)))^2)); 
-u15(lambda) = tanh((deg2rad(lambda)/(deg2rad(2)))) * (exp(-(deg2rad(lambda)/(deg2rad(15)))^2));
-u40(lambda) = tanh((deg2rad(lambda)/(deg2rad(2)))) * (exp(-(deg2rad(lambda)/(deg2rad(40)))^2)); 
+u20(lambda) = 0.929745945424938^-1*tanh((deg2rad(lambda)/(deg2rad(2)))) * (exp(-(deg2rad(lambda)/(deg2rad(20)))^2)); 
+u30(lambda) = 0.9597545683166291^-1*tanh((deg2rad(lambda)/(deg2rad(2)))) * (exp(-(deg2rad(lambda)/(deg2rad(30)))^2));
+u40(lambda) = 0.9733653674717542^-1*tanh((deg2rad(lambda)/(deg2rad(2)))) * (exp(-(deg2rad(lambda)/(deg2rad(40)))^2)); 
 
-plot(u, 0,90)
-plot!(u10, 0,90)
-plot!(u15, 0,90)
-plot!(u40, 0,90)
-plot!(yscale=:log10, ylim = (1e-4,1.1))
+plot(u, 0,90,label=L"0.5\tanh(\lambda)/1 + 1")
+plot!(u20, 0,90,label=L"\delta\lambda_2 = 20\degree")
+plot!(u30, 0,90,label=L"\delta\lambda_2 = 30\degree")
+plot!(u40, 0,90,label=L"\delta\lambda_2 = 40\degree")
+plot!(xlabel="Latitude (degrees)", ylabel="B_w modifier", title="Latitude distribution of chorus waves")
+plot!(yscale=:log10, ylim = (0.1,1.))
+
+
+maximum(u20.(0:.1:90)) # 0.929745945424938^-1*
+maximum(u30.(0:.1:90)) # 0.9597545683166291^-1*
+maximum(u40.(0:.1:90)) # 0.9733653674717542^-1*
