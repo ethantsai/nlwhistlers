@@ -11,9 +11,6 @@ themis_hilat = load_resultant_matrix("210429_themis_hilat", "results/jld2_210429
 mms_hilat = load_resultant_matrix("200922_mms_midlat", "results/jld2_200922_mms_midlat", "200922_mms_midlat_96600", "setupasrun.conf", 161);
 themis_lolat = load_resultant_matrix("210429_themis_lolat", "results/jld2_210429_themis_lolat", "210429_themis_lolat_96600", "setupasrun.conf", 161);
 
-themis_100pkts = load_resultant_matrix("210429_themis_100pkts", "results/jld2_210429_themis_hilat_100pkts", "210429_themis_hilat_pkts_96600", "setupasrun.conf", 161);
-
-
 Egrid, PAgrid = logrange(10,1000,21), 6:4:90
 
 equatorial_fluxes_092220, elfin_measurements_092220, prec_flux_timeseries_092220 = generate_flux_comparison(mms_midlat,
