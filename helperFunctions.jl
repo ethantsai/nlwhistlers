@@ -54,7 +54,7 @@ ICrange = [ELo, EHi, Esteps, PALo, PAHi, PAsteps];
 const batches = parse(Int64, retrieve(conf, "batches"));
 const numThreads = parse(Int64, retrieve(conf, "numberOfThreads"))
 u(lambda) = tanh((deg2rad(lambda)/(deg2rad(2)))) * (exp(-(deg2rad(lambda)/(deg2rad(dλ2)))^2));
-B_w_normalizer = maximum(u.(1:.01:90))^-1
+const B_w_normalizer = maximum(u.(1:.01:90))^-1
 @info "Parsed Config file: $conffile:"
 
 ###################
@@ -146,7 +146,7 @@ end
     nPerBatch = numParticles÷batches;
     for j in 0:batches-1
         truncatedIC =  h0[nPerBatch*j+1:(nPerBatch*j+nPerBatch),:]
-        push!(probGeneratorList, ((prob,i,repeat) -> remake(prob, u0 = truncatedIC[i,:], p = @SVector [η, ε, Omegape, omegam, a, dPhi, dλ1, dλ2])))
+        push!(probGeneratorList, ((prob,i,repeat) -> remake(prob, u0 = truncatedIC[i,:], p = @SVector [η, ε, Omegape, omegam, a, dPhi, dλ1, dλ2, B_w_normalizer])))
     end
     percentage = (round(100/batches))
     @info "Each batch will simulate $nPerBatch particles for $(endTime-startTime) dt and correspond with $percentage%"
@@ -158,7 +158,7 @@ end
 ## Math n stuff ##
 ##################
 
-function eom!(dH,H,p::SVector{8, Float64},t::Float64)
+function eom!(dH,H,p::SVector{9, Float64},t::Float64)
     # These equations define the motion.
 
     # z, pz, zeta, mu, lambda, phi = H
@@ -170,7 +170,7 @@ function eom!(dH,H,p::SVector{8, Float64},t::Float64)
     cosζ = g*cos(H[3]);
 
     # double sided wave, grows to max at dLambda1 deg, dissipates by dLambda2 deg
-    u = B_w_normalizer*tanh((H[5]/(deg2rad(p[7])))) * (exp(-(H[5]/(deg2rad(p[8])))^2)); 
+    u = p[9]*tanh((H[5]/(deg2rad(p[7])))) * (exp(-(H[5]/(deg2rad(p[8])))^2)); 
     
     # helper variables
     b = sqrt(1+3*sinλ^2)/(cosλ^6);
