@@ -53,6 +53,7 @@ const PAsteps = parse(Float64, retrieve(conf, "PAsteps"));
 ICrange = [ELo, EHi, Esteps, PALo, PAHi, PAsteps];
 const batches = parse(Int64, retrieve(conf, "batches"));
 const numThreads = parse(Int64, retrieve(conf, "numberOfThreads"))
+const B_eq_measured = parse(Float64, retrieve(conf, "B_eq_measured")); # in nT
 u(lambda) = tanh((deg2rad(lambda)/(deg2rad(2)))) * (exp(-(deg2rad(lambda)/(deg2rad(dλ2)))^2));
 const B_w_normalizer = maximum(u.(1:.01:90))^-1
 @info "Parsed Config file: $conffile:"
@@ -126,7 +127,7 @@ function generateFlatParticleDistribution(numParticles::Int64, ICrange, z0=0::Fl
     # Other ICs that are important
     # Define basic ICs and parameters
     # B0          = Beq*sqrt(1. +3. *sin(λ0)^2.)/L^3.;     # starting B field at eq
-    B0          = 220e-9 # nT as measured from MMS-1 at L = 6
+    B0          = B_eq_measured*1e-9                        # measured equatorial field strength
     Omegace0    = (1.6e-19*B0)/(9.11e-31);                    # electron gyrofreq @ the equator
     η           = Omegace0*L*Re/c;              # should be like 10^3
     ε           = waveAmplitudeModifier/η;    # normalized wave large amplitude, .1 for small, 15 for large
