@@ -1,9 +1,10 @@
 include("plotHelpers.jl")
 
 # works on mac m1
+themis_lolat = load_resultant_matrix("210429_themis_lolat", "results/themis_lolat_m1", "210429_themis_lolat_96600", "setupasrun.conf", 161);
 themis_hilat_nopkts = load_resultant_matrix("210429_themis_hilat_nopkts", "results/jld2_211106_17", "210429_themis_hilat_nopkts_96600", "setupasrun.conf", 161);
 themis_hilat_100pkts = load_resultant_matrix("210429_themis_hilat_pkts", "results/jld2_211105_21", "210429_themis_hilat_pkts_96600", "setupasrun.conf", 161);
-themis_midlat = load_resultant_matrix("210429_themis_midlat", "results/jld2_211105_00", "210429_themis_midlat_96600", "setupasrun.conf", 161);
+
 # works on mac m1pro
 mms_midlat = load_resultant_matrix("200922_mms_midlat", "results/jld2_200922_mms_midlat", "200922_mms_midlat_96600", "setupasrun.conf", 161);
 themis_hilat = load_resultant_matrix("210429_themis_hilat", "results/jld2_210429_themis_hilat", "210429_themis_hilat_96600", "setupasrun.conf", 161);
@@ -81,6 +82,8 @@ plot!(Egrid, themis_midlat.equatorial_fluxes)
 
 
 
+@save "results/210429_themis_lolat.jld2" themis_lolat 
+@time @load "results/210429_themis_lolat.jld2" themis_lolat 
 
 
 
