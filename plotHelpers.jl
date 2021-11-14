@@ -744,7 +744,12 @@ function find_lost_particles(row1::Vector{Float64}, row2::Vector{Float64})
 
 end
 
-function extract_idl_csv(time_name, data_name, ebin_name, start, stop)
+function extract_idl_csv(
+    time_name::String,
+    data_name::String,
+    ebin_name::String,
+    start::DateTime, stop::DateTime)
+
     time_csv_name = "idl_csvs/"*time_name
     data_csv_name = "idl_csvs/"*data_name
     ebins_csv_name = "idl_csvs/"*ebin_name
@@ -771,6 +776,44 @@ function extract_idl_csv(time_name, data_name, ebin_name, start, stop)
     return (ebins, flux)
 end
 
+function extract_idl_csv(
+    time_name::String,
+    data_name::String,
+    error_name::String,
+    ebin_name::String,
+    start::DateTime, stop::DateTime)
+
+    time_csv_name = "idl_csvs/"*time_name
+    data_csv_name = "idl_csvs/"*data_name
+    ebins_csv_name = "idl_csvs/"*ebin_name
+    error_csv_name = "idl_csvs/"*error_name
+
+    times_df =  CSV.File(time_csv_name; header=false, delim=',', types=Float64) |> DataFrame
+    time = unix2datetime.(times_df.Column1)
+    indices = findall((time.>start).&(time.<stop)) # these are the indices corresponding to the time range to sum over
+    time_of_interest = time[indices]
+    @info "Summing over $(time_of_interest[end]-time_of_interest[1])"
+
+    # import particle flux data 
+    data_df  =  CSV.File(data_csv_name; header=false, delim=',', types=Float64) |> DataFrame
+    data = [[data_df[row,col] for col in 1:length(data_df[1,:])] for row in 1:16]
+    error_df  =  CSV.File(error_csv_name; header=false, delim=',', types=Float64) |> DataFrame
+    error = [[error_df[row,col] for col in 1:length(error_df[1,:])] for row in 1:16]
+    # get rid of NaNs and Infs
+    data_of_interest = data
+    error_of_interest = error
+    for i = 1:16
+        data_of_interest[i][findall(.!isfinite.(data[i]))] .= 0.0
+        error_of_interest[i][findall(.!isfinite.(error[i]))] .= 0.0
+    end
+    flux = [sum(data_of_interest[energy][indices]) for energy in 1:16]
+    error = [sqrt(sum((data_of_interest[energy][indices].*error_of_interest[energy][indices]).^2)) for energy in 1:16]
+
+    ebins_df = CSV.File(ebins_csv_name; header=false, delim=',', types=Float64) |> DataFrame
+    ebins = ebins_df.Column1
+
+    return (ebins, flux), error
+end
 
 function generate_flux_comparison(result_matrix::Resultant_Matrix, timeBin, dist_func, whistler_occurence_rate, Egrid, PAgrid,time_name, data_name, ebin_name, start, stop)
     allPrecip, indexArray, allPrecipInitial = precipitatingParticles(result_matrix.tVec, result_matrix.Ematrix, result_matrix.endTime, timeBin);
