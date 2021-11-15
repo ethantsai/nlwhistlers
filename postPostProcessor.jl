@@ -51,8 +51,8 @@ plot!(ylim =(1e3,1e8), xlim=(50,800), yscale=:log10, legend=:right);
 plot!(xlabel=L"\mathrm{Energy\ (keV)}", ylabel=L"\mathrm{Flux\ (1/cm^{2}/s/sr/MeV)}", title=L"\mathrm{Precipitating\ Flux\ Comparison\ of\ \delta\lambda_2\ on\ 4/29/21}",
 xtickfontsize=12, ytickfontsize=12, xguidefontsize=16, yguidefontsize=16, legendfontsize=10, titlefontsize=16);
 plot1 = plot!(dpi = 300,size=(800,450), margin=3mm, bottom_margin=4mm)
-savefig(plot1, "042921_flux_lat_comparison.pdf")
-savefig(plot1, "042921_flux_lat_comparison.png")
+savefig(plot1, "images/042921_flux_lat_comparison.pdf")
+savefig(plot1, "images/042921_flux_lat_comparison.png")
 
 
 
@@ -72,8 +72,8 @@ plot!(ylim =(1e3,1e10), xlim=(50,800), yscale=:log10);
 plot!(xlabel=L"\mathrm{Energy\ (keV)}", ylabel=L"\mathrm{Flux\ (1/cm^{2}/s/sr/MeV)}", title=L"\mathrm{Precipitating\ Flux\ Comparison\ of\ \delta\phi\ on\ 4/29/21}",
 xtickfontsize=12, ytickfontsize=12, xguidefontsize=16, yguidefontsize=16, legendfontsize=10, titlefontsize=16);
 plot2= plot!(dpi = 300,size=(800,450), margin=3mm, bottom_margin=4mm)
-savefig(plot2, "042921_flux_pkt_comparison.pdf")
-savefig(plot2, "042921_flux_pkt_comparison.png")
+savefig(plot2, "images/042921_flux_pkt_comparison.pdf")
+savefig(plot2, "images/042921_flux_pkt_comparison.png")
 
 
 
@@ -96,5 +96,5 @@ plot!(ylim =(1e1,1e9), xlim=(50,800), yscale=:log10);
 plot!(xlabel=L"\mathrm{Energy\ (keV)}", ylabel=L"\mathrm{Flux\ (1/cm^{2}/s/sr/MeV)}", title=L"\mathrm{Flux\ Comparison\ of\ Precipitating\ Particles\ on\ 09/22/20}",
 xtickfontsize=12, ytickfontsize=12, xguidefontsize=16, yguidefontsize=16, legendfontsize=10, titlefontsize=16);
 plot2 = plot!(dpi = 300,size=(800,450), margin=3mm, bottom_margin=4mm)
-savefig(plot2, "092220_flux_comparison.pdf")
-savefig(plot2, "092220_flux_comparison.png")
+savefig(plot2, "images/092220_flux_comparison.pdf")
+savefig(plot2, "images/092220_flux_comparison.png")
