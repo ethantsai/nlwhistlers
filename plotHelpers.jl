@@ -49,7 +49,6 @@ end
 
 struct Precipitating_Particles
     label::String
-    equatorial_fluxes::Vector{Float64}
     precipitating_fluxes_mean::Vector{Float64}
     precipitating_fluxes_plus::Vector{Float64}
     precipitating_fluxes_minus::Vector{Float64}
@@ -96,7 +95,7 @@ function load_resultant_matrix(label::String, directoryname::String, basename::S
     return Resultant_Matrix(label, numParticles, endTime, allZ, allPZ, allT, allPA, allE, lostParticles,tVec, Zmatrix, PZmatrix, Ematrix, PAmatrix)
 end
 
-function export_results(label::String, equatorial_fluxes, precipitating_flux_timeseries)
+function export_results(label::String, precipitating_flux_timeseries)
     ###
     # extract data and save it into 
     ###
@@ -111,6 +110,11 @@ function export_results(label::String, equatorial_fluxes, precipitating_flux_tim
             push!(prec_flux_mean, 1)
             push!(prec_flux_plus, 1)
             push!(prec_flux_minus, 1)
+        elseif length(row) <= 2
+            avg_val = mean(row)
+            push!(prec_flux_mean, avg_val)
+            push!(prec_flux_plus, avg_val*.25)
+            push!(prec_flux_minus, avg_val*.25)
         else
             avg_val = mean(row)
             push!(prec_flux_mean, avg_val)
@@ -121,7 +125,7 @@ function export_results(label::String, equatorial_fluxes, precipitating_flux_tim
     # test plot
     # plot(Egrid, prec_flux_mean, yerror=(prec_flux_minus, prec_flux_plus), ylim =(1e2,1e9), xlim=(50,800), yscale=:log10)
     
-    return Precipitating_Particles(label, equatorial_fluxes, prec_flux_mean, prec_flux_plus, prec_flux_minus)
+    return Precipitating_Particles(label, prec_flux_mean, prec_flux_plus, prec_flux_minus)
 end
 # themis_lolat = export_results("210429_themis_lolat", equatorial_fluxes_042921, prec_flux_timeseries_042921)
 # @save "210429_data_storage.jld2" themis_lolat themis_hilat
@@ -460,10 +464,21 @@ function bin_psd_prec_timeseries(psd_prec_timeseries, indexArray)
     return binned_psd_prec_timeseries
 end
 
-function calc_equatorial_fluxes(Ematrix,PAmatrix, dist_func, Egrid, PAgrid)
+function calc_equatorial_fluxes(result_matrix::Resultant_Matrix, dist_func)
     # initial electron PSD is PSD_0i = flux(E0)/E0 of the recalced distribution
-    _, psd_init, _, _ = recalcDistFunc(Ematrix,PAmatrix, 1, 1,dist_func, Egrid, PAgrid, 1.);
+    _, psd_init, _, _ = recalcDistFunc(result_matrix.Ematrix,result_matrix.PAmatrix, 1, 1,dist_func, Egrid, PAgrid, 1.);
+    @info "Equatorial fluxes calculated from $(result_matrix.label)."
     return [sum(Erow) for Erow in eachrow(psd_init)]  .* Egrid .* 1000 ./ (length(PAgrid))
+end
+
+function calc_prec_flux(result_matrix::Resultant_Matrix,timeBin::Int64,dist_func::Function,whistler_occurence_rate::Float64)
+    # calc only precipitaitng fluxes
+    allPrecip, indexArray, allPrecipInitial = precipitatingParticles(result_matrix.tVec, result_matrix.Ematrix, result_matrix.endTime, timeBin);
+    f_timeseries, psd_timeseries, psd_prec_timeseries = make_psd_timeseries(result_matrix.Ematrix,result_matrix.PAmatrix,result_matrix.tVec, dist_func, Egrid, PAgrid, whistler_occurence_rate);
+    binned_psd_prec_timeseries = bin_psd_prec_timeseries(psd_prec_timeseries, indexArray);
+    @info "Precipitating fluxes calculated from $(result_matrix.label)."
+
+    return calc_precipitating_flux_timeseries(binned_psd_prec_timeseries);
 end
 
 function calc_precipitating_flux_timeseries(binned_psd_prec_timeseries)
