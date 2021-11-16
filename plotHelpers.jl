@@ -140,17 +140,17 @@ end
 f0 = ((C::Float64, E::Float64, PA::Float64) -> ((C*(E/70)^-3)*(sin(deg2rad(PA)))))
 # mms fit for 9/22/20
 f0_092220 = function (E::Float64, PA)
-    A = 3
-    B0 = 1
-    B1 = 2.5
-    C = 1e4
+    A = 4
+    B0 = .25
+    B1 = .3
+    C = 1e5
     E0 = 300
     E1 = 70
-    if E < 70
+    if E < E1
         B = B0
-    elseif E <= 300
+    elseif E <= E0
         B = B0 + (B1-B0)*(E-E0)/(E1-E0)
-    elseif E > 300
+    elseif E > E0
         B = B1
     end
     return ((C*(E/70)^-A)*(sin(deg2rad(PA))-sin(deg2rad(8)))^B)
