@@ -6,14 +6,14 @@ flush(io)
 
 
 # Setup multi threading
-threadsAvailable = length(Sys.cpu_info())
-if numThreads > threadsAvailable
-    Threads.nthreads() = threadsAvailable
-    @warn "Assigned more threads than available."
-elseif numThreads < threadsAvailable
+# threadsAvailable = length(Sys.cpu_info())
+# if numThreads > threadsAvailable
+    # Threads.nthreads() = threadsAvailable
+    # @warn "Assigned more threads than available."
+# elseif numThreads < threadsAvailable
     Threads.nthreads() = numThreads
-end
-@info "using $(Threads.nthreads()) CPU threads of $threadsAvailable available threads."
+# end
+@info "using $(Threads.nthreads()) CPU threads"# of $threadsAvailable available threads."
 flush(io)
 
 ## Initialize particles
@@ -24,7 +24,10 @@ flush(io)
 # hf0 = [h0  f0][shuffle(1:end), :];   # shuffle so batches all take same-ish time
 
 ## Setup model
-prob = ODEProblem(eom!, ~, tspan, @SVector [η, ε, Omegape, omegam, a, dPhi, dλ1, dλ2, B_w_normalizer]);
+params = @SVector [η, ε, Omegape, omegam, a, dPhi, dλ1, dλ2, B_w_normalizer];
+@info "Using these parameters: $params"
+flush(io)
+prob = ODEProblem(eom!, ~, tspan, params);
 # _prob, _alg = auto_optimize(prob) TODO: get auto-optimize to work
 
 
