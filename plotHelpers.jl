@@ -17,6 +17,7 @@ using DataFrames
 using CSV
 using LaTeXStrings
 using Plots.PlotMeasures
+plot(); # dummy plot just to get the dumb pkg to compile
 
 #######################
 ## Constants n stuff ##
@@ -629,17 +630,17 @@ function get_Nloss_Ntotal_per_Energy(tVec, Ematrix)
     end
 end
 
-function precipitatingParticles(tVec, Ematrix, endTime, timeBin=10)
-    unitSimTime = mean(diff(tVec[begin:end-1]));
+function precipitatingParticles(rm::Resultant_Matrix, timeBin=10)
+    unitSimTime = mean(diff(rm.tVec[begin:end-1]));
     simTimeBin = convert(Int64, round(timeBin/unitSimTime, digits=0))
 
     # produce a vector with indices demarcating time bin boundaries
-    indexArray = [minimum([i*simTimeBin length(tVec)]) for i in 1:convert(Int64,floor(endTime/timeBin))]
-    if length(tVec)!=indexArray[end] push!(indexArray, length(tVec)-1) end #guarantee last index corresponds with proper end
+    indexArray = [minimum([i*simTimeBin length(rm.tVec)]) for i in 1:convert(Int64,floor(rm.endTime/timeBin))]
+    if length(rm.tVec)!=indexArray[end] push!(indexArray, length(rm.tVec)-1) end #guarantee last index corresponds with proper end
     # remove all particles that didn't get lost
-    Ematrixprime = @views Matrix(Ematrix[:,findall(isnan, Ematrix[indexArray[end-1],:])]) # this is a new matrix that only has particles that have precipitated
+    Ematrixprime = @views Matrix(rm.Ematrix[:,findall(isnan, rm.Ematrix[indexArray[end-1],:])]) # this is a new matrix that only has particles that have precipitated
     # replace last value with second to last value to prevent off by one problems
-    if indexArray[end] == length(tVec)
+    if indexArray[end] == length(rm.tVec)
         indexArray[end] = indexArray[end]-1
     end
 
@@ -669,18 +670,19 @@ end
 
 
 
-function animatePrecipitatingParticles(gifFileName, allPrecip, indexArray, maxFraction=0.004, maxEnergy=1000)
+function animatePrecipitatingParticles(gifFileName, rm::Resultant_Matrix, timeBin=10, maxFraction=0.004, maxEnergy=1000)
+    allPrecip, indexArray = precipitatingParticles(rm, timeBin)
     animDec = 1; # make a png for animation every 10 points
     animScale = 50; # i.e. animscale = 10 means every 10 seconds in animation is 1 second of simulation time (increase for longer animation)
     anim = @animate for i in eachindex(allPrecip)
         density(allPrecip, color = :gray, alpha = .5);
         density!(allPrecip[i], color = :orange);
         plot!(ylim =(0.,maxFraction), yscale=:identity, xlim=(20,maxEnergy), xscale=:log10, legend=false);
-        plot!(xlabel="Energy (keV)", ylabel="Fraction of $numParticles total particles", title="Energy Spectra of Precipitating Particles");
-        annotate!(40, 0.1*maxFraction, text("t = $(round(tVec[indexArray[i]]*Re*L/(c),digits=3)) s"), :left)
+        plot!(xlabel="Energy (keV)", ylabel="Fraction of $(rm.numParticles) total particles", title="Energy Spectra of Precipitating Particles");
+        annotate!(40, 0.1*maxFraction, text("t = $(round(rm.tVec[indexArray[i]]*Re*L/(c),digits=3)) s"), :left)
     end every animDec
     savename = string("results/",gifFileName)
-    gif(anim, savename, fps = (length(tVec)/animDec)/(animScale*endTime*Re*L/(c)))
+    gif(anim, savename, fps = (length(rm.tVec)/animDec)/(animScale*rm.endTime*Re*L/(c)))
 end
 
 function trajectoryChecking(index)
@@ -769,14 +771,14 @@ function extract_idl_csv(
     data_csv_name = "idl_csvs/"*data_name
     ebins_csv_name = "idl_csvs/"*ebin_name
 
-    times_df =  CSV.File(time_csv_name; header=false, delim=',', type=Float64) |> DataFrame
+    times_df =  CSV.File(time_csv_name; header=false, delim=',', types=Float64) |> DataFrame
     time = unix2datetime.(times_df.Column1)
     indices = findall((time.>start).&(time.<stop)) # these are the indices corresponding to the time range to sum over
     time_of_interest = time[indices]
     @info "Summing over $(time_of_interest[end]-time_of_interest[1])"
 
     # import particle flux data 
-    data_df  =  CSV.File(data_csv_name; header=false, delim=',', type=Float64) |> DataFrame
+    data_df  =  CSV.File(data_csv_name; header=false, delim=',', types=Float64) |> DataFrame
     data = [[data_df[row,col] for col in 1:length(data_df[1,:])] for row in 1:16]
     # get rid of NaNs and Infs
     data_of_interest = data
@@ -785,11 +787,17 @@ function extract_idl_csv(
     end
     flux = [sum(data_of_interest[energy][indices]) for energy in 1:16]
 
-    ebins_df = CSV.File(ebins_csv_name; header=false, delim=',', type=Float64) |> DataFrame
+    ebins_df = CSV.File(ebins_csv_name; header=false, delim=',', types=Float64) |> DataFrame
     ebins = ebins_df.Column1
 
     return (ebins, flux)
 end
+time_name = "092220_time.csv"
+data_name = "092220_prec.csv"
+error_name = "092220_precerror.csv"
+ebin_name = "ebins.csv"
+start = DateTime(2020,9,22,9,16,15)
+stop = DateTime(2020,9,22,9,16,50)
 
 function extract_idl_csv(
     time_name::String,
