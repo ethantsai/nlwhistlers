@@ -119,8 +119,8 @@ function generateFlatParticleDistribution(numParticles::Int64, ICrange, z0=0::Fl
     
     @views f0 = [[(E+511.)/511. deg2rad(PA)] for PA in PA_bins for E in E_bins for i in 1:N] # creates a 2xN array with initial PA and Energy
 
-    #####       [[z0 pz0                          ζ0          mu0                          λ0 Φ0         ]             ]
-    @views h0 = [[z0 sqrt(IC[1]^2 - 1)*cos(IC[2]) rand()*2*pi .5*(IC[1]^2-1)*sin(IC[2])^2  λ0 rand()*2*pi] for IC in f0] # creates a 5xN array with inital h0 terms
+    #####       [[z0 pz0                          ζ0               mu0                          λ0 Φ0              ]             ]
+    @views h0 = [[z0 sqrt(IC[1]^2 - 1)*cos(IC[2]) rand()*2*pi*dPhi .5*(IC[1]^2-1)*sin(IC[2])^2  λ0 rand()*2*pi*dPhi] for IC in f0] # creates a 5xN array with inital h0 terms
     f0 = vcat(f0...) # convert Array{Array{Float64,2},1} to Array{Float64,2}
     h0 = vcat(h0...) # since i used list comprehension it is now a nested list
 
@@ -132,6 +132,7 @@ function generateFlatParticleDistribution(numParticles::Int64, ICrange, z0=0::Fl
     η           = Omegace0*L*Re/c;              # should be like 10^3
     ε           = waveAmplitudeModifier/η;    # normalized wave large amplitude, .1 for small, 15 for large
     resolution  = .1/η;                       # determines max step size of the integrator
+    @info "Min integration step of $resolution"
     @info "Created Initial Conditions for $(length(h0[:,1])) particles"
     flush(io)
     
@@ -166,7 +167,7 @@ function eom!(dH,H,p::SVector{9, Float64},t::Float64)
     # eta, epsilon, Omegape, omegam, a, dPhi, dLambda1, dLambda2 = p
     sinλ = sin(H[5]);
     cosλ = cos(H[5]);
-    g = exp(-p[5] * (cos(H[6]/p[6])^2))
+    g = exp(-p[5] * (cos(H[6]/(2*π*p[6]))^2)) +  exp(-p[5] * (sin(H[6]/(2*π*p[6]))^2))  
     sinζ = g*sin(H[3]);
     cosζ = g*cos(H[3]);
 
@@ -205,7 +206,7 @@ end
 function ixlostcondition(H,t,integrator)
     # condition: if I_x approaches 0
     b = sqrt(1+3*sin(H[5])^2)/(cos(H[5])^6);
-    return 2*H[4]*b < (1/saveDecimation)
+    return 2*H[4]*b < 10*resolution
 end
 
 affect!(integrator) = terminate!(integrator); # terminate if condition reached
