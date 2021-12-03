@@ -826,6 +826,8 @@ function extract_idl_csv(
     errindices = findall((errtime.>start).&(errtime.<stop)) # these are the indices corresponding to the time range to sum over
     if length(errindices) != length(indices)
         @error "Length mismatch between time and error time."
+        return
+    end
 
     # import particle flux data 
     data_df  =  CSV.File(data_csv_name; header=false, delim=',', types=Float64) |> DataFrame
