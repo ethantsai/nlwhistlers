@@ -474,7 +474,7 @@ end
 
 function calc_prec_flux(result_matrix::Resultant_Matrix,timeBin::Int64,dist_func::Function,whistler_occurence_rate::Float64)
     # calc only precipitaitng fluxes
-    allPrecip, indexArray, allPrecipInitial = precipitatingParticles(result_matrix.tVec, result_matrix.Ematrix, result_matrix.endTime, timeBin);
+    allPrecip, indexArray, allPrecipInitial = precipitatingParticles(result_matrix, timeBin);
     f_timeseries, psd_timeseries, psd_prec_timeseries = make_psd_timeseries(result_matrix.Ematrix,result_matrix.PAmatrix,result_matrix.tVec, dist_func, Egrid, PAgrid, whistler_occurence_rate);
     binned_psd_prec_timeseries = bin_psd_prec_timeseries(psd_prec_timeseries, indexArray);
     @info "Precipitating fluxes calculated from $(result_matrix.label)."
@@ -792,12 +792,13 @@ function extract_idl_csv(
 
     return (ebins, flux)
 end
-time_name = "092220_time.csv"
-data_name = "092220_prec.csv"
-error_name = "092220_precerror.csv"
-ebin_name = "ebins.csv"
-start = DateTime(2020,9,22,9,16,15)
-stop = DateTime(2020,9,22,9,16,50)
+
+# time_name = "092220_time.csv"
+# data_name = "092220_prec.csv"
+# error_name = "092220_precerror.csv"
+# ebin_name = "ebins.csv"
+# start = DateTime(2020,9,22,9,16,38)
+# stop = DateTime(2020,9,22,9,16,45)
 
 function extract_idl_csv(
     time_name::String,
