@@ -796,6 +796,7 @@ end
 # time_name = "092220_time.csv"
 # data_name = "092220_prec.csv"
 # error_name = "092220_precerror.csv"
+# error_time_name = "092220_precerror_time.csv"
 # ebin_name = "ebins.csv"
 # start = DateTime(2020,9,22,9,16,38)
 # stop = DateTime(2020,9,22,9,16,45)
@@ -804,6 +805,7 @@ function extract_idl_csv(
     time_name::String,
     data_name::String,
     error_name::String,
+    error_time_name::String,
     ebin_name::String,
     start::DateTime, stop::DateTime)
 
@@ -811,12 +813,19 @@ function extract_idl_csv(
     data_csv_name = "idl_csvs/"*data_name
     ebins_csv_name = "idl_csvs/"*ebin_name
     error_csv_name = "idl_csvs/"*error_name
+    errortime_name = "idl_csvs/"*error_time_name
 
     times_df =  CSV.File(time_csv_name; header=false, delim=',', types=Float64) |> DataFrame
     time = unix2datetime.(times_df.Column1)
     indices = findall((time.>start).&(time.<stop)) # these are the indices corresponding to the time range to sum over
     time_of_interest = time[indices]
     @info "Summing over $(time_of_interest[end]-time_of_interest[1])"
+
+    errtimes_df = CSV.File(errortime_name; header=false, delim=',', types=Float64) |> DataFrame
+    errtime = unix2datetime.(errtimes_df.Column1)
+    errindices = findall((errtime.>start).&(errtime.<stop)) # these are the indices corresponding to the time range to sum over
+    if length(errindices) != length(indices)
+        @error "Length mismatch between time and error time."
 
     # import particle flux data 
     data_df  =  CSV.File(data_csv_name; header=false, delim=',', types=Float64) |> DataFrame
@@ -831,7 +840,9 @@ function extract_idl_csv(
         error_of_interest[i][findall(.!isfinite.(error[i]))] .= 0.0
     end
     flux = [sum(data_of_interest[energy][indices]) for energy in 1:16]
-    error = [sqrt(sum((data_of_interest[energy][indices].*error_of_interest[energy][indices]).^2)) for energy in 1:16]
+
+
+    error = [sqrt(sum((data_of_interest[energy][indices].*error_of_interest[energy][errindices]).^2)) for energy in 1:16]
 
     ebins_df = CSV.File(ebins_csv_name; header=false, delim=',', types=Float64) |> DataFrame
     ebins = ebins_df.Column1

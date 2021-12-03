@@ -4,7 +4,7 @@ Egrid, PAgrid = logrange(10,1000,21), 6:4:90
 # Plots for 4/29/21
 @time @load "results/210429_lat_storage.jld2" equatorial_fluxes_042921 themis_hilat_042921 themis_midlat_042921 themis_lolat_042921
 elfin_measurements_042921, elfin_error_042921 = extract_idl_csv("042921_time.csv", "042921_prec.csv",
-                                                "042921_precerror.csv", "ebins.csv", # csvs containing ELFIN measurements
+                                                "042921_precerror.csv", "042921_precerror_time.csv", "ebins.csv", # csvs containing ELFIN measurements
                                                 DateTime(2021,4,29,3,14,45),DateTime(2021,4,29,3,15,0)); # time to sample from ELFIN measurements                                                                
 
 x1 = themis_lolat_042921.precipitating_fluxes_mean.-themis_lolat_042921.precipitating_fluxes_minus .+ 1.
@@ -13,7 +13,7 @@ y1 = themis_midlat_042921.precipitating_fluxes_mean.-themis_midlat_042921.precip
 y2 = themis_midlat_042921.precipitating_fluxes_mean.+themis_midlat_042921.precipitating_fluxes_plus .+ 1.
 z1 = themis_hilat_042921.precipitating_fluxes_mean.-themis_hilat_042921.precipitating_fluxes_minus .+ 1.
 z2 = themis_hilat_042921.precipitating_fluxes_mean.+themis_hilat_042921.precipitating_fluxes_plus .+ 1.
-elfin_error_042921[8] += 2000. 
+# elfin_error_042921[8] += 2000. 
 e1 = elfin_measurements_042921[2].-elfin_error_042921
 e2 = elfin_measurements_042921[2].+elfin_error_042921
 sum_of_means = @. themis_hilat_042921.precipitating_fluxes_mean + themis_midlat_042921.precipitating_fluxes_mean + themis_lolat_042921.precipitating_fluxes_mean
@@ -103,11 +103,9 @@ Egrid, PAgrid = logrange(10,1000,21), 6:4:90
 
 # Plots for 9/22/20
 @load "results/200922_lat_storage.jld2" equatorial_fluxes_092220 mms_lowerlat_092220 mms_lolat_092220 mms_midlat_092220 mms_hilat_092220;
-@time elfin_measurements_092220 = extract_idl_csv("092220_time.csv", "092220_prec.csv", "ebins.csv", # csvs containing ELFIN measurements
+@time elfin_measurements_092220, elfin_error_092220 = extract_idl_csv("092220_time.csv", "092220_prec.csv",
+                                                "092220_precerror.csv", "092220_precerror_time.csv", "ebins.csv", # csvs containing ELFIN measurements
                                                 DateTime(2020,9,22,9,16,38), DateTime(2020,9,22,9,16,45)) # time to sample from ELFIN measurements
-# @time elfin_measurements_092220, elfin_error_092220 = extract_idl_csv("092220_time.csv", "092220_prec.csv",
-#                                                 "092220_precerror.csv", "ebins.csv", # csvs containing ELFIN measurements
-#                                                 DateTime(2020,9,22,9,16,38), DateTime(2020,9,22,9,16,45)) # time to sample from ELFIN measurements
 # @time elfin_measurements_092220 = extract_idl_csv("092220_time.csv", "092220_prec.csv", "ebins.csv", # csvs containing ELFIN measurements
 #                                                 DateTime(2020,9,22,9,16,25), DateTime(2020,9,22,9,16,34)) # time to sample from ELFIN measurements
 # @time elfin_measurements_092220 = extract_idl_csv("092220_time.csv", "092220_prec.csv", "ebins.csv", # csvs containing ELFIN measurements
@@ -122,9 +120,8 @@ y1 = mms_lolat_092220.precipitating_fluxes_mean.-mms_lolat_092220.precipitating_
 y2 = mms_lolat_092220.precipitating_fluxes_mean.+mms_lolat_092220.precipitating_fluxes_plus .+ 1.
 z1 = mms_hilat_092220.precipitating_fluxes_mean.-mms_hilat_092220.precipitating_fluxes_minus .+ 1.
 z2 = mms_hilat_092220.precipitating_fluxes_mean.+mms_hilat_092220.precipitating_fluxes_plus .+ 1.
-# elfin_error_042921[8] += 2000. 
-# e1 = elfin_measurements_042921[2].-elfin_error_042921
-# e2 = elfin_measurements_042921[2].+elfin_error_042921
+e1 = elfin_measurements_092220[2].-elfin_error_092220
+e2 = elfin_measurements_092220[2].+elfin_error_092220
 
 plot(Egrid, equatorial_fluxes_092220,label = L"\mathrm{equatorial\ flux\ (MMS\ 1\ measured)}", color = bipride_pink, linewidth=2, markershape=:circle);
 plot!(Egrid,mms_lowerlat_092220.precipitating_fluxes_mean, fillrange=x1, fillalpha = 0.2, color = c4, label=false)
@@ -145,9 +142,10 @@ plot!(Egrid, mms_hilat_092220.precipitating_fluxes_mean,
         label=L"\mathrm{precipitating\ flux\ }(\mathrm{simulated\ with\ }\delta\lambda_2 = 30\degree\mathrm{,\ occurence\ rate} = 2\%)",
         # yerror=(mms_hilat_092220.precipitating_fluxes_minus, mms_hilat_092220.precipitating_fluxes_plus),
         color = bipride_orange, alpha = .7, markerstrokecolor = bipride_orange, markerstrokewidth = 2, markershape=:o, markersize = 2);
-# plot!(elfin_measurements_042921[1][1:end-5], elfin_measurements_042921[2][1:end-5], fillrange = e1[1:end-5], fillalpha = 0.2, color = c5, label=false)        
-# plot!(elfin_measurements_042921[1][1:end-5], elfin_measurements_042921[2][1:end-5], fillrange = e2[1:end-5], fillalpha = 0.2, color = c5, label=false)        
-plot!(elfin_measurements_092220, #yerror=elfin_error_042921.+10,
+plot!(elfin_measurements_092220[1][1:6], elfin_measurements_092220[2][1:6], fillrange = e1[1:end-5], fillalpha = 0.2, color = c5, label=false)        
+plot!(elfin_measurements_092220[1][1:6], elfin_measurements_092220[2][1:6], fillrange = e2[1:end-5], fillalpha = 0.2, color = c5, label=false)        
+plot!(elfin_measurements_092220[1][1:6], elfin_measurements_092220[2][1:6],
+        yerror=elfin_error_092220[1:6].+10,
         label = L"\mathrm{precipitating\ flux\ (ELFIN\ A\ measured)}",
         color = c5, marker = stroke(3,c5), linewidth=4, markersize = 3);
 plot!(ylim =(1e1,1e10), xlim=(50,800), yscale=:log10, legend=:topright)
