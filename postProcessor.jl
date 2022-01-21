@@ -1,9 +1,9 @@
 include("plotHelpers.jl")
 Egrid, PAgrid = logrange(10,1000,21), 6:4:90
 
-demo_mms_dPhi_3 = load_resultant_matrix("demo_mms_dPhi_3_10", "results/demonstration", "demo_mms_dPhi_3_10", "setupasrun.conf", 1);
-demo_mms_dPhi_30 = load_resultant_matrix("demo_mms_dPhi_30_10", "results/demonstration", "demo_mms_dPhi_30_10", "setupasrun.conf", 1);
-demo_mms_dPhi_300 = load_resultant_matrix("demo_mms_dPhi_300_10", "results/demonstration", "demo_mms_dPhi_300_10", "setupasrun.conf", 1);
+# demo_mms_dPhi_3 = load_resultant_matrix("demo_mms_dPhi_3_10", "results/demonstration", "demo_mms_dPhi_3_10", "setupasrun.conf", 1);
+# demo_mms_dPhi_30 = load_resultant_matrix("demo_mms_dPhi_30_10", "results/demonstration", "demo_mms_dPhi_30_10", "setupasrun.conf", 1);
+# demo_mms_dPhi_300 = load_resultant_matrix("demo_mms_dPhi_300_10", "results/demonstration", "demo_mms_dPhi_300_10", "setupasrun.conf", 1);
 
 # demo_E_6_20 = load_resultant_matrix("demo_E_6_20_50", "results/demonstration", "demo_E_6_20_50", "setupasrun.conf", 1);
 # demo_E_6_30 = load_resultant_matrix("demo_E_6_30_50", "results/demonstration", "demo_E_6_30_50", "setupasrun.conf", 1);
