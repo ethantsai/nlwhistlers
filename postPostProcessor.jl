@@ -156,4 +156,30 @@ savefig(plot3, "images/092220_flux_comparison.pdf")
 savefig(plot3, "images/092220_flux_comparison.png")
 
 
+# plot PA and Energy trajectories for different dLambda
+@time @load "results/demo_themis_dlambda_20.jld2" demo_E_6_20
+@time @load "results/demo_themis_dlambda_30.jld2" demo_E_6_30
+@time @load "results/demo_themis_dlambda_40.jld2" demo_E_6_40
+L=5.2
+twenty = trajectoryChecking(demo_E_6_20, [4,19,23,29,34,48], L"\delta \lambda_2 = "*"20 deg")
+thirty = trajectoryChecking(demo_E_6_30, [2,18,21,29,34,50], L"\delta \lambda_2 = "*"30 deg")
+forty = trajectoryChecking(demo_E_6_40, [1,19,21,27,34,49], L"\delta \lambda_2 = "*"40 deg")
+bigplot = plot(twenty,thirty,forty, dpi = 96, layout = (1,3), left_margin = 8mm, size=(1500,500))
 
+
+savefig(bigplot, "images/trajectories.pdf")
+savefig(bigplot, "images/trajectories.png")
+
+
+
+# plot PA and Energy for different dPhi
+@time @load "results/demo_mms_dPhi_3.jld2" demo_mms_dPhi_3
+@time @load "results/demo_mms_dPhi_30.jld2" demo_mms_dPhi_30
+@time @load "results/demo_mms_dPhi_300.jld2" demo_mms_dPhi_300
+L=6
+three = trajectoryChecking(demo_mms_dPhi_3, [1,4,5,6,7,9], L"\delta \phi = "*"3")
+thirty = trajectoryChecking(demo_mms_dPhi_30, [1,4,5,6,7,9], L"\delta \phi = "*"30")
+threehundred = trajectoryChecking(demo_mms_dPhi_300, [1,4,5,6,7,9], L"\delta \phi = "*"300")
+bigphiplot = plot(three,thirty,threehundred, dpi = 96, layout = (1,3), left_margin = 8mm, size=(1500,500))
+savefig(bigphiplot, "images/dphitrajectories.pdf")
+savefig(bigphiplot, "images/dphitrajectories.png")

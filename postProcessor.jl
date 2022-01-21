@@ -1,6 +1,14 @@
 include("plotHelpers.jl")
 Egrid, PAgrid = logrange(10,1000,21), 6:4:90
 
+demo_mms_dPhi_3 = load_resultant_matrix("demo_mms_dPhi_3_10", "results/demonstration", "demo_mms_dPhi_3_10", "setupasrun.conf", 1);
+demo_mms_dPhi_30 = load_resultant_matrix("demo_mms_dPhi_30_10", "results/demonstration", "demo_mms_dPhi_30_10", "setupasrun.conf", 1);
+demo_mms_dPhi_300 = load_resultant_matrix("demo_mms_dPhi_300_10", "results/demonstration", "demo_mms_dPhi_300_10", "setupasrun.conf", 1);
+
+# demo_E_6_20 = load_resultant_matrix("demo_E_6_20_50", "results/demonstration", "demo_E_6_20_50", "setupasrun.conf", 1);
+# demo_E_6_30 = load_resultant_matrix("demo_E_6_30_50", "results/demonstration", "demo_E_6_30_50", "setupasrun.conf", 1);
+# demo_E_6_40 = load_resultant_matrix("demo_E_6_40_50", "results/demonstration", "demo_E_6_40_50", "setupasrun.conf", 1);
+
 # themis_lolat = load_resultant_matrix("210429_themis_lolat", "results/themis_lolat_m1pro", "210429_themis_lolat_96600", "setupasrun.conf", 161);
 # themis_midlat = load_resultant_matrix("210429_themis_midlat", "results/themis_midlat_m1pro", "210429_themis_midlat_96600", "setupasrun.conf", 161);
 # themis_hilat = load_resultant_matrix("210429_themis_hilat", "results/themis_hilat_m1pro", "210429_themis_hilat_96600", "setupasrun.conf", 161);
@@ -13,6 +21,14 @@ Egrid, PAgrid = logrange(10,1000,21), 6:4:90
 # mms_lolat = load_resultant_matrix("200922_mms_lolat", "results/mms_lolat_m1pro", "200922_mms_lolat_96600", "setupasrun.conf", 161);
 # mms_midlat = load_resultant_matrix("200922_mms_midlat", "results/mms_midlat_m1pro", "200922_mms_midlat_96600", "setupasrun.conf", 161);
 # mms_hilat = load_resultant_matrix("200922_mms_hilat", "results/mms_hilat_m1pro", "200922_mms_hilat_96600", "setupasrun.conf", 161);
+
+# @time @save "results/demo_mms_dPhi_3.jld2" demo_mms_dPhi_3
+# @time @save "results/demo_mms_dPhi_30.jld2" demo_mms_dPhi_30
+# @time @save "results/demo_mms_dPhi_300.jld2" demo_mms_dPhi_300
+
+# @time @save "results/demo_E_6_20.jld2" demo_E_6_20
+# @time @save "results/demo_E_6_30.jld2" demo_E_6_30
+# @time @save "results/demo_E_6_40.jld2" demo_E_6_40
 
 # @time @save "results/210429_themis_lolat.jld2" themis_lolat 
 # @time @save "results/210429_themis_midlat.jld2" themis_midlat 
@@ -221,8 +237,8 @@ savefig(plot_numLostParticles, string("particleLosses.png"))
 
 
 # plot trajectory
-trajectoryChecking(45)
-trajectoryTracing([7300,7309,6900,6905,6910,6918,6927], 10)
+trajectoryChecking(demo_E, )
+trajectoryTracing(demo_E_6, [1,4,5,6,7,9], 10)
 
 
 

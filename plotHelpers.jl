@@ -685,53 +685,91 @@ function animatePrecipitatingParticles(gifFileName, rm::Resultant_Matrix, timeBi
     gif(anim, savename, fps = (length(rm.tVec)/animDec)/(animScale*rm.endTime*Re*L/(c)))
 end
 
-function trajectoryChecking(index)
+function trajectoryChecking(rm::Resultant_Matrix, index::Int64)
     converT = Re*L/(c)
-    @info "starting PA: $(PAmatrix[1,index]), startin E: $(Ematrix[1,index])"
-    plot(converT*tVec, PAmatrix[:,index]);
-    plot!(converT*tVec, Ematrix[:,index])
+    @info "starting PA: $(rm.PAmatrix[1,index]), startin E: $(rm.Ematrix[1,index])"
+    plot(converT*rm.tVec, rm.PAmatrix[:,index]);
+    plot!(converT*rm.tVec, rm.Ematrix[:,index])
     # plot(Zmatrix[:,index], PZmatrix[:,index])
 end
 
+function trajectoryChecking(rm::Resultant_Matrix, trajectories::Array{Int64}, plot_title::String)
+    converT = Re*L/(c)
+    PAplot = plot(xlim=(0,33.124), ylim = (0,90), title=plot_title, ylabel="Pitch Angle (deg)");
+    PAplot = plot!(converT*rm.tVec, rm.PAmatrix[:,trajectories], yminorticks=6, xminorticks=5, label = "", linewidth=2, palette = :seaborn_colorblind6);
 
-function trajectoryTracing(trajectories, animDec)
+    Eplot = plot(xlim=(0,33.124), ylim = (40,1000), yscale = :log10, xlabel = "Time (s)", ylabel="Energy (keV)");
+    Eplot = plot!(converT*rm.tVec, rm.Ematrix[:,trajectories], yminorticks=10, xminorticks=5,  label = "", bottom_margin = 8mm, linewidth=2, palette = :seaborn_colorblind6);
+
+    bigplot = plot(PAplot,Eplot, dpi = 96, layout = (2,1), left_margin = 8mm, size=(1000,500))
+end
+
+
+function trajectoryTracing(rm::Resultant_Matrix, trajectories, animDec)
     converT = Re*L/(c)
 
-    PAanim = @animate for i in eachindex(tVec)
-        plot(xlim=(0,12), ylim = (0,90));
-        plot!(converT*tVec, PAmatrix[:,trajectories], color=:gray, alpha = .5, label = "");
-        for j in trajectories
-            plot!(converT*tVec[1:i], PAmatrix[:,j][1:i], label = "")
-            scatter!((converT*tVec[i], PAmatrix[:,j][i]), label = "")
-        end
-    end every animDec
+    # PAanim = @animate for i in eachindex(rm.tVec)
+    #     plot(xlim=(0,12), ylim = (0,90));
+    #     plot!(converT*rm.tVec, rm.PAmatrix[:,trajectories], color=:gray, alpha = .5, label = "");
+    #     for j in trajectories
+    #         plot!(converT*rm.tVec[1:i], rm.PAmatrix[:,j][1:i], label = "")
+    #         scatter!((converT*rm.tVec[i], rm.PAmatrix[:,j][i]), label = "")
+    #     end
+    # end every animDec
 
-    savename1 = string("results/plots/","PAgif.gif")
-    gif(PAanim, savename1, fps = 20)
+    # savename1 = string("images/",rm.label,"_PAgif.gif")
+    # gif(PAanim, savename1, fps = 20)
     
     
-    Eanim = @animate for i in eachindex(tVec)
-        Eplot = plot(xlim=(0,12), ylim = (10,5000), yscale = :log10)
-        plot!(converT*tVec, Ematrix[:,trajectories], color=:gray, alpha = .5, label = "");
-        for j in trajectories
-            Eplot = plot!(converT*tVec[1:i], Ematrix[:,j][1:i], label = "")
-            Eplot = scatter!((converT*tVec[i], Ematrix[:,j][i]), label = "")
-        end
-    end every animDec
+    # Eanim = @animate for i in eachindex(rm.tVec)
+    #     Eplot = plot(xlim=(0,12), ylim = (10,5000), yscale = :log10)
+    #     plot!(converT*rm.tVec, rm.Ematrix[:,trajectories], color=:gray, alpha = .5, label = "");
+    #     for j in trajectories
+    #         Eplot = plot!(converT*rm.tVec[1:i], rm.Ematrix[:,j][1:i], label = "")
+    #         Eplot = scatter!((converT*rm.tVec[i], rm.Ematrix[:,j][i]), label = "")
+    #     end
+    # end every animDec
 
-    savename2 = string("results/plots/","Egif.gif")
-    gif(Eanim, savename2, fps = 20)
+    # savename2 = string("images/",rm.label,"_Egif.gif")
+    # gif(Eanim, savename2, fps = 20)
             
-    ZPZanim = @animate for i in eachindex(tVec)
-        ZPZplot = plot(xlim=(-1,1), ylim = (-7,7))
+    # ZPZanim = @animate for i in eachindex(rm.tVec)
+    #     ZPZplot = plot(xlim=(-1,1), ylim = (-7,7))
+    #     for j in trajectories
+    #         ZPZplot = plot!(rm.Zmatrix[:,j][1:i], rm.PZmatrix[:,j][1:i], alpha = max.((1:i) .+ 100 .- i, 0) / 100, label = "")
+    #         ZPZplot = scatter!((rm.Zmatrix[:,j][i], rm.PZmatrix[:,j][i]), label = "")
+    #     end
+    # end every animDec
+
+    # savename3 = string("images/",rm.label,"_ZPZgif.gif")
+    # gif(ZPZanim, savename3, fps = 20)
+
+    # combine all 3
+    
+    AllAnim = @animate for i in eachindex(rm.tVec)
+        PAplot = plot(xlim=(0,33.124), ylim = (0,90), title="Pitch Angle Trajectory", xlabel = "Time(s)", ylabel="Pitch Angle");
+        PAplot = plot!(converT*rm.tVec, rm.PAmatrix[:,trajectories], color=:gray, alpha = .5, label = "");
         for j in trajectories
-            ZPZplot = plot!(Zmatrix[:,j][1:i], PZmatrix[:,j][1:i], alpha = max.((1:i) .+ 100 .- i, 0) / 100, label = "")
-            ZPZplot = scatter!((Zmatrix[:,j][i], PZmatrix[:,j][i]), label = "")
+            PAplot = plot!(converT*rm.tVec[1:i], rm.PAmatrix[:,j][1:i], label = "");
+            PAplot = scatter!((converT*rm.tVec[i], rm.PAmatrix[:,j][i]), label = "");
         end
+        Eplot = plot(xlim=(0,33.124), ylim = (10,1000), yscale = :log10, title="Energy Trajectory", xlabel = "Time(s)", ylabel="Energy (keV)");
+        plot!(converT*rm.tVec, rm.Ematrix[:,trajectories], color=:gray, alpha = .5, label = "");
+        for j in trajectories
+            Eplot = plot!(converT*rm.tVec[1:i], rm.Ematrix[:,j][1:i], label = "");
+            Eplot = scatter!((converT*rm.tVec[i], rm.Ematrix[:,j][i]), label = "");
+        end
+        ZPZplot = plot(xlim=(-1,1), ylim = (-7,7), title="Z-Pz phase space", xlabel="Z", ylabel="Pz");
+        for j in trajectories
+            ZPZplot = plot!(rm.Zmatrix[:,j][1:i], rm.PZmatrix[:,j][1:i], alpha = max.((1:i) .+ 100 .- i, 0) / 100, label = "");
+            ZPZplot = scatter!((rm.Zmatrix[:,j][i], rm.PZmatrix[:,j][i]), label = "");
+        end
+        bigplot = plot(ZPZplot,PAplot,Eplot, dpi = 100, layout = (3,1), left_margin = 8mm, size=(500,1000))
     end every animDec
 
-    savename3 = string("results/plots/","ZPZgif.gif")
-    gif(ZPZanim, savename3, fps = 20)
+    savename4 = string("images/",rm.label,"_ALLgif.gif")
+    gif(AllAnim, savename4, fps = 20)
+
 
 end
 
