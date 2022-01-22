@@ -1,6 +1,10 @@
 include("plotHelpers.jl")
 Egrid, PAgrid = logrange(10,1000,21), 6:4:90
 
+# mms_short = load_resultant_matrix("mms_short", "results/jld2_200922_mms_midlat_short", "200922_mms_3pkt_96600", "setupasrun.conf", 161);
+# mms_med = load_resultant_matrix("mms_med", "results/jld2_200922_mms_midlat_med", "200922_mms_30pkt_96600", "setupasrun.conf", 161);
+# mms_long = load_resultant_matrix("mms_long", "results/jld2_200922_mms_midlat_long", "200922_mms_300pkt_96600", "setupasrun.conf", 161);
+
 # demo_mms_dPhi_3 = load_resultant_matrix("demo_mms_dPhi_3_10", "results/demonstration", "demo_mms_dPhi_3_10", "setupasrun.conf", 1);
 # demo_mms_dPhi_30 = load_resultant_matrix("demo_mms_dPhi_30_10", "results/demonstration", "demo_mms_dPhi_30_10", "setupasrun.conf", 1);
 # demo_mms_dPhi_300 = load_resultant_matrix("demo_mms_dPhi_300_10", "results/demonstration", "demo_mms_dPhi_300_10", "setupasrun.conf", 1);
@@ -43,6 +47,9 @@ Egrid, PAgrid = logrange(10,1000,21), 6:4:90
 # @time @save "results/200922_mms_midlat.jld2" mms_midlat;
 # @time @save "results/200922_mms_hilat.jld2" mms_hilat;
 
+# @time @save "results/200922_mms_short.jld2" mms_short;
+# @time @save "results/200922_mms_med.jld2" mms_med;
+# @time @save "results/200922_mms_long.jld2" mms_long;
 
 @time @load "results/210429_themis_hilat.jld2" themis_hilat;
 @time @load "results/210429_themis_midlat.jld2" themis_midlat; 
@@ -56,6 +63,10 @@ Egrid, PAgrid = logrange(10,1000,21), 6:4:90
 @time @load "results/200922_mms_lolat.jld2" mms_lolat;
 @time @load "results/200922_mms_midlat.jld2" mms_midlat;
 @time @load "results/200922_mms_hilat.jld2" mms_hilat;
+
+@time @load "results/200922_mms_short.jld2" mms_short;
+@time @load "results/200922_mms_med.jld2" mms_med;
+@time @load "results/200922_mms_long.jld2" mms_long;
 @info "Loaded result matrices."
 
 @time equatorial_fluxes_042921 = calc_equatorial_fluxes(themis_hilat, f0_042921);
@@ -71,14 +82,18 @@ Egrid, PAgrid = logrange(10,1000,21), 6:4:90
 @time @save "results/210429_lat_storage.jld2" equatorial_fluxes_042921 themis_hilat_042921 themis_midlat_042921 themis_lolat_042921;
 @time @save "results/210429_pkt_storage.jld2" equatorial_fluxes_042921 themis_1pkt_042921 themis_30pkt_042921 themis_100pkt_042921;
 
-
-@time equatorial_fluxes_092220 = calc_equatorial_fluxes(mms_lolat, f0_092220);
+@time equatorial_fluxes_092220 = calc_equatorial_fluxes(mms_midlat, f0_092220);
 @time mms_lowerlat_092220  = export_results("092220_mms_lowerlat",  calc_prec_flux(mms_lowerlat, 10,f0_092220,0.06));
 @time mms_lolat_092220  = export_results("092220_mms_lolat",  calc_prec_flux(mms_lolat, 10,f0_092220,0.06));
 @time mms_midlat_092220 = export_results("092220_mms_midlat", calc_prec_flux(mms_midlat,10,f0_092220,0.02));
 @time mms_hilat_092220  = export_results("092220_mms_hilat",  calc_prec_flux(mms_hilat, 10,f0_092220,0.02));
 @time @save "results/200922_lat_storage.jld2" equatorial_fluxes_092220 mms_lowerlat_092220 mms_lolat_092220 mms_midlat_092220 mms_hilat_092220;
 
+@time equatorial_fluxes_092220 = calc_equatorial_fluxes(mms_med, f0_092220);
+@time mms_short_092220  = export_results("092220_mms_short",  calc_prec_flux(mms_short, 10,f0_092220,0.06));
+@time mms_med_092220 = export_results("092220_mms_med", calc_prec_flux(mms_med, 10,f0_092220,0.06));
+@time mms_long_092220  = export_results("092220_mms_long",  calc_prec_flux(mms_long, 10,f0_092220,0.06));
+@time @save "results/200922_pkt_storage.jld2" equatorial_fluxes_092220 mms_short_092220 mms_med_092220 mms_long_092220;
 
 
 

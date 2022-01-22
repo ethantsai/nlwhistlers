@@ -156,6 +156,70 @@ savefig(plot3, "images/092220_flux_comparison.pdf")
 savefig(plot3, "images/092220_flux_comparison.png")
 
 
+
+include("plotHelpers.jl")
+Egrid, PAgrid = logrange(10,1000,21), 6:4:90
+
+# Plots for 9/22/20
+@time @load "results/200922_pkt_storage.jld2" equatorial_fluxes_092220 mms_short_092220 mms_med_092220 mms_long_092220;
+@time elfin_measurements_092220, elfin_error_092220 = extract_idl_csv("092220_time.csv", "092220_prec.csv",
+                                                "092220_precerror.csv", "092220_precerror_time.csv", "ebins.csv", # csvs containing ELFIN measurements
+                                                DateTime(2020,9,22,9,16,38), DateTime(2020,9,22,9,16,45)) # time to sample from ELFIN measurements
+
+x1 = mms_short_092220.precipitating_fluxes_mean.-mms_short_092220.precipitating_fluxes_minus .+ 1.
+x2 = mms_short_092220.precipitating_fluxes_mean.+mms_short_092220.precipitating_fluxes_plus .+ 1.
+y1 = mms_med_092220.precipitating_fluxes_mean.-mms_med_092220.precipitating_fluxes_minus .+ 1.
+y2 = mms_med_092220.precipitating_fluxes_mean.+mms_med_092220.precipitating_fluxes_plus .+ 1.
+z1 = mms_long_092220.precipitating_fluxes_mean.-mms_long_092220.precipitating_fluxes_minus .+ 1.
+z2 = mms_long_092220.precipitating_fluxes_mean.+mms_long_092220.precipitating_fluxes_plus .+ 1.
+e1 = elfin_measurements_092220[2].-elfin_error_092220
+e2 = elfin_measurements_092220[2].+elfin_error_092220
+
+plot(Egrid, equatorial_fluxes_092220,label = L"\mathrm{equatorial\ flux\ (MMS\ 1\ measured)}", color = bipride_pink, linewidth=2, markershape=:circle);
+plot!(Egrid,mms_short_092220.precipitating_fluxes_mean, fillrange=x1, fillalpha = 0.2, color = c4, label=false)
+plot!(Egrid,mms_short_092220.precipitating_fluxes_mean, fillrange=x2, fillalpha = 0.2, color = c4, label=false)
+plot!(Egrid, mms_short_092220.precipitating_fluxes_mean,
+        label=L"\mathrm{precipitating\ flux\ }(\mathrm{simulated\ with\ }\delta\phi = 3)",
+        # yerror=(mms_short_092220.precipitating_fluxes_minus, mms_short_092220.precipitating_fluxes_plus),
+        color = c4, alpha = .7, markerstrokecolor = c4, markerstrokewidth = 2, markershape=:o, markersize = 2);
+plot!(Egrid,mms_med_092220.precipitating_fluxes_mean, fillrange=y1, fillalpha = 0.2, color = c3, label=false)
+plot!(Egrid,mms_med_092220.precipitating_fluxes_mean, fillrange=y2, fillalpha = 0.2, color = c3, label=false)
+plot!(Egrid, mms_med_092220.precipitating_fluxes_mean,
+        label=L"\mathrm{precipitating\ flux\ }(\mathrm{simulated\ with\ }\delta\phi = 30)",
+        # yerror=(mms_med_092220.precipitating_fluxes_minus, mms_med_092220.precipitating_fluxes_plus),
+        color = c3, alpha = .7, markerstrokecolor = c3, markerstrokewidth = 2, markershape=:o, markersize = 2);
+plot!(Egrid,mms_long_092220.precipitating_fluxes_mean, fillrange=z1, fillalpha = 0.2, color = bipride_orange, label=false)
+plot!(Egrid,mms_long_092220.precipitating_fluxes_mean, fillrange=z2, fillalpha = 0.2, color = bipride_orange, label=false)
+plot!(Egrid, mms_long_092220.precipitating_fluxes_mean,
+        label=L"\mathrm{precipitating\ flux\ }(\mathrm{simulated\ with\ }\delta\phi = 300)",
+        # yerror=(mms_long_092220.precipitating_fluxes_minus, mms_long_092220.precipitating_fluxes_plus),
+        color = bipride_orange, alpha = .7, markerstrokecolor = bipride_orange, markerstrokewidth = 2, markershape=:o, markersize = 2);
+plot!(elfin_measurements_092220[1][1:6], elfin_measurements_092220[2][1:6], fillrange = e1[1:end-5], fillalpha = 0.2, color = c5, label=false)        
+plot!(elfin_measurements_092220[1][1:6], elfin_measurements_092220[2][1:6], fillrange = e2[1:end-5], fillalpha = 0.2, color = c5, label=false)        
+plot!(elfin_measurements_092220[1][1:6], elfin_measurements_092220[2][1:6],
+        yerror=elfin_error_092220[1:6].+10,
+        label = L"\mathrm{precipitating\ flux\ (ELFIN\ A\ measured)}",
+        color = c5, marker = stroke(3,c5), linewidth=4, markersize = 3);
+plot!(ylim =(1e1,1e10), xlim=(50,800), yscale=:log10, legend=:topright)
+plot!(xlabel=L"\mathrm{Energy\ (keV)}", ylabel=L"\mathrm{Flux\ (1/cm^{2}/s/sr/MeV)}", title=L"\mathrm{Precipitating\ Flux\ Comparison\ of\ \delta\phi\ on\ 9/22/20}",
+xtickfontsize=12, ytickfontsize=12, xguidefontsize=16, yguidefontsize=16, legendfontsize=10, titlefontsize=16);
+plot4 = plot!(dpi = 500,size=(800,450), margin=3mm, bottom_margin=4mm)
+savefig(plot4, "images/092220_flux_pkt_comparison.pdf")
+savefig(plot4, "images/092220_flux_pkt_comparison.png")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # plot PA and Energy trajectories for different dLambda
 @time @load "results/demo_themis_dlambda_20.jld2" demo_E_6_20
 @time @load "results/demo_themis_dlambda_30.jld2" demo_E_6_30
