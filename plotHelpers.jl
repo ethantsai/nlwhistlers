@@ -472,14 +472,19 @@ function calc_equatorial_fluxes(result_matrix::Resultant_Matrix, dist_func)
     return [sum(Erow) for Erow in eachrow(psd_init)]  .* Egrid .* 1000 ./ (length(PAgrid))
 end
 
-function calc_prec_flux(result_matrix::Resultant_Matrix,timeBin::Int64,dist_func::Function,whistler_occurence_rate::Float64)
+function calc_prec_flux(result_matrix::Resultant_Matrix,timeBin::Int64,dist_func::Function,whistler_occurence_rate::Float64,count_threshold::Int64)
     # calc only precipitaitng fluxes
     allPrecip, indexArray, allPrecipInitial = precipitatingParticles(result_matrix, timeBin);
     f_timeseries, psd_timeseries, psd_prec_timeseries = make_psd_timeseries(result_matrix.Ematrix,result_matrix.PAmatrix,result_matrix.tVec, dist_func, Egrid, PAgrid, whistler_occurence_rate);
     binned_psd_prec_timeseries = bin_psd_prec_timeseries(psd_prec_timeseries, indexArray);
     @info "Precipitating fluxes calculated from $(result_matrix.label)."
 
-    return calc_precipitating_flux_timeseries(binned_psd_prec_timeseries);
+    # remove all precipitating particles with counts per energy channel < count_threshold
+    num_particles_per_channel = [length(findall(x -> Egrid[i]<=x<=Egrid[i+1],vcat(allPrecip...))) for i in 1:(length(Egrid)-1)];
+    remove_low_counts = vcat([0],(@. (sign(num_particles_per_channel - count_threshold) + 1) / 2));
+    binned_psd_prec_timeseries_clean = [list .* remove_low_counts for list in binned_psd_prec_timeseries]
+
+    return calc_precipitating_flux_timeseries(binned_psd_prec_timeseries_clean);
 end
 
 function calc_precipitating_flux_timeseries(binned_psd_prec_timeseries)
@@ -632,22 +637,27 @@ end
 
 function precipitatingParticles(rm::Resultant_Matrix, timeBin=10)
     unitSimTime = mean(diff(rm.tVec[begin:end-1]));
-    simTimeBin = convert(Int64, round(timeBin/unitSimTime, digits=0))
+    simTimeBin = convert(Int64, ceil(timeBin/unitSimTime, digits=0))
 
     # produce a vector with indices demarcating time bin boundaries
     indexArray = [minimum([i*simTimeBin length(rm.tVec)]) for i in 1:convert(Int64,floor(rm.endTime/timeBin))]
     if length(rm.tVec)!=indexArray[end] push!(indexArray, length(rm.tVec)-1) end #guarantee last index corresponds with proper end
     # remove all particles that didn't get lost
-    Ematrixprime = @views Matrix(rm.Ematrix[:,findall(isnan, rm.Ematrix[indexArray[end-1],:])]) # this is a new matrix that only has particles that have precipitated
-    # replace last value with second to last value to prevent off by one problems
+    Ematrixprime = @views Matrix(rm.Ematrix[1:(end-1),findall(isnan, rm.Ematrix[indexArray[end]-1,:])]) # this is a new matrix that only has particles that have precipitated    # replace last value with second to last value to prevent off by one problems
     if indexArray[end] == length(rm.tVec)
         indexArray[end] = indexArray[end]-1
     end
 
     allPrecipInitial = Vector{Vector{Float64}}()
     allPrecip = Vector{Vector{Float64}}()
-    for i in indexArray[1:end-1]
+    for i in indexArray
+
         @debug "$(length(Ematrixprime[1,:])) remaining particles" size(Ematrixprime)
+        if simTimeBin > (length(Ematrixprime[1,:]))
+            @info "sumting wong"
+            break
+        end
+            
         precipitatingIndices = @views findall(isnan, Ematrixprime[simTimeBin,:])
         notPrecipitatingIndices = @views findall(!isnan, Ematrixprime[simTimeBin,:])
         @debug "$(length(precipitatingIndices)) particles precipitated by index $i" precipitatingIndices
@@ -669,6 +679,35 @@ function precipitatingParticles(rm::Resultant_Matrix, timeBin=10)
 end
 
 
+function precipitating_initial_state_analyzer(rm::Resultant_Matrix,Echannel_start::Int64,Echannel_end::Int64)
+
+    # remove all particles that didn't get lost
+    Ematrixprime = @views Matrix(rm.Ematrix[:,findall(isnan, rm.Ematrix[length(rm.Ematrix[:,1])-1,:])]) # this is a new matrix that only has particles that have precipitated
+    PAmatrixprime = @views Matrix(rm.PAmatrix[:,findall(isnan, rm.PAmatrix[length(rm.PAmatrix[:,1])-1,:])]) # this is a new matrix that only has particles that have precipitated
+
+    E_allPrecipFinal = [c[last_index_before_nan(Vector(c))] for c in eachcol(Ematrixprime)] # a list of all final energies
+    E_allPrecipInit = [c[1] for c in eachcol(Ematrixprime)] # a list of all initial energies of precipitating particles
+    # PA_allPrecipFinal = [c[last_index_before_nan(Vector(c))] for c in eachcol(PAmatrixprime)]
+    PA_allPrecipInit = [c[1] for c in eachcol(PAmatrixprime)]
+
+    energies_to_plot = Vector{Vector{Float64}}()
+    pitchangles_to_plot = Vector{Vector{Float64}}()
+    plot_labels = Vector{String}()
+    for i in Echannel_start:Echannel_end-1
+        channel = findall(x -> Egrid[i]<=x<=Egrid[i+1],E_allPrecipFinal) # find energies that end in specified e channel
+        push!(plot_labels, string(round(Egrid[i]))*" to "*string(round(Egrid[i+1]))*" keV")
+        push!(energies_to_plot,E_allPrecipInit[channel])
+        push!(pitchangles_to_plot,PA_allPrecipInit[channel])
+    end
+
+    return scatter(pitchangles_to_plot, energies_to_plot,
+        xlim = [5,20], ylim = [100,500],
+        palette = :seaborn_colorblind6,
+        title=rm.label,
+        xlabel = "Initial Pitch Angle",
+        ylabel = "Initial Energy",
+        label=plot_labels)
+end
 
 function animatePrecipitatingParticles(gifFileName, rm::Resultant_Matrix, timeBin=10, maxFraction=0.004, maxEnergy=1000)
     allPrecip, indexArray = precipitatingParticles(rm, timeBin)
@@ -695,7 +734,7 @@ end
 
 function trajectoryChecking(rm::Resultant_Matrix, trajectories::Array{Int64}, plot_title::String)
     converT = Re*L/(c)
-    PAplot = plot(xlim=(0,33.124), ylim = (0,90), title=plot_title, ylabel="Pitch Angle (deg)");
+    PAplot = plot(xlim=(0,33.124), ylim = (0,90), title=plot_title, ylabel="Pitch Angle ("*L"\degree"*")");
     PAplot = plot!(converT*rm.tVec, rm.PAmatrix[:,trajectories], yminorticks=6, xminorticks=5, label = "", linewidth=2, palette = :seaborn_colorblind6);
 
     Eplot = plot(xlim=(0,33.124), ylim = (40,1000), yscale = :log10, xlabel = "Time (s)", ylabel="Energy (keV)");

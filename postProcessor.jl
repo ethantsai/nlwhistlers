@@ -1,9 +1,20 @@
 include("plotHelpers.jl")
 Egrid, PAgrid = logrange(10,1000,21), 6:4:90
 
-# mms_short = load_resultant_matrix("mms_short", "results/jld2_200922_mms_midlat_short", "200922_mms_3pkt_96600", "setupasrun.conf", 161);
-# mms_med = load_resultant_matrix("mms_med", "results/jld2_200922_mms_midlat_med", "200922_mms_30pkt_96600", "setupasrun.conf", 161);
-# mms_long = load_resultant_matrix("mms_long", "results/jld2_200922_mms_midlat_long", "200922_mms_300pkt_96600", "setupasrun.conf", 161);
+# mms_long_a7_hires = load_resultant_matrix("mms_long_a7_hires", "results/jld2_200922_mms_midlat_long_a7_hi", "200922_mms_long_a7_hi_193200", "setupasrun.conf", 322);
+# mms_short_a3_hires = load_resultant_matrix("mms_short_a3_hires", "results/jld2_200922_mms_midlat_short_a3_hi", "200922_mms_short_a3_hi_193200", "setupasrun.conf", 322);
+
+# mms_short_a3 = load_resultant_matrix("mms_short_a3", "results/jld2_200922_mms_midlat_short_a3", "200922_mms_short_a3_96600", "setupasrun.conf", 161);
+# mms_med_a3 = load_resultant_matrix("mms_med_a3", "results/jld2_200922_mms_midlat_med_a3", "200922_mms_med_a3_96600", "setupasrun.conf", 161);
+# mms_long_a3 = load_resultant_matrix("mms_long_a3", "results/jld2_200922_mms_midlat_long_a3", "200922_mms_long_a3_96600", "setupasrun.conf", 161);
+
+# mms_short_a5 = load_resultant_matrix("mms_short_a5", "results/jld2_200922_mms_midlat_short_a5", "200922_mms_3pkt_96600", "setupasrun.conf", 161);
+# mms_med_a5 = load_resultant_matrix("mms_med_a5", "results/jld2_200922_mms_midlat_med_a5", "200922_mms_30pkt_96600", "setupasrun.conf", 161);
+# mms_long_a5 = load_resultant_matrix("mms_long_a5", "results/jld2_200922_mms_midlat_long_a5", "200922_mms_300pkt_96600", "setupasrun.conf", 161);
+
+# mms_short_a7 = load_resultant_matrix("mms_short_a7", "results/jld2_200922_mms_midlat_short_a7", "200922_mms_short_a7_96600", "setupasrun.conf", 161);
+# mms_med_a7 = load_resultant_matrix("mms_med_a7", "results/jld2_200922_mms_midlat_med_a7", "200922_mms_med_a7_96600", "setupasrun.conf", 161);
+# mms_long_a7 = load_resultant_matrix("mms_long_a7", "results/jld2_200922_mms_midlat_long_a7", "200922_mms_long_a7_96600", "setupasrun.conf", 161);
 
 # demo_mms_dPhi_3 = load_resultant_matrix("demo_mms_dPhi_3_10", "results/demonstration", "demo_mms_dPhi_3_10", "setupasrun.conf", 1);
 # demo_mms_dPhi_30 = load_resultant_matrix("demo_mms_dPhi_30_10", "results/demonstration", "demo_mms_dPhi_30_10", "setupasrun.conf", 1);
@@ -47,9 +58,20 @@ Egrid, PAgrid = logrange(10,1000,21), 6:4:90
 # @time @save "results/200922_mms_midlat.jld2" mms_midlat;
 # @time @save "results/200922_mms_hilat.jld2" mms_hilat;
 
+# @time @save "results/200922_mms_short_a3.jld2" mms_short_a3;
+# @time @save "results/200922_mms_med_a3.jld2" mms_med_a3;
+# @time @save "results/200922_mms_long_a3.jld2" mms_long_a3;
+
 # @time @save "results/200922_mms_short.jld2" mms_short;
 # @time @save "results/200922_mms_med.jld2" mms_med;
 # @time @save "results/200922_mms_long.jld2" mms_long;
+
+# @time @save "results/200922_mms_short_a7.jld2" mms_short_a7;
+# @time @save "results/200922_mms_med_a7.jld2" mms_med_a7;
+# @time @save "results/200922_mms_long_a7.jld2" mms_long_a7;
+
+# @time @save "results/200922_mms_short_a3_hires.jld2" mms_short_hires;
+# @time @save "results/200922_mms_long_a7_hires.jld2" mms_long_a7_hires;
 
 @time @load "results/210429_themis_hilat.jld2" themis_hilat;
 @time @load "results/210429_themis_midlat.jld2" themis_midlat; 
@@ -64,36 +86,108 @@ Egrid, PAgrid = logrange(10,1000,21), 6:4:90
 @time @load "results/200922_mms_midlat.jld2" mms_midlat;
 @time @load "results/200922_mms_hilat.jld2" mms_hilat;
 
+@time @load "results/200922_mms_short_a3.jld2" mms_short_a3;
+@time @load "results/200922_mms_med_a3.jld2" mms_med_a3;
+@time @load "results/200922_mms_long_a3.jld2" mms_long_a3;
+
 @time @load "results/200922_mms_short.jld2" mms_short;
 @time @load "results/200922_mms_med.jld2" mms_med;
 @time @load "results/200922_mms_long.jld2" mms_long;
+
+@time @load "results/200922_mms_short_a7.jld2" mms_short_a7;
+@time @load "results/200922_mms_med_a7.jld2" mms_med_a7;
+@time @load "results/200922_mms_long_a7.jld2" mms_long_a7;
+
 @info "Loaded result matrices."
+include("plotHelpers.jl")
+Egrid, PAgrid = logrange(10,1000,21), 6:4:90
+
 
 @time equatorial_fluxes_042921 = calc_equatorial_fluxes(themis_hilat, f0_042921);
-@time themis_hilat_042921  = export_results("042921_themis_hilat",  calc_prec_flux(themis_hilat, 10,f0_042921,.02));
-@time themis_midlat_042921 = export_results("042921_themis_midlat", calc_prec_flux(themis_midlat,10,f0_042921,.04));
-@time themis_lolat_042921  = export_results("042921_themis_lolat",  calc_prec_flux(themis_lolat, 10,f0_042921,5*.06));
-@time themis_1pkt_042921   = export_results("042921_themis_1pkt",   calc_prec_flux(themis_1pkt, 10,f0_042921,.02));
-@time themis_30pkt_042921  = export_results("042921_themis_30pkt",  calc_prec_flux(themis_30pkt,10,f0_042921,.02));
-@time themis_100pkt_042921 = export_results("042921_themis_100pkt", calc_prec_flux(themis_100pkt,10,f0_042921,.02));
+@time themis_hilat_042921  = export_results("042921_themis_hilat",  calc_prec_flux(themis_hilat, 10,f0_042921,.02,25));
+@time themis_midlat_042921 = export_results("042921_themis_midlat", calc_prec_flux(themis_midlat,10,f0_042921,.04,25));
+@time themis_lolat_042921  = export_results("042921_themis_lolat",  calc_prec_flux(themis_lolat, 10,f0_042921,5*.06,25));
+@time themis_1pkt_042921   = export_results("042921_themis_1pkt",   calc_prec_flux(themis_1pkt, 10,f0_042921,.02,25));
+@time themis_30pkt_042921  = export_results("042921_themis_30pkt",  calc_prec_flux(themis_30pkt,10,f0_042921,.02,25));
+@time themis_100pkt_042921 = export_results("042921_themis_100pkt", calc_prec_flux(themis_100pkt,10,f0_042921,.02,25));
 @time elfin_measurements_042921, elfin_error_042921 = extract_idl_csv("042921_time.csv", "042921_prec.csv",
                                                 "042921_precerror.csv", "ebins.csv", # csvs containing ELFIN measurements
                                                 DateTime(2021,4,29,3,14,45),DateTime(2021,4,29,3,15,0)) # time to sample from ELFIN measurements
-@time @save "results/210429_lat_storage.jld2" equatorial_fluxes_042921 themis_hilat_042921 themis_midlat_042921 themis_lolat_042921;
+@time @save "results/210429_lat_storage_cleaned.jld2" equatorial_fluxes_042921 themis_hilat_042921 themis_midlat_042921 themis_lolat_042921;
 @time @save "results/210429_pkt_storage.jld2" equatorial_fluxes_042921 themis_1pkt_042921 themis_30pkt_042921 themis_100pkt_042921;
 
+
 @time equatorial_fluxes_092220 = calc_equatorial_fluxes(mms_midlat, f0_092220);
-@time mms_lowerlat_092220  = export_results("092220_mms_lowerlat",  calc_prec_flux(mms_lowerlat, 10,f0_092220,0.06));
-@time mms_lolat_092220  = export_results("092220_mms_lolat",  calc_prec_flux(mms_lolat, 10,f0_092220,0.06));
-@time mms_midlat_092220 = export_results("092220_mms_midlat", calc_prec_flux(mms_midlat,10,f0_092220,0.02));
-@time mms_hilat_092220  = export_results("092220_mms_hilat",  calc_prec_flux(mms_hilat, 10,f0_092220,0.02));
+@time mms_lowerlat_092220  = export_results("092220_mms_lowerlat",  calc_prec_flux(mms_lowerlat, 10,f0_092220,0.06,25));
+@time mms_lolat_092220  = export_results("092220_mms_lolat",  calc_prec_flux(mms_lolat, 10,f0_092220,0.06,25));
+@time mms_midlat_092220 = export_results("092220_mms_midlat", calc_prec_flux(mms_midlat,10,f0_092220,0.02,25));
+@time mms_hilat_092220  = export_results("092220_mms_hilat",  calc_prec_flux(mms_hilat, 10,f0_092220,0.02,25));
 @time @save "results/200922_lat_storage.jld2" equatorial_fluxes_092220 mms_lowerlat_092220 mms_lolat_092220 mms_midlat_092220 mms_hilat_092220;
 
 @time equatorial_fluxes_092220 = calc_equatorial_fluxes(mms_med, f0_092220);
-@time mms_short_092220  = export_results("092220_mms_short",  calc_prec_flux(mms_short, 10,f0_092220,0.06));
-@time mms_med_092220 = export_results("092220_mms_med", calc_prec_flux(mms_med, 10,f0_092220,0.06));
-@time mms_long_092220  = export_results("092220_mms_long",  calc_prec_flux(mms_long, 10,f0_092220,0.06));
-@time @save "results/200922_pkt_storage.jld2" equatorial_fluxes_092220 mms_short_092220 mms_med_092220 mms_long_092220;
+@time mms_short_a5_092220  = export_results("092220_mms_short",  calc_prec_flux(mms_short, 10,f0_092220,0.06,25));
+@time mms_med_a5_092220 = export_results("092220_mms_med", calc_prec_flux(mms_med, 10,f0_092220,0.06,25));
+@time mms_long_a5_092220  = export_results("092220_mms_long",  calc_prec_flux(mms_long, 10,f0_092220,0.06,25));
+@time @save "results/200922_pkt_storage.jld2" equatorial_fluxes_092220 mms_short_a5_092220 mms_med_a5_092220 mms_long_a5_092220;
+
+@time equatorial_fluxes_092220 = calc_equatorial_fluxes(mms_med_a3, f0_092220);
+@time mms_short_a3_092220 = export_results("092220_mms_short_a3",  calc_prec_flux(mms_short_a3, 10,f0_092220,0.06,25));
+@time mms_med_a3_092220 = export_results("092220_mms_med_a3", calc_prec_flux(mms_med_a3, 10,f0_092220,0.06,25));
+@time mms_long_a3_092220  = export_results("092220_mms_long_a3",  calc_prec_flux(mms_long_a3, 10,f0_092220,0.06,25));
+@time @save "results/200922_pkt_a3_storage.jld2" equatorial_fluxes_092220 mms_short_a3_092220 mms_med_a3_092220 mms_long_a3_092220;
+
+@time equatorial_fluxes_092220 = calc_equatorial_fluxes(mms_short_a7, f0_092220);
+@time mms_short_a7_092220  = export_results("092220_mms_short_a7",  calc_prec_flux(mms_short_a7, 10,f0_092220,0.06,25));
+@time mms_med_a7_092220 = export_results("092220_mms_med_a7", calc_prec_flux(mms_med_a7, 10,f0_092220,0.06,25));
+@time mms_long_a7_092220  = export_results("092220_mms_long_a7",  calc_prec_flux(mms_long_a7, 10,f0_092220,0.06,25));
+@time @save "results/200922_pkt_a7_storage.jld2" equatorial_fluxes_092220 mms_short_a7_092220 mms_med_a7_092220 mms_long_a7_092220;
+
+@time @load "results/200922_mms_short_a3.jld2" mms_short_a3;
+@time @load "results/200922_mms_short_a3_hires.jld2" mms_short_hires;
+Egrid, PAgrid = logrange(10,1000,41), 6:4:90
+@time equatorial_fluxes_092220 = calc_equatorial_fluxes(mms_short_hires, f0_092220);
+@time mms_short_a3_hires_092220 = export_results("092220_mms_short_a3_hires", calc_prec_flux(mms_short_hires, 10,f0_092220,0.06,25));
+Egrid, PAgrid = logrange(10,1000,21), 6:4:90
+@time mms_short_a3_092220  = export_results("092220_mms_short_a3",  calc_prec_flux(mms_short_a3, 10,f0_092220,0.06,25));
+@time @save "results/200922_short_a3_hires_compare_storage.jld2" equatorial_fluxes_092220 mms_short_a3_hires_092220 mms_short_a3_092220;
+
+@time @load "results/200922_mms_long_a7.jld2" mms_long_a7
+@time @load "results/200922_mms_long_a7_hires.jld2" mms_long_a7_hires;
+Egrid, PAgrid = logrange(10,1000,41), 6:4:90
+@time equatorial_fluxes_092220 = calc_equatorial_fluxes(mms_long_a7_hires, f0_092220);
+@time mms_long_a7_hires_092220 = export_results("092220_mms_short_a3_hires", calc_prec_flux(mms_long_a7_hires, 10,f0_092220,0.06,25));
+Egrid, PAgrid = logrange(10,1000,21), 6:4:90
+@time mms_long_a7_092220  = export_results("092220_mms_short_a3",  calc_prec_flux(mms_long_a7, 10,f0_092220,0.06,25));
+@time @save "results/200922_long_a7_hires_compare_storage.jld2" equatorial_fluxes_092220 mms_long_a7_hires_092220 mms_long_a7_092220;
+
+@time @load "results/200922_mms_short_a3.jld2" mms_short_a3;
+precipitating_initial_state_analyzer(mms_short_a3, 13,16)
+@time @load "results/200922_mms_med_a3.jld2" mms_med_a3;
+precipitating_initial_state_analyzer(mms_med_a3, 13,16)
+@time @load "results/200922_mms_long_a3.jld2" mms_long_a3;
+precipitating_initial_state_analyzer(mms_long_a3, 13,16)
+
+
+include("plotHelpers.jl")
+Egrid, PAgrid = logrange(10,1000,21), 6:4:90
+mms_short_a3_precip_final, _, _ = precipitatingParticles(mms_short_a3, 100);
+mms_med_a3_precip_final, _, _ = precipitatingParticles(mms_med_a3, 100);
+mms_long_a3_precip_final, _, _ = precipitatingParticles(mms_long_a3, 100);
+nflux_precipitating_short_a3 = [length(findall(x -> Egrid[i]<=x<=Egrid[i+1],mms_short_a3_precip_final[1])) for i in 1:(length(Egrid)-1)]
+nflux_precipitating_med_a3 = [length(findall(x -> Egrid[i]<=x<=Egrid[i+1],mms_med_a3_precip_final[1])) for i in 1:(length(Egrid)-1)]
+nflux_precipitating_long_a3= [length(findall(x -> Egrid[i]<=x<=Egrid[i+1],mms_long_a3_precip_final[1])) for i in 1:(length(Egrid)-1)]
+plot(Egrid[1:end-1], nflux_precipitating_short_a3, xlim = Egrid, ylim =[0,2000], label = "a=3, dphi=3")
+plot!(Egrid[1:end-1], nflux_precipitating_med_a3, label = "a=3, dphi=30")
+plot!(Egrid[1:end-1], nflux_precipitating_long_a3, label = "a=3, dphi=300")
+
+
+
+blah = [length(findall(x -> Egrid[i]<=x<=Egrid[i+1],vcat(allPrecip...))) for i in 1:(length(Egrid)-1)]
+
+
+
+
+
 
 
 
