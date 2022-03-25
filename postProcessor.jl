@@ -27,6 +27,7 @@ Egrid, PAgrid = logrange(10,1000,21), 6:4:90
 # themis_lolat = load_resultant_matrix("210429_themis_lolat", "results/themis_lolat_m1pro", "210429_themis_lolat_96600", "setupasrun.conf", 161);
 # themis_midlat = load_resultant_matrix("210429_themis_midlat", "results/themis_midlat_m1pro", "210429_themis_midlat_96600", "setupasrun.conf", 161);
 # themis_hilat = load_resultant_matrix("210429_themis_hilat", "results/themis_hilat_m1pro", "210429_themis_hilat_96600", "setupasrun.conf", 161);
+# themis_hilat_hienergy = load_resultant_matrix("210429_themis_hilat", "results/themis_hilat_hienergy_m1pro/", "210429_themis_hilat_hienergy_96600", "setupasrun.conf", 161);
 
 # themis_1pkt = load_resultant_matrix("210429_themis_1pkt", "results/210429_themis_1pkt2", "210429_themis_1pkt2_96600", "setupasrun.conf", 161);
 # themis_30pkt = load_resultant_matrix("210429_themis_30pkt", "results/210429_themis_30pkt2", "210429_themis_30pkt2_96600", "setupasrun.conf", 161);
@@ -48,6 +49,7 @@ Egrid, PAgrid = logrange(10,1000,21), 6:4:90
 # @time @save "results/210429_themis_lolat.jld2" themis_lolat 
 # @time @save "results/210429_themis_midlat.jld2" themis_midlat 
 # @time @save "results/210429_themis_hilat.jld2" themis_hilat 
+# @time @save "results/210429_themis_hilat_hienergy.jld2" themis_hilat_hienergy
 
 # @time @save "results/210429_themis_1pkt.jld2" themis_1pkt 
 # @time @save "results/210429_themis_30pkt.jld2" themis_30pkt 
@@ -73,6 +75,7 @@ Egrid, PAgrid = logrange(10,1000,21), 6:4:90
 # @time @save "results/200922_mms_short_a3_hires.jld2" mms_short_hires;
 # @time @save "results/200922_mms_long_a7_hires.jld2" mms_long_a7_hires;
 
+@time @load "results/210429_themis_hilat_hienergy.jld2" themis_hilat_hienergy;
 @time @load "results/210429_themis_hilat.jld2" themis_hilat;
 @time @load "results/210429_themis_midlat.jld2" themis_midlat; 
 @time @load "results/210429_themis_lolat.jld2" themis_lolat;
@@ -104,24 +107,27 @@ Egrid, PAgrid = logrange(10,1000,21), 6:4:90
 
 
 @time equatorial_fluxes_042921 = calc_equatorial_fluxes(themis_hilat, f0_042921);
-@time themis_hilat_042921  = export_results("042921_themis_hilat",  calc_prec_flux(themis_hilat, 10,f0_042921,.02,25));
-@time themis_midlat_042921 = export_results("042921_themis_midlat", calc_prec_flux(themis_midlat,10,f0_042921,.04,25));
-@time themis_lolat_042921  = export_results("042921_themis_lolat",  calc_prec_flux(themis_lolat, 10,f0_042921,5*.06,25));
-@time themis_1pkt_042921   = export_results("042921_themis_1pkt",   calc_prec_flux(themis_1pkt, 10,f0_042921,.02,25));
-@time themis_30pkt_042921  = export_results("042921_themis_30pkt",  calc_prec_flux(themis_30pkt,10,f0_042921,.02,25));
-@time themis_100pkt_042921 = export_results("042921_themis_100pkt", calc_prec_flux(themis_100pkt,10,f0_042921,.02,25));
+@time themis_hilat_hienergy_042921  = export_results("042921_themis_hilat_hienergy",  calc_prec_flux(themis_hilat_hienergy, 10,f0_042921,.02,10));
+@time themis_hilat_042921  = export_results("042921_themis_hilat",  calc_prec_flux(themis_hilat, 10,f0_042921,.02,10));
+@time themis_hilat_combined = combine_rm("themis_combined", themis_hilat, themis_hilat_hienergy)
+@time themis_hilat_combined_042921 = export_results("042921_themis_hilat_combined",  calc_prec_flux(themis_hilat, 10,f0_042921,.02,10));
+@time themis_midlat_042921 = export_results("042921_themis_midlat", calc_prec_flux(themis_midlat,10,f0_042921,.04,10));
+@time themis_lolat_042921  = export_results("042921_themis_lolat",  calc_prec_flux(themis_lolat, 10,f0_042921,5*.06,10));
+@time themis_1pkt_042921   = export_results("042921_themis_1pkt",   calc_prec_flux(themis_1pkt, 10,f0_042921,.02,10));
+@time themis_30pkt_042921  = export_results("042921_themis_30pkt",  calc_prec_flux(themis_30pkt,10,f0_042921,.02,10));
+@time themis_100pkt_042921 = export_results("042921_themis_100pkt", calc_prec_flux(themis_100pkt,10,f0_042921,.02,10));
 @time elfin_measurements_042921, elfin_error_042921 = extract_idl_csv("042921_time.csv", "042921_prec.csv",
                                                 "042921_precerror.csv", "ebins.csv", # csvs containing ELFIN measurements
                                                 DateTime(2021,4,29,3,14,45),DateTime(2021,4,29,3,15,0)) # time to sample from ELFIN measurements
-@time @save "results/210429_lat_storage_cleaned.jld2" equatorial_fluxes_042921 themis_hilat_042921 themis_midlat_042921 themis_lolat_042921;
+@time @save "results/210429_lat_storage_cleaned.jld2" equatorial_fluxes_042921 themis_hilat_combined_042921 themis_midlat_042921 themis_lolat_042921;
 @time @save "results/210429_pkt_storage.jld2" equatorial_fluxes_042921 themis_1pkt_042921 themis_30pkt_042921 themis_100pkt_042921;
 
 
 @time equatorial_fluxes_092220 = calc_equatorial_fluxes(mms_midlat, f0_092220);
-@time mms_lowerlat_092220  = export_results("092220_mms_lowerlat",  calc_prec_flux(mms_lowerlat, 10,f0_092220,0.06,25));
-@time mms_lolat_092220  = export_results("092220_mms_lolat",  calc_prec_flux(mms_lolat, 10,f0_092220,0.06,25));
-@time mms_midlat_092220 = export_results("092220_mms_midlat", calc_prec_flux(mms_midlat,10,f0_092220,0.02,25));
-@time mms_hilat_092220  = export_results("092220_mms_hilat",  calc_prec_flux(mms_hilat, 10,f0_092220,0.02,25));
+@time mms_lowerlat_092220  = export_results("092220_mms_lowerlat",  calc_prec_flux(mms_lowerlat, 10,f0_092220,0.06,10));
+@time mms_lolat_092220  = export_results("092220_mms_lolat",  calc_prec_flux(mms_lolat, 10,f0_092220,0.06,10));
+@time mms_midlat_092220 = export_results("092220_mms_midlat", calc_prec_flux(mms_midlat,10,f0_092220,0.02,10));
+@time mms_hilat_092220  = export_results("092220_mms_hilat",  calc_prec_flux(mms_hilat, 10,f0_092220,0.02,10));
 @time @save "results/200922_lat_storage.jld2" equatorial_fluxes_092220 mms_lowerlat_092220 mms_lolat_092220 mms_midlat_092220 mms_hilat_092220;
 
 @time equatorial_fluxes_092220 = calc_equatorial_fluxes(mms_med, f0_092220);
