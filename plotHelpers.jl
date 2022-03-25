@@ -96,6 +96,27 @@ function load_resultant_matrix(label::String, directoryname::String, basename::S
     return Resultant_Matrix(label, numParticles, endTime, allZ, allPZ, allT, allPA, allE, lostParticles,tVec, Zmatrix, PZmatrix, Ematrix, PAmatrix)
 end
 
+function combine_rm(label::String, rm1::Resultant_Matrix, rm2::Resultant_Matrix)
+    numParticles = rm1.numParticles + rm2.numParticles;
+    
+    allZ = vcat(rm1.allZ, rm2.allZ);
+    allPZ = vcat(rm1.allPZ, rm2.allPZ);
+    allT = vcat(rm1.allT, rm2.allT);
+    allPA = vcat(rm1.allPA, rm2.allPA);
+    allE = vcat(rm1.allE, rm2.allE);
+
+    Zmatrix = hcat(rm1.Zmatrix, rm2.Zmatrix)
+    PZmatrix = hcat(rm1.PZmatrix, rm2.PZmatrix)
+    Ematrix = hcat(rm1.Ematrix, rm2.Ematrix)
+    PAmatrix = hcat(rm1.PAmatrix, rm2.PAmatrix)
+
+    endTime = rm1.endTime # takes endtime of first resultant matrix
+    tVec = rm1.tVec # takes endtime of first tVec
+    lostParticles = countLostParticles(allT, endTime)
+    return Resultant_Matrix(label, numParticles, endTime, allZ, allPZ, allT, allPA, allE, lostParticles,tVec, Zmatrix, PZmatrix, Ematrix, PAmatrix)
+end
+
+
 function export_results(label::String, precipitating_flux_timeseries)
     ###
     # extract data and save it into 
@@ -734,13 +755,15 @@ end
 
 function trajectoryChecking(rm::Resultant_Matrix, trajectories::Array{Int64}, plot_title::String)
     converT = Re*L/(c)
-    PAplot = plot(xlim=(0,33.124), ylim = (0,90), title=plot_title, ylabel="Pitch Angle ("*L"\degree"*")");
+    PAplot = plot(xlim=(0,33.124), ylim = (0,90), title=plot_title)#, ylabel="Pitch Angle ("*L"\degree"*")");
     PAplot = plot!(converT*rm.tVec, rm.PAmatrix[:,trajectories], yminorticks=6, xminorticks=5, label = "", linewidth=2, palette = :seaborn_colorblind6);
 
-    Eplot = plot(xlim=(0,33.124), ylim = (40,1000), yscale = :log10, xlabel = "Time (s)", ylabel="Energy (keV)");
+    Eplot = plot(xlim=(0,33.124), ylim = (40,1000), yscale = :log10, xlabel = "Time (s)")#, ylabel="Energy (keV)");
     Eplot = plot!(converT*rm.tVec, rm.Ematrix[:,trajectories], yminorticks=10, xminorticks=5,  label = "", bottom_margin = 8mm, linewidth=2, palette = :seaborn_colorblind6);
 
-    bigplot = plot(PAplot,Eplot, dpi = 96, layout = (2,1), left_margin = 8mm, size=(1000,500))
+    bigplot = plot(PAplot,Eplot,
+        dpi = 96, layout = (2,1), left_margin = 8mm, size=(1000,500),
+        xtickfontsize=14, ytickfontsize=14, xguidefontsize=16, yguidefontsize=16, legendfontsize=10, titlefontsize=16)
 end
 
 
