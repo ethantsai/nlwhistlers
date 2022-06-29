@@ -9,9 +9,9 @@
 # ???
 # profit
 
-using Logging: global_logger
-using TerminalLoggers: TerminalLogger
-global_logger(TerminalLogger())
+# using Logging: global_logger
+# using TerminalLoggers: TerminalLogger
+# global_logger(TerminalLogger())
 
 include("agapitovHelpers.jl")
 
@@ -21,24 +21,23 @@ test = [6   23.5 2 ;
 
 include("agapitovmodel.jl")
 
-wave_model_array = Vector{Function}()
+wave_model_coeff_array = Vector{SVector{4, Float64}}()
 wave_model_normalizer_array = Vector{Float64}()
+
 
 for case in eachrow(test)
     wave_model(lambda) = B_w(lambda, case[3], α_ij_matrix(case[1], case[2]))
     push!(wave_model_normalizer_array, obtain_normalizer(wave_model))
-    push!(wave_model_array, wave_model)
+    push!(wave_model_coeff_array, agapitov_coeffs(case[3], α_ij_matrix(case[1], case[2]))  )
 end
-
-@everywhere would_be_nice(lambda) = wave_model_array[1](lambda)
 
 
 h0, f0, η, ε, resolution = generateFlatParticleDistribution(numParticles, ICrange, z0, λ0);
 numParticles = length(h0[:,1]);    
   # new total number of particles may have changed.
-params = @SVector [η, ε, Omegape, omegam, a, dPhi, wave_model_array[1], obtain_normalizer(wave_model_array[1])];
+params = @SVector [η, ε, Omegape, omegam, a, dPhi, wave_model_coeff_array[1], wave_model_normalizer_array[1]];
 prob = ODEProblem(eom!, ~, tspan, params);
-prob_func = ((prob,i,repeat) -> remake(prob, u0 = h0[i,:], p = @SVector [η, ε, Omegape, omegam, a, dPhi, wave_model_array[1], obtain_normalizer(wave_model_array[1])]))
+@everywhere prob_func = ((prob,i,repeat) -> remake(prob, u0 = h0[i,:], p = @SVector [η, ε, Omegape, omegam, a, dPhi, wave_model_coeff_array[1], wave_model_normalizer_array[1]]))
 ensemble_prob = EnsembleProblem(prob::ODEProblem,prob_func=prob_func)
 
 @info "Solving..."
@@ -46,8 +45,7 @@ ensemble_prob = EnsembleProblem(prob::ODEProblem,prob_func=prob_func)
                         callback=CallbackSet(cb1, cb2), trajectories=numParticles,
                         dtmax=resolution, linear_solver=:LapackDense, maxiters=1e8, 
                         saveat = saveDecimation*resolution, kwargshandle=KeywordArgSilent)
-@info "Sim complete! Plotting..."
-@time quicklook(sol)
+# @info "Sim complete! Plotting..."
 
 @info "Saving..."
 

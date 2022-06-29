@@ -31,7 +31,7 @@ conf = ConfParse(conffile)
 parse_conf!(conf)
 # const basename = retrieve(conf, "basename");
 # const directoryname = retrieve(conf, "directoryname");
-const numParticles = 105*10;
+const numParticles = 105*2;
 const startTime = 0;
 const endTime = 5;
 tspan = (startTime, endTime); # integration time
@@ -124,9 +124,8 @@ function eom!(dH,H,p::SVector{8},t::Float64)
     K = copysign((p[3] * (cosλ^(-5/2)))/sqrt(b/p[4] - 1), H[5]);
 
     #     eta * epsilon * u * sqrt (2 mu b) / gamma
-    psi = p[1]*p[2]*(p[8]*would_be_nice(H[5]))*sqrt(2*H[4]*b)/γ;
-    # u = 1
-    # psi = p[1]*p[2]*u*sqrt(2*H[4]*b)/γ;
+    # u = 10 ^ abs( p[7][1] * (abs(H[5]) - p[7][4]) * exp(-abs(H[5]) * p[7][3] - p[7][2])) * tanh(H[5])
+    psi = p[1]*p[2]* (10 ^ abs( p[7][1] * (abs(H[5]) - p[7][4]) * exp(-abs(H[5]) * p[7][3] - p[7][2])) * tanh(H[5])) *sqrt(2*H[4]*b)/γ;
     
     # actual integration vars
     dH1 = H[2]/γ;

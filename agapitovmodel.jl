@@ -59,6 +59,10 @@ end
 b_i(i, Kp, α_ij::SMatrix{5, 5, Float64, 25})::Float64 = sum( α_ij[i+2,2:end] .* ( Kp .^ α_ij[1,2:end] ))
 B_w(lambda, Kp, α_ij::SMatrix{5, 5, Float64, 25}) = 10 ^ abs( b_i(0,Kp,α_ij) * (abs(lambda) - b_i(3,Kp,α_ij)) * exp(-abs(lambda) * b_i(2,Kp,α_ij) - b_i(1,Kp,α_ij))) * tanh(lambda)
 
+function agapitov_coeffs(Kp, α_ij::SMatrix{5, 5, Float64, 25})
+    return @SArray [b_i(0,Kp,α_ij), b_i(1,Kp,α_ij), b_i(2,Kp,α_ij), b_i(3,Kp,α_ij)]
+end
+
 #Ethan's Mods
 # forced B_w to be zero at lambda = 0
 # forced it to be an odd function as well
