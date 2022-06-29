@@ -7,12 +7,15 @@ using Profile
 #sim
 using Dates
 using Random
-using StaticArrays
-using Distributed
-using OrdinaryDiffEq
 using JLD2
 using Plots
+# parallelize
+using Distributed
+addprocs();
+@everywhere using OrdinaryDiffEq
+@everywhere using StaticArrays
 @info "Packages compiled, running model"
+
 
 #######################
 ## Constants n stuff ##
@@ -26,11 +29,11 @@ const Beq  = 3.e-5;         # B field at equator (T), f64
 conffile = "setup.conf";
 conf = ConfParse(conffile)
 parse_conf!(conf)
-const basename = retrieve(conf, "basename");
-const directoryname = retrieve(conf, "directoryname");
-numParticles = parse(Int64, retrieve(conf, "numberOfParticles"));
-startTime = parse(Float64, retrieve(conf, "startTime"));
-endTime = parse(Float64, retrieve(conf, "endTime"));
+# const basename = retrieve(conf, "basename");
+# const directoryname = retrieve(conf, "directoryname");
+const numParticles = 105*10;
+const startTime = 0;
+const endTime = 5;
 tspan = (startTime, endTime); # integration time
 const lossConeAngle = parse(Float64, retrieve(conf, "lossConeAngle"));
 const saveDecimation = parse(Float64, retrieve(conf, "saveDecimation"));
@@ -54,67 +57,30 @@ ICrange = [ELo, EHi, Esteps, PALo, PAHi, PAsteps];
 const batches = parse(Int64, retrieve(conf, "batches"));
 const numThreads = parse(Int64, retrieve(conf, "numberOfThreads"))
 const B_eq_measured = parse(Float64, retrieve(conf, "B_eq_measured")); # in nT
-u(lambda) = tanh((deg2rad(lambda)/(deg2rad(2)))) * (exp(-(deg2rad(lambda)/(deg2rad(dλ2)))^2));
-const B_w_normalizer = maximum(u.(1:.01:90))^-1
 @info "Parsed Config file: $conffile:"
 
-###################
-## Setup Logging ##
-###################
 
-function setupDirectories(directoryname::String)
-    #=
-    directory name
-     └ jld2_yymmdd_HH
-      | setupasrun.conf    
-      | yymmdd_HHMMSS.log
-      └ basename_numparticles_numbatch.jld2
-    =#
-    mkpath(directoryname)
-    outputFileDirectory = string(directoryname, "/jld2_", Dates.format(now(), DateFormat("yymmdd_HH")))
-    mkpath(outputFileDirectory)
-    outputFileBaseName = outputFileDirectory*"/"*basename*"_$numParticles";
-    loggingFileName = string(outputFileDirectory,"/",Dates.format(now(), DateFormat("yymmdd_HHMMSS")),".log")
-    asrunConfFileName = outputFileDirectory*"/setupasrun.conf"
-    run(`cp setup.conf $asrunConfFileName`) # copy setup over to as run file
-    run(`cp setup.conf $loggingFileName`) # copy setup over to log file
 
-    @info "View logs here: "*loggingFileName
-    io = open(loggingFileName, "a")
-    global_logger(ConsoleLogger(io))
-    @info "^^Used this setup configuration file^^^"
-    flush(io)
-
-    return outputFileBaseName, io
-end
-
-####################
-## Initialization ##
-####################
 
 function generateFlatParticleDistribution(numParticles::Int64, ICrange, z0=0::Float64, λ0=0::Float64)
     ELo, EHi, Esteps, PALo, PAHi, PAsteps = ICrange
     @info "Generating a flat particle distribution with"
     @info "$Esteps steps of energy from $ELo KeV to $EHi KeV"
     @info "$PAsteps steps of pitch angles from $PALo deg to $PAHi deg"
-    flush(io)
 
     nBins = PAsteps*Esteps
     N = numParticles ÷ nBins # num of particles per bin
     E_bins = logrange(ELo,EHi, Int64(Esteps))
     PA_bins = range(PALo, PAHi, length = Int64(PAsteps))
     @info "Flat distribution with $N particles/bin in $nBins bins"
-    flush(io)
 
     if numParticles%nBins != 0
         @warn "Truncating $(numParticles%nBins) particles for an even distribution"
-        flush(io)
     end
     if iszero(N)
         N = 1;
         @warn "Use higher number of particles next time. Simulating 1 trajectory/bin."
         @warn "Minimum number of particles to simulate is 1 particles/bin."
-        flush(io)
     end
     
     @views f0 = [[(E+511.)/511. deg2rad(PA)] for PA in PA_bins for E in E_bins for i in 1:N] # creates a 2xN array with initial PA and Energy
@@ -134,56 +100,33 @@ function generateFlatParticleDistribution(numParticles::Int64, ICrange, z0=0::Fl
     resolution  = .1/η;                       # determines max step size of the integrator
     @info "Min integration step of $resolution"
     @info "Created Initial Conditions for $(length(h0[:,1])) particles"
-    flush(io)
     
     return h0, f0, η, ε, resolution;
 end
 
-@everywhere function generateModifiableFunction(batches)
-    #=
-    Takes in the initial condition and splits them into batches.
-    This way, we can feed each one in and get a percent completeness during sim.
-    =#
-    probGeneratorList = [];
-    nPerBatch = numParticles÷batches;
-    for j in 0:batches-1
-        truncatedIC =  h0[nPerBatch*j+1:(nPerBatch*j+nPerBatch),:]
-        push!(probGeneratorList, ((prob,i,repeat) -> remake(prob, u0 = truncatedIC[i,:], p = @SVector [η, ε, Omegape, omegam, a, dPhi, dλ1, dλ2, B_w_normalizer])))
-    end
-    percentage = (round(100/batches),digits=3)
-    @info "Each batch will simulate $nPerBatch particles for $(endTime-startTime) dt and correspond with $percentage%"
-    flush(io)
-    return probGeneratorList, nPerBatch, percentage
-end
-
-##################
-## Math n stuff ##
-##################
-
-function eom!(dH,H,p::SVector{9, Float64},t::Float64)
+function eom!(dH,H,p::SVector{8},t::Float64)
     # These equations define the motion.
 
     # z, pz, zeta, mu, lambda, phi = H
-    # eta, epsilon, Omegape, omegam, a, dPhi, dLambda1, dLambda2 = p
+    # p[1] p[2]     p[3]     p[4]    p[5] p[6]  p[7] p[8]
+    # eta, epsilon, Omegape, omegam, a,   dPhi, B_w, B_w_normalizer = p
+
     sinλ = sin(H[5]);
     cosλ = cos(H[5]);
     g = exp(-p[5] * (cos(H[6]/(2*π*p[6]))^2)) +  exp(-p[5] * (sin(H[6]/(2*π*p[6]))^2))  
     sinζ = g*sin(H[3]);
     cosζ = g*cos(H[3]);
-
-    # double sided wave, grows to max at dLambda1 deg, dissipates by dLambda2 deg
-    u = p[9]*tanh((H[5]/(deg2rad(p[7])))) * (exp(-(H[5]/(deg2rad(p[8])))^2)); 
     
     # helper variables
     b = sqrt(1+3*sinλ^2)/(cosλ^6);
     db = (3*(27*sinλ-5*sin(3*H[5])))/(cosλ^8*(4+12*sinλ^2));
     γ = sqrt(1 + H[2]^2 + 2*H[4]*b);
-    if H[5] < 0
-        K = -1 * (p[3] * (cosλ^(-5/2)))/sqrt(b/p[4] - 1);
-    else
-        K = (p[3] * (cosλ^(-5/2)))/sqrt(b/p[4] - 1);
-    end
-    psi = p[1]*p[2]*u*sqrt(2*H[4]*b)/γ;
+    K = copysign((p[3] * (cosλ^(-5/2)))/sqrt(b/p[4] - 1), H[5]);
+
+    #     eta * epsilon * u * sqrt (2 mu b) / gamma
+    psi = p[1]*p[2]*(p[8]*would_be_nice(H[5]))*sqrt(2*H[4]*b)/γ;
+    # u = 1
+    # psi = p[1]*p[2]*u*sqrt(2*H[4]*b)/γ;
     
     # actual integration vars
     dH1 = H[2]/γ;
@@ -214,20 +157,12 @@ cb1 = DiscreteCallback(palostcondition,affect!);
 cb2 = DiscreteCallback(ixlostcondition,affect!);
 
 function ensemble()
-    for i in 1:batches
-        ensemble_prob = EnsembleProblem(prob::ODEProblem,prob_func=probGeneratorList[i])
-        tick()
-        flush(io)
-        sol = solve(ensemble_prob, Tsit5(), EnsembleThreads(), save_everystep=false;
-                            callback=CallbackSet(cb1, cb2), trajectories=nPerBatch,
-                            dtmax=resolution, linear_solver=:LapackDense, maxiters=1e8, 
-                            saveat = saveDecimation*resolution)
-        @save outputFileBaseName*"_$(i).jld2" sol
-        @info "$nPerBatch particles simulated in:"
-        tock()
-        @info "$(i*percentage)% complete..."
-        flush(io)
-    end
+    ensemble_prob = EnsembleProblem(prob::ODEProblem,prob_func=probGeneratorList[i])
+    sol = solve(ensemble_prob, Tsit5(), EnsembleThreads(), save_everystep=false;
+                        callback=CallbackSet(cb1, cb2), trajectories=nPerBatch,
+                        dtmax=resolution, linear_solver=:LapackDense, maxiters=1e8, 
+                        saveat = saveDecimation*resolution)
+    @save outputFileBaseName*"_$(i).jld2" sol
 end
 
 # Simple calcs
@@ -240,10 +175,65 @@ calcAlpha(α::Vector{Float64},μ::Vector{Float64}, γ::Vector{Float64}) = @. α 
 # Useful helpers
 logrange(x1, x2, n::Int64) = [10^y for y in range(log10(x1), log10(x2), length=n)]
 
-# ```
-# Useful links
-# Community stuff: https://discourse.julialang.org/c/domain/models/21
-# Docs for ensemble stuff: https://diffeq.sciml.ai/dev/features/ensemble/
-# Marginal Histograms: http://docs.juliaplots.org/latest/recipes/#Marginal-Histograms
-# Dumb colorbar ticks issue: https://github.com/JuliaPlots/Plots.jl/issues/2308
-# ```
+obtain_normalizer(f::Function) = maximum(f.(0:0.01:90))^-1
+
+calcb!(b::Vector{Float64}, lambda::SubArray{Float64, 1, Matrix{Float64}, Tuple{Base.Slice{Base.OneTo{Int64}}, Int64}, true}) = @. b = sqrt(1+3*sin(lambda)^2)/(cos(lambda)^6)
+calcGamma!(gamma::Vector{Float64}, pz::SubArray{Float64, 1, Matrix{Float64}, Tuple{Base.Slice{Base.OneTo{Int64}}, Int64}, true}, mu::SubArray{Float64, 1, Matrix{Float64}, Tuple{Base.Slice{Base.OneTo{Int64}}, Int64}, true}, b::Vector{Float64}) = @. gamma = sqrt(1 + pz^2 + 2*mu*b)
+calcAlpha!(alpha::Vector{Float64}, mu::SubArray{Float64, 1, Matrix{Float64}, Tuple{Base.Slice{Base.OneTo{Int64}}, Int64}, true}, gamma::Vector{Float64}) = @. alpha = rad2deg(asin(sqrt((2*mu)/(gamma^2 - 1))))
+
+
+
+
+
+# plot helpers
+
+
+function extract(sol::EnsembleSolution)
+    allZ = Vector{Vector{Float64}}();
+    allPZ = Vector{Vector{Float64}}();
+    allE = Vector{Vector{Float64}}();
+    allPA = Vector{Vector{Float64}}();
+    allT = Vector{Vector{Float64}}();
+    for traj in sol
+        vars = Array(traj');
+        timesteps = length(traj.t);
+        b = zeros(timesteps);
+        gamma = zeros(timesteps);
+        Alpha = zeros(timesteps);
+
+        @views calcb!(b,vars[:,5]);
+        @views calcGamma!(gamma,vars[:,2],vars[:,4],b);
+        @views calcAlpha!(Alpha,vars[:,4],gamma);
+        @views push!(allT, traj.t);
+        @views push!(allZ, vars[:,1]);
+        @views push!(allPZ, vars[:,2]);
+        @views push!(allPA, Alpha);
+        @views push!(allE, @. (511*(gamma - 1)));
+    end
+    @info "$(length(sol)) particles loaded in..."
+    return allT, allZ, allPZ, allE, allPA;
+end
+
+function postProcessor(allT::Vector{Vector{Float64}}, allZ::Vector{Vector{Float64}}, allPZ::Vector{Vector{Float64}}, allE::Vector{Vector{Float64}}, allPA::Vector{Vector{Float64}})
+    #=
+    This function will take the output of the model and convert them into usable m x n matrices
+    where m is max number of timesteps for the longest trajectory and N is number of particles
+    Arrays that are not m long are filled with NaNs
+    =#
+    N = length(allT); # num particles from data
+    tVec = allT[findall(i->i==maximum(length.(allT)),length.(allT))[1]]; # turns all time vectors into a single time vector spanning over the longest trajectory
+    timeseriesLength = length(tVec); # all vectors must be this tall to ride
+    Zmatrix = fill(NaN,timeseriesLength,N); 
+    PZmatrix = fill(NaN,timeseriesLength,N); 
+    Ematrix = fill(NaN,timeseriesLength,N); 
+    PAmatrix = fill(NaN,timeseriesLength,N); 
+    # iterate over each matrix column and fill with each vector
+    for i = 1:N
+        @views Zmatrix[1:length(allT[i]),i] = allZ[i]
+        @views PZmatrix[1:length(allT[i]),i] = allPZ[i]
+        @views Ematrix[1:length(allT[i]),i] = allE[i]
+        @views PAmatrix[1:length(allT[i]),i] = allPA[i]
+    end
+    @info "Matrices generated..."
+    return tVec, Zmatrix, PZmatrix, Ematrix, PAmatrix
+end
