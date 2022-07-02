@@ -150,7 +150,7 @@ end
         truncatedIC =  h0[nPerBatch*j+1:(nPerBatch*j+nPerBatch),:]
         push!(probGeneratorList, ((prob,i,repeat) -> remake(prob, u0 = truncatedIC[i,:], p = @SVector [η, ε, Omegape, omegam, a, dPhi, dλ1, dλ2, B_w_normalizer])))
     end
-    percentage = (round(100/batches),digits=3)
+    percentage = round(100/batches,digits=3)
     @info "Each batch will simulate $nPerBatch particles for $(endTime-startTime) dt and correspond with $percentage%"
     flush(io)
     return probGeneratorList, nPerBatch, percentage
@@ -220,7 +220,7 @@ function ensemble()
         flush(io)
         sol = solve(ensemble_prob, Tsit5(), EnsembleThreads(), save_everystep=false;
                             callback=CallbackSet(cb1, cb2), trajectories=nPerBatch,
-                            dtmax=resolution, linear_solver=:LapackDense, maxiters=1e8, 
+                            dtmax=resolution, maxiters=1e8, 
                             saveat = saveDecimation*resolution)
         @save outputFileBaseName*"_$(i).jld2" sol
         @info "$nPerBatch particles simulated in:"

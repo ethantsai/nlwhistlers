@@ -9,11 +9,9 @@ using Dates
 using Random
 using JLD2
 using Plots
-# parallelize
-using Distributed
-addprocs();
-@everywhere using OrdinaryDiffEq
-@everywhere using StaticArrays
+using OrdinaryDiffEq
+using StaticArrays
+
 @info "Packages compiled, running model"
 
 
@@ -31,9 +29,9 @@ conf = ConfParse(conffile)
 parse_conf!(conf)
 # const basename = retrieve(conf, "basename");
 # const directoryname = retrieve(conf, "directoryname");
-const numParticles = 105*2;
+const numParticles = 105*10;
 const startTime = 0;
-const endTime = 5;
+const endTime = 13;
 tspan = (startTime, endTime); # integration time
 const lossConeAngle = parse(Float64, retrieve(conf, "lossConeAngle"));
 const saveDecimation = parse(Float64, retrieve(conf, "saveDecimation"));

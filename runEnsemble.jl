@@ -31,7 +31,7 @@ prob = ODEProblem(eom!, ~, tspan, params);
 # _prob, _alg = auto_optimize(prob) TODO: get auto-optimize to work
 
 
-@everywhere probGeneratorList, nPerBatch, percentage = generateModifiableFunction(batches); # consider making all of these constant
+probGeneratorList, nPerBatch, percentage = generateModifiableFunction(batches); # consider making all of these constant
 flush(io)
 
 
