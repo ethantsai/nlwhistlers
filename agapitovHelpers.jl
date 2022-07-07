@@ -1,4 +1,4 @@
-@info "Compiling packages for running model..."
+@info "Compiling packages for simulation..."
 #meta
 using TickTock
 using ConfParser
@@ -7,60 +7,63 @@ using Profile
 #sim
 using Dates
 using Random
-using JLD2
-using Plots
 using OrdinaryDiffEq
 using StaticArrays
-
-@info "Packages compiled, running model"
+#process
+using JLD2
+using Plots
+using StatsBase
+@info "Packages compiled."
 
 
 #######################
 ## Constants n stuff ##
 #######################
+@info "Loading constants..."
+const save_dir = "results_ducting/"
+const folder = "run2/"
+
+# case specific
+                   #L   MLT  Kp name
+const test_cases = [5.1 21.7 3  "ELA_ND_210105T1454"; # ELA ND 1/05 14:54
+                    7.1 8.4  2  "ELB_SA_210106T1154"; # ELB SA 1/06 11:54
+                    6.5 19.8 0  "ELB_ND_210108T0646"; # ELB ND 1/08 06:46
+                    4.8 19.0 3  "ELA_SD_210111T1750"; # ELA SD 1/11 17:50
+                    6   8.4  3  "ELA_NA_210112T0226"] # ELA NA 1/12 02:26
+const omega_m_cases = [0.2, 0.3, 0.4] # these are the different frequencies to test
+L_array = test_cases[:,1]
+
+const numParticles = 544*30;
+const startTime = 0;
+const endTime = 4;
+tspan = (startTime, endTime); # integration time
+
+const ELo = 50;
+const EHi = 3000;
+const Esteps = 32; # double ELFIN E bins
+const PALo = 4;
+const PAHi = 20;
+const PAsteps = 17;
+ICrange = [ELo, EHi, Esteps, PALo, PAHi, PAsteps];
+
+const z0 = 0; # start at eq
+const λ0 = 0; # start at eq
+
+const lossConeAngle = 4;
+
+const Bw = 300;  # pT
+const a = 3;     # exp(-a * (cos(Φ/dΦ)^2))
+const dPhi = 30; # exp(-a * (cos(Φ/dΦ)^2)) number of waves in each packet
 
 const Re   = 6370e3;        # Earth radius, f64
 const c    = 3e8;           # speedo lite, f64
 const Beq  = 3.e-5;         # B field at equator (T), f64
 
-# Parsing the conf file
-conffile = "setup.conf";
-conf = ConfParse(conffile)
-parse_conf!(conf)
-# const basename = retrieve(conf, "basename");
-# const directoryname = retrieve(conf, "directoryname");
-const numParticles = 105*10;
-const startTime = 0;
-const endTime = 13;
-tspan = (startTime, endTime); # integration time
-const lossConeAngle = parse(Float64, retrieve(conf, "lossConeAngle"));
-const saveDecimation = parse(Float64, retrieve(conf, "saveDecimation"));
-const L = parse(Float64, retrieve(conf, "L"));
-const omegam = parse(Float64, retrieve(conf, "omegam"));
-const Omegape = parse(Float64, retrieve(conf, "Omegape"));
-const z0 = parse(Float64, retrieve(conf, "z0"));
-const λ0 = parse(Float64, retrieve(conf, "lambda0"));
-const dλ1 = parse(Float64, retrieve(conf, "dLambda1"));
-const dλ2 = parse(Float64, retrieve(conf, "dLambda2"));
-const a = parse(Float64, retrieve(conf, "a"));
-const dPhi = parse(Float64, retrieve(conf, "dPhi"));
-const waveAmplitudeModifier = parse(Float64, retrieve(conf, "waveAmplitudeModifier"));
-const ELo = parse(Float64, retrieve(conf, "ELo"));
-const EHi = parse(Float64, retrieve(conf, "EHi"));
-const Esteps = parse(Float64, retrieve(conf, "Esteps"));
-const PALo = parse(Float64, retrieve(conf, "PALo"));
-const PAHi = parse(Float64, retrieve(conf, "PAHi"));
-const PAsteps = parse(Float64, retrieve(conf, "PAsteps"));
-ICrange = [ELo, EHi, Esteps, PALo, PAHi, PAsteps];
-const batches = parse(Int64, retrieve(conf, "batches"));
-const numThreads = parse(Int64, retrieve(conf, "numberOfThreads"))
-const B_eq_measured = parse(Float64, retrieve(conf, "B_eq_measured")); # in nT
-@info "Parsed Config file: $conffile:"
+const saveDecimation = 10000;
+@info "Done."
 
 
-
-
-function generateFlatParticleDistribution(numParticles::Int64, ICrange, z0=0::Float64, λ0=0::Float64)
+function generateFlatParticleDistribution(numParticles::Int64, ICrange, L)
     ELo, EHi, Esteps, PALo, PAHi, PAsteps = ICrange
     @info "Generating a flat particle distribution with"
     @info "$Esteps steps of energy from $ELo KeV to $EHi KeV"
@@ -90,16 +93,39 @@ function generateFlatParticleDistribution(numParticles::Int64, ICrange, z0=0::Fl
 
     # Other ICs that are important
     # Define basic ICs and parameters
-    # B0          = Beq*sqrt(1. +3. *sin(λ0)^2.)/L^3.;     # starting B field at eq
-    B0          = B_eq_measured*1e-9                        # measured equatorial field strength
+    B0          = Beq*sqrt(1. +3. *sin(λ0)^2.)/L^3.;     # starting B field at eq
+    # B0          = B_eq_measured*1e-9                        # measured equatorial field strength
     Omegace0    = (1.6e-19*B0)/(9.11e-31);                    # electron gyrofreq @ the equator
+    Omegape     = L;
+    @info "Omegape = $Omegape"
+    ε           = (Bw*1e-12)/B0;                      # Bw = 300 pT
     η           = Omegace0*L*Re/c;              # should be like 10^3
-    ε           = waveAmplitudeModifier/η;    # normalized wave large amplitude, .1 for small, 15 for large
-    resolution  = .1/η;                       # determines max step size of the integrator
+    @info "L shell of $L w/ wave amplitude of $Bw pT"
+    @info "Yields ε = $ε and η = $η"
+
+    resolution  = (1/η) / 20;  # determines max step size of the integrator
+    # due to issues accuracy issues around sqrt(mu)~0, experimentally 
+    # found that 20x smaller is sufficient to yield stable results
+                                                    
     @info "Min integration step of $resolution"
     @info "Created Initial Conditions for $(length(h0[:,1])) particles"
     
-    return h0, f0, η, ε, resolution;
+    return h0, f0, η, ε, Omegape, resolution;
+end
+
+function setup_wave_model(test_cases)
+    # take L, MLT, and Kp from test cases
+    # return array of functions, normalizers, and coefficients
+    wave_model_array = Vector{Function}()
+    wave_model_coeff_array = Vector{SVector{4, Float64}}()
+    wave_model_normalizer_array = Vector{Float64}()
+    for case in eachrow(test_cases)
+        wave_model(lambda) = B_w(lambda, case[3], α_ij_matrix(case[1], case[2]))
+        push!(wave_model_array, wave_model)
+        push!(wave_model_normalizer_array, obtain_normalizer(wave_model))
+        push!(wave_model_coeff_array, agapitov_coeffs(case[3], α_ij_matrix(case[1], case[2]))  )
+    end  
+    return wave_model_array, wave_model_normalizer_array, wave_model_coeff_array
 end
 
 function eom!(dH,H,p::SVector{8},t::Float64)
@@ -118,13 +144,12 @@ function eom!(dH,H,p::SVector{8},t::Float64)
     # helper variables
     b = sqrt(1+3*sinλ^2)/(cosλ^6);
     db = (3*(27*sinλ-5*sin(3*H[5])))/(cosλ^8*(4+12*sinλ^2));
-    γ = sqrt(1 + H[2]^2 + 2*H[4]*b);
+    γ = sqrt(1 + H[2]^2 + abs(2*H[4]*b));
     K = copysign((p[3] * (cosλ^(-5/2)))/sqrt(b/p[4] - 1), H[5]);
 
-    #     eta * epsilon * u * sqrt (2 mu b) / gamma
-    # u = 10 ^ abs( p[7][1] * (abs(H[5]) - p[7][4]) * exp(-abs(H[5]) * p[7][3] - p[7][2])) * tanh(H[5])
-    psi = p[1]*p[2]* (10 ^ abs( p[7][1] * (abs(H[5]) - p[7][4]) * exp(-abs(H[5]) * p[7][3] - p[7][2])) * tanh(H[5])) *sqrt(2*H[4]*b)/γ;
-    
+    #     eta * epsilon * B_w_normalizer * u * sqrt (2 mu b) / gamma
+    psi = p[1] * p[2] * p[8] * (10 ^ abs( p[7][1] * (abs(H[5]) - p[7][4]) * exp(-abs(H[5]) * p[7][3] - p[7][2])) * tanh(H[5])) * sqrt(abs(2*H[4]*b))/γ;
+
     # actual integration vars
     dH1 = H[2]/γ;
     dH2 = -(H[4]*db)/γ - (psi*cosζ);
@@ -140,27 +165,25 @@ function palostcondition(H,t,integrator)
     # condition: if particle enters loss cone
     b = sqrt(1+3*sin(H[5])^2)/(cos(H[5])^6);
     γ = sqrt(1 + H[2]^2 + 2*H[4]*b);
-    return (rad2deg(asin(sqrt((2*H[4])/(γ^2 -1))))) < (lossConeAngle)
+    return (rad2deg(asin(sqrt( abs((2*H[4])/(γ^2 -1)) )))) < (lossConeAngle)
 end
 
 function ixlostcondition(H,t,integrator)
     # condition: if I_x approaches 0
-    b = sqrt(1+3*sin(H[5])^2)/(cos(H[5])^6);
-    return 2*H[4]*b < 10*resolution
+    #      2*mu  * b 
+    return 2*H[4]*sqrt(1+3*sin(H[5])^2)/(cos(H[5])^6) < 3e-5
+end
+
+function eqlostcondition(H,t,integrator)
+    # condition: if particle crosses eq in negative direction
+    return sign(H[1])==-1 && sign(H[2])==-1
 end
 
 affect!(integrator) = terminate!(integrator); # terminate if condition reached
 cb1 = DiscreteCallback(palostcondition,affect!);
 cb2 = DiscreteCallback(ixlostcondition,affect!);
+cb3 = DiscreteCallback(eqlostcondition,affect!);
 
-function ensemble()
-    ensemble_prob = EnsembleProblem(prob::ODEProblem,prob_func=probGeneratorList[i])
-    sol = solve(ensemble_prob, Tsit5(), EnsembleThreads(), save_everystep=false;
-                        callback=CallbackSet(cb1, cb2), trajectories=nPerBatch,
-                        dtmax=resolution, linear_solver=:LapackDense, maxiters=1e8, 
-                        saveat = saveDecimation*resolution)
-    @save outputFileBaseName*"_$(i).jld2" sol
-end
 
 # Simple calcs
 calcb(b::Vector{Float64},λ::Vector{Float64}) = @. b = sqrt(1+3*sin(λ)^2)/(cos(λ)^6)
@@ -171,20 +194,17 @@ calcAlpha(α::Vector{Float64},μ::Vector{Float64}, γ::Vector{Float64}) = @. α 
 
 # Useful helpers
 logrange(x1, x2, n::Int64) = [10^y for y in range(log10(x1), log10(x2), length=n)]
+const E_bins = logrange(ELo,EHi, Int64(Esteps))
 
 obtain_normalizer(f::Function) = maximum(f.(0:0.01:90))^-1
 
-calcb!(b::Vector{Float64}, lambda::SubArray{Float64, 1, Matrix{Float64}, Tuple{Base.Slice{Base.OneTo{Int64}}, Int64}, true}) = @. b = sqrt(1+3*sin(lambda)^2)/(cos(lambda)^6)
-calcGamma!(gamma::Vector{Float64}, pz::SubArray{Float64, 1, Matrix{Float64}, Tuple{Base.Slice{Base.OneTo{Int64}}, Int64}, true}, mu::SubArray{Float64, 1, Matrix{Float64}, Tuple{Base.Slice{Base.OneTo{Int64}}, Int64}, true}, b::Vector{Float64}) = @. gamma = sqrt(1 + pz^2 + 2*mu*b)
-calcAlpha!(alpha::Vector{Float64}, mu::SubArray{Float64, 1, Matrix{Float64}, Tuple{Base.Slice{Base.OneTo{Int64}}, Int64}, true}, gamma::Vector{Float64}) = @. alpha = rad2deg(asin(sqrt((2*mu)/(gamma^2 - 1))))
-
-
+calcb!(b::Vector{Float64}, lambda) = @. b = sqrt(1+3*sin(lambda)^2)/(cos(lambda)^6)
+calcGamma!(gamma::Vector{Float64}, pz, mu, b::Vector{Float64}) = @. gamma = sqrt(1 + pz^2 + 2*mu*b)
+calcAlpha!(alpha::Vector{Float64}, mu, gamma::Vector{Float64}) = @. alpha = rad2deg(asin(sqrt((2*mu)/(gamma^2 - 1))))
 
 
 
 # plot helpers
-
-
 function extract(sol::EnsembleSolution)
     allZ = Vector{Vector{Float64}}();
     allPZ = Vector{Vector{Float64}}();
@@ -192,20 +212,45 @@ function extract(sol::EnsembleSolution)
     allPA = Vector{Vector{Float64}}();
     allT = Vector{Vector{Float64}}();
     for traj in sol
+    # for i in eachindex(sol)
+    #     traj = sol[i];
+    #     @info i
+        
         vars = Array(traj');
-        timesteps = length(traj.t);
-        b = zeros(timesteps);
-        gamma = zeros(timesteps);
-        Alpha = zeros(timesteps);
+        try
+            timesteps = length(traj.t);
+            b = zeros(timesteps);
+            gamma = zeros(timesteps);
+            Alpha = zeros(timesteps);
 
-        @views calcb!(b,vars[:,5]);
-        @views calcGamma!(gamma,vars[:,2],vars[:,4],b);
-        @views calcAlpha!(Alpha,vars[:,4],gamma);
-        @views push!(allT, traj.t);
-        @views push!(allZ, vars[:,1]);
-        @views push!(allPZ, vars[:,2]);
-        @views push!(allPA, Alpha);
-        @views push!(allE, @. (511*(gamma - 1)));
+            @views calcb!(b,vars[:,5]);
+            @views calcGamma!(gamma,vars[:,2],vars[:,4],b);
+            @views calcAlpha!(Alpha,vars[:,4],gamma);
+            @views push!(allT, traj.t);
+            @views push!(allZ, vars[:,1]);
+            @views push!(allPZ, vars[:,2]);
+            @views push!(allPA, Alpha);
+            @views push!(allE, @. (511*(gamma - 1)));
+        catch
+            last_positive_index = minimum(findall(x->x<=0,vars[:,4])) -1 
+            @info "Caught negative mu"
+            @info "index $(length(vars[:,4])-last_positive_index) from end"
+
+            timesteps = length(traj.t[1:last_positive_index]);
+            b = zeros(timesteps);
+            gamma = zeros(timesteps);
+            Alpha = zeros(timesteps);
+
+            @views calcb!(b,vars[1:last_positive_index,5]);
+            @views calcGamma!(gamma,vars[1:last_positive_index,2],vars[1:last_positive_index,4],b);
+            @views calcAlpha!(Alpha,vars[1:last_positive_index,4],gamma);
+            @views push!(allT, traj.t[1:last_positive_index]);
+            @views push!(allZ, vars[1:last_positive_index,1]);
+            @views push!(allPZ, vars[1:last_positive_index,2]);
+            @views push!(allPA, Alpha);
+            @views push!(allE, @. (511*(gamma - 1)));
+        end
+
     end
     @info "$(length(sol)) particles loaded in..."
     return allT, allZ, allPZ, allE, allPA;
@@ -233,4 +278,79 @@ function postProcessor(allT::Vector{Vector{Float64}}, allZ::Vector{Vector{Float6
     end
     @info "Matrices generated..."
     return tVec, Zmatrix, PZmatrix, Ematrix, PAmatrix
+end
+
+function countLostParticles(allT::Vector{Vector{Float64}}, endTime::Float64)
+    #=
+    Based on time vectors, counts which ones were lost
+    and at what time. Returns a Nx2 array where the first
+    column is the time at which the particle was lost, and
+    the 2nd column denotes the number lost at that point.
+    =#
+    lossCounter = []; # initialize vector
+
+    for ntime in allT # loop thru each particle
+        if maximum(ntime) != endTime # particle lost if ended early
+            push!(lossCounter, maximum(ntime)); # the final entry in the time vector is when the particle got lost
+        end
+    end
+    if isempty(lossCounter) # if particle wasn't lost, then throw in a NaN
+        push!(lossCounter, NaN) 
+        @warn "All particles trapped!" # since all particles trapped
+    end
+    lostParticles = [sort(lossCounter) collect(1:length(lossCounter))] # sort it by time, so you can see when particles got lost
+
+    if maximum(lostParticles[:,1]) != endTime # this adds in a final hline from last particle lost to end of simulation
+        lostParticles = vcat(lostParticles, [endTime (maximum(lostParticles[:,2]))]);
+    end 
+
+    @info "Total of $(lostParticles[end,end]) particles lost during sim"
+    return lostParticles
+end
+struct Resultant_Matrix
+    label::String
+    numParticles::Int64
+    endTime::Float64
+    allZ::Vector{Vector{Float64}}
+    allPZ::Vector{Vector{Float64}}
+    allT::Vector{Vector{Float64}}
+    allPA::Vector{Vector{Float64}}
+    allE::Vector{Vector{Float64}}
+    lostParticles::Matrix{Float64}
+    tVec::Vector{Float64}
+    Zmatrix::Matrix{Float64}
+    PZmatrix::Matrix{Float64}
+    Ematrix::Matrix{Float64}
+    PAmatrix::Matrix{Float64}
+end
+
+function prec_to_trap_ratio(rm::Resultant_Matrix)
+  initial_E = [rm.allE[i][1] for i = 1:length(rm.allT)]
+  final_E = [rm.allE[i][end] for i = 1:length(rm.allT)]
+  initial_PA = [rm.allPA[i][1] for i = 1:length(rm.allT)]
+  final_PA = [rm.allPA[i][end] for i = 1:length(rm.allT)]
+  # E_prec = sort(Ematrix[1,findall(isnan,truncated_matrix[end,:])])
+  # E_trap = sort(Ematrix[1,findall(!isnan,truncated_Ematrix[end,:])])
+
+  trap_range = findall(x->4*(lossConeAngle+0.002)>x>(lossConeAngle+0.002), final_PA)
+  loss_range = findall(x->x<(lossConeAngle+0.002), final_PA)
+  E_prec = sort(final_E[loss_range])
+  E_trap = sort(initial_E[trap_range])
+
+  # PA_min = round(minimum(initial_PA))-1
+  # PA_max = round(maximum(initial_PA))+1
+  # final_PA_dist = fit(Histogram, (final_PA), PA_min:1:PA_max)
+  # # initial_PA_dist = fit(Histogram, round.(initial_PA), PA_min:1:PA_max)
+  # plot(PA_min:1:(PA_max-1), final_PA_dist.weights, label=false)
+
+  j_prec = fit(Histogram, E_prec, logrange(ELo, EHi, Esteps+1))
+  j_trap = fit(Histogram, E_trap, logrange(ELo, EHi, Esteps+1))
+  fobs = 3*j_prec.weights ./ j_trap.weights
+  return fobs, j_prec.weights, j_trap.weights
+end
+
+function sol2rm(sol, label)
+    allT, allZ, allPZ, allE, allPA = extract(sol);
+    tVec, Zmatrix, PZmatrix, PAmatrix, Ematrix = postProcessor(allT, allZ, allPZ, allPA, allE);
+    return Resultant_Matrix(label, length(sol), tVec[end], allZ, allPZ, allT, allPA, allE,countLostParticles(allT, tVec[end]), tVec, Zmatrix, PZmatrix, Ematrix, PAmatrix)
 end

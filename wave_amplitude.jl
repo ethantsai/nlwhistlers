@@ -20,6 +20,19 @@ avg_wave_amp_mod = sum(wave_amp_modifier)/(2*length(wave_amp_modifier))
 
 
 
+omegam = [0.2, 0.3, 0.4]
+B_w = .3 # in nT
+
+
+
+# obtain equatorial B using dipole approx
+B0          = Beq*sqrt(1. +3. *sin(λ0)^2.)/L^3.;     # starting B field at eq
+Omegace0    = (1.6e-19*B0)/(9.11e-31);               # electron gyrofreq @ the equator
+η           = Omegace0*L*Re/c;              # should be like 10^3
+ε           = waveAmplitudeModifier/η;    # normalized wave large amplitude, .1 for small, 15 for large
+resolution  = .1/η;                       # determines max step size of the integrator
+
+
 
 
 
