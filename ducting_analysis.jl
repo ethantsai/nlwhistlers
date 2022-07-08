@@ -32,6 +32,32 @@ for case_index in eachindex(L_array)
 end
 
 
+function prec_to_trap_ratio(rm::Resultant_Matrix)
+    initial_E = [rm.allE[i][1] for i = 1:length(rm.allT)]
+    final_E = [rm.allE[i][end] for i = 1:length(rm.allT)]
+    initial_PA = [rm.allPA[i][1] for i = 1:length(rm.allT)]
+    final_PA = [rm.allPA[i][end] for i = 1:length(rm.allT)]
+    # E_prec = sort(Ematrix[1,findall(isnan,truncated_matrix[end,:])])
+    # E_trap = sort(Ematrix[1,findall(!isnan,truncated_Ematrix[end,:])])
+  
+    trap_range = findall(x->2*(lossConeAngle+0.002)>x>(lossConeAngle+0.002), final_PA)
+    loss_range = findall(x->x<(lossConeAngle+0.002), final_PA)
+    E_prec = sort(final_E[loss_range])
+    E_trap = sort(initial_E[trap_range])
+  
+    # PA_min = round(minimum(initial_PA))-1
+    # PA_max = round(maximum(initial_PA))+1
+    # final_PA_dist = fit(Histogram, (final_PA), PA_min:1:PA_max)
+    # # initial_PA_dist = fit(Histogram, round.(initial_PA), PA_min:1:PA_max)
+    # plot(PA_min:1:(PA_max-1), final_PA_dist.weights, label=false)
+  
+    j_prec = fit(Histogram, E_prec, logrange(ELo, EHi, Esteps+1))
+    j_trap = fit(Histogram, E_trap, logrange(ELo, EHi, Esteps+1))
+    f = j_prec.weights ./ j_trap.weights
+    return f, j_prec.weights, j_trap.weights
+  end
+
+
 ############
 scenario = 1
 ###########^
@@ -41,52 +67,30 @@ index_array = ( 3*(scenario-1) + 1 ) : ( 3*(scenario-1) + num_omega_m )
 if maximum(index_array) > length(L_array)*num_omega_m
     @error "There's only $(length(L_array)) scenarios; pick a valid ID"
 end
-[prec_to_trap_ratio(x) for x in rm_array
+results_array = [prec_to_trap_ratio(x) for x in rm_array]
+
+
+
+rm = rm_array[3]
+
+initial_E = [rm.allE[i][1] for i = 1:length(rm.allT)]
+final_E = [rm.allE[i][end] for i = 1:length(rm.allT)]
+initial_PA = [rm.allPA[i][1] for i = 1:length(rm.allT)]
+final_PA = [rm.allPA[i][end] for i = 1:length(rm.allT)]
+
+trap_range = findall(x->2*(lossConeAngle+0.002)>x>(lossConeAngle+0.002), final_PA)
+inclusion_range = findall(x->4.002<x<5.002, initial_PA)
+loss_range = findall(x->x<(lossConeAngle+0.002), final_PA)
+
+
+E_prec = sort(final_E[loss_range])
+E_trap = sort(final_E[trap_range])
+
+j_prec = fit(Histogram, E_prec, logrange(ELo, EHi, Esteps+1))
+j_trap = fit(Histogram, E_trap, logrange(ELo, EHi, Esteps+1))
+f = j_prec.weights ./ j_trap.weights
 
 
 
 
-#     @info "Extracting data..."
-#     @time allT, allZ, allPZ, allE, allPA = extract(sol);
-#     @time tVec, Zmatrix, PZmatrix, PAmatrix, Ematrix = postProcessor(allT, allZ, allPZ, allPA, allE);
 
-#     @info "Saving to $savename"
-#     @time event220112T0226_3 = Resultant_Matrix(test_cases[:,end][case_index], length(sol), tVec[end], allZ, allPZ, allT, allPA, allE,countLostParticles(allT, tVec[end]), tVec, Zmatrix, PZmatrix, Ematrix, PAmatrix);    
-    
-
-    
-
-
-
-
-# @time event220112T0226_3 = Resultant_Matrix("ducttest", length(sol), tVec[end], allZ, allPZ, allT, allPA, allE,countLostParticles(allT, tVec[end]), tVec, Zmatrix, PZmatrix, Ematrix, PAmatrix);
-# @save "220112T0226_3.jld2" event220112T0226_3
-
-
-# # at each energy range, fine j_precip/j_trapped
-# # obtain all lost particles and energy at which they're lost
-# # then obtain all trapped particles and their respective energies (where LC < PA < 2LC)
-
-# @time test = Resultant_Matrix("ducttest", length(sol), tVec[end], allZ, allPZ, allT, allPA, allE,countLostParticles(allT, tVec[end]), tVec, Zmatrix, PZmatrix, Ematrix, PAmatrix);
-
-
-# @time oneenergy = Resultant_Matrix("ducttest", length(sol), tVec[end], allZ, allPZ, allT, allPA, allE,countLostParticles(allT, tVec[end]), tVec, Zmatrix, PZmatrix, Ematrix, PAmatrix);
-# @save "oneenergy.jld2" oneenergy
-
-# @time oneenergyhr = Resultant_Matrix("ducttest", length(sol), tVec[end], allZ, allPZ, allT, allPA, allE,countLostParticles(allT, tVec[end]), tVec, Zmatrix, PZmatrix, Ematrix, PAmatrix);
-# @save "oneenergyhr.jld2" oneenergyhr
-
-# @load "220112T0226_2.jld2" event220112T0226_2
-# @load "220112T0226_3.jld2" event220112T0226_3
-# @load "220112T0226_4.jld2" event220112T0226_4
-
-
-
-
-# fobs2, j_prec2, j_trap2 = prec_to_trap_ratio(event220112T0226_2)
-# fobs3, j_prec3, j_trap3 = prec_to_trap_ratio(event220112T0226_3)
-# fobs4, j_prec4, j_trap4 = prec_to_trap_ratio(event220112T0226_4)
-
-# plot(E_bins, fobs2, xscale=:log10, label="omega_m=0.2")
-# plot!(E_bins, fobs3, xscale=:log10, label="omega_m=0.3")
-# plot!(E_bins, fobs4, xscale=:log10, label="omega_m=0.4")

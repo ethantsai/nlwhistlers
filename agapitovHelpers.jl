@@ -25,25 +25,25 @@ const folder = "run2/"
 
 # case specific
                    #L   MLT  Kp name
-const test_cases = [5.1 21.7 3  "ELA_ND_210105T1454"; # ELA ND 1/05 14:54
-                    7.1 8.4  2  "ELB_SA_210106T1154"; # ELB SA 1/06 11:54
-                    6.5 19.8 0  "ELB_ND_210108T0646"; # ELB ND 1/08 06:46
-                    4.8 19.0 3  "ELA_SD_210111T1750"; # ELA SD 1/11 17:50
-                    6   8.4  3  "ELA_NA_210112T0226"] # ELA NA 1/12 02:26
+const test_cases = [5.1 21.7 3  "ELA_ND_210105T1454"]; # ELA ND 1/05 14:54
+                    # 7.1 8.4  2  "ELB_SA_210106T1154"; # ELB SA 1/06 11:54
+                    # 6.5 19.8 0  "ELB_ND_210108T0646"; # ELB ND 1/08 06:46
+                    # 4.8 19.0 3  "ELA_SD_210111T1750"; # ELA SD 1/11 17:50
+                    # 6   8.4  3  "ELA_NA_210112T0226"] # ELA NA 1/12 02:26
 const omega_m_cases = [0.2, 0.3, 0.4] # these are the different frequencies to test
 L_array = test_cases[:,1]
 
-const numParticles = 544*30;
+const numParticles = 32*1200;
 const startTime = 0;
 const endTime = 4;
 tspan = (startTime, endTime); # integration time
 
 const ELo = 50;
-const EHi = 3000;
+const EHi = 2000;
 const Esteps = 32; # double ELFIN E bins
 const PALo = 4;
-const PAHi = 20;
-const PAsteps = 17;
+const PAHi = 15;
+const PAsteps = 1200;
 ICrange = [ELo, EHi, Esteps, PALo, PAHi, PAsteps];
 
 const z0 = 0; # start at eq
@@ -51,7 +51,7 @@ const λ0 = 0; # start at eq
 
 const lossConeAngle = 4;
 
-const Bw = 300;  # pT
+const Bw = 1000;  # pT
 const a = 3;     # exp(-a * (cos(Φ/dΦ)^2))
 const dPhi = 30; # exp(-a * (cos(Φ/dΦ)^2)) number of waves in each packet
 
@@ -59,7 +59,7 @@ const Re   = 6370e3;        # Earth radius, f64
 const c    = 3e8;           # speedo lite, f64
 const Beq  = 3.e-5;         # B field at equator (T), f64
 
-const saveDecimation = 10000;
+const saveDecimation = 100000; # really only need first and last point
 @info "Done."
 
 
@@ -144,7 +144,7 @@ function eom!(dH,H,p::SVector{8},t::Float64)
     # helper variables
     b = sqrt(1+3*sinλ^2)/(cosλ^6);
     db = (3*(27*sinλ-5*sin(3*H[5])))/(cosλ^8*(4+12*sinλ^2));
-    γ = sqrt(1 + H[2]^2 + abs(2*H[4]*b));
+    γ = sqrt(1 + H[2]^2 + 2*H[4]*b);
     K = copysign((p[3] * (cosλ^(-5/2)))/sqrt(b/p[4] - 1), H[5]);
 
     #     eta * epsilon * B_w_normalizer * u * sqrt (2 mu b) / gamma
@@ -165,7 +165,7 @@ function palostcondition(H,t,integrator)
     # condition: if particle enters loss cone
     b = sqrt(1+3*sin(H[5])^2)/(cos(H[5])^6);
     γ = sqrt(1 + H[2]^2 + 2*H[4]*b);
-    return (rad2deg(asin(sqrt( abs((2*H[4])/(γ^2 -1)) )))) < (lossConeAngle)
+    return (rad2deg(asin(sqrt( abs((2*H[4])/(γ^2 -1)) )))) < (lossConeAngle/2)
 end
 
 function ixlostcondition(H,t,integrator)
@@ -322,31 +322,6 @@ struct Resultant_Matrix
     PZmatrix::Matrix{Float64}
     Ematrix::Matrix{Float64}
     PAmatrix::Matrix{Float64}
-end
-
-function prec_to_trap_ratio(rm::Resultant_Matrix)
-  initial_E = [rm.allE[i][1] for i = 1:length(rm.allT)]
-  final_E = [rm.allE[i][end] for i = 1:length(rm.allT)]
-  initial_PA = [rm.allPA[i][1] for i = 1:length(rm.allT)]
-  final_PA = [rm.allPA[i][end] for i = 1:length(rm.allT)]
-  # E_prec = sort(Ematrix[1,findall(isnan,truncated_matrix[end,:])])
-  # E_trap = sort(Ematrix[1,findall(!isnan,truncated_Ematrix[end,:])])
-
-  trap_range = findall(x->4*(lossConeAngle+0.002)>x>(lossConeAngle+0.002), final_PA)
-  loss_range = findall(x->x<(lossConeAngle+0.002), final_PA)
-  E_prec = sort(final_E[loss_range])
-  E_trap = sort(initial_E[trap_range])
-
-  # PA_min = round(minimum(initial_PA))-1
-  # PA_max = round(maximum(initial_PA))+1
-  # final_PA_dist = fit(Histogram, (final_PA), PA_min:1:PA_max)
-  # # initial_PA_dist = fit(Histogram, round.(initial_PA), PA_min:1:PA_max)
-  # plot(PA_min:1:(PA_max-1), final_PA_dist.weights, label=false)
-
-  j_prec = fit(Histogram, E_prec, logrange(ELo, EHi, Esteps+1))
-  j_trap = fit(Histogram, E_trap, logrange(ELo, EHi, Esteps+1))
-  fobs = 3*j_prec.weights ./ j_trap.weights
-  return fobs, j_prec.weights, j_trap.weights
 end
 
 function sol2rm(sol, label)
