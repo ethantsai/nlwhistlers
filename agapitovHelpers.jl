@@ -25,11 +25,11 @@ const folder = "run2/"
 
 # case specific
                    #L   MLT  Kp name
-const test_cases = [5.1 21.7 3  "ELA_ND_210105T1454"]; # ELA ND 1/05 14:54
-                    # 7.1 8.4  2  "ELB_SA_210106T1154"; # ELB SA 1/06 11:54
-                    # 6.5 19.8 0  "ELB_ND_210108T0646"; # ELB ND 1/08 06:46
-                    # 4.8 19.0 3  "ELA_SD_210111T1750"; # ELA SD 1/11 17:50
-                    # 6   8.4  3  "ELA_NA_210112T0226"] # ELA NA 1/12 02:26
+const test_cases = [5.1 21.7 3  "ELA_ND_210105T1454"; # ELA ND 1/05 14:54
+                    7.1 8.4  3  "ELB_SA_210106T1154"; # ELB SA 1/06 11:54
+                    6.5 19.8 3  "ELB_ND_210108T0646"; # ELB ND 1/08 06:46
+                    4.8 19.0 3  "ELA_SD_210111T1750"; # ELA SD 1/11 17:50
+                    6   8.4  3  "ELA_NA_210112T0226"] # ELA NA 1/12 02:26
 const omega_m_cases = [0.2, 0.3, 0.4] # these are the different frequencies to test
 L_array = test_cases[:,1]
 
@@ -59,7 +59,7 @@ const Re   = 6370e3;        # Earth radius, f64
 const c    = 3e8;           # speedo lite, f64
 const Beq  = 3.e-5;         # B field at equator (T), f64
 
-const saveDecimation = 100000; # really only need first and last point
+const saveDecimation = 1000; # really only need first and last point
 @info "Done."
 
 
@@ -145,10 +145,12 @@ function eom!(dH,H,p::SVector{8},t::Float64)
     b = sqrt(1+3*sinλ^2)/(cosλ^6);
     db = (3*(27*sinλ-5*sin(3*H[5])))/(cosλ^8*(4+12*sinλ^2));
     γ = sqrt(1 + H[2]^2 + 2*H[4]*b);
-    K = copysign((p[3] * (cosλ^(-5/2)))/sqrt(b/p[4] - 1), H[5]);
+    K = copysign(1, H[5]) * (p[3] * (cosλ^(-5/2)))/sqrt(b/p[4] - 1);
+
+    Bw = p[8] * (10 ^ abs( p[7][1] * (abs(H[5]) - p[7][4]) * exp(-abs(H[5]) * p[7][3] - p[7][2]))) * tanh(rad2deg(H[5]))
 
     #     eta * epsilon * B_w_normalizer * u * sqrt (2 mu b) / gamma
-    psi = p[1] * p[2] * p[8] * (10 ^ abs( p[7][1] * (abs(H[5]) - p[7][4]) * exp(-abs(H[5]) * p[7][3] - p[7][2])) * tanh(H[5])) * sqrt(abs(2*H[4]*b))/γ;
+    psi = p[1] * p[2] * sqrt(2*H[4]*b)/γ;
 
     # actual integration vars
     dH1 = H[2]/γ;
@@ -165,7 +167,7 @@ function palostcondition(H,t,integrator)
     # condition: if particle enters loss cone
     b = sqrt(1+3*sin(H[5])^2)/(cos(H[5])^6);
     γ = sqrt(1 + H[2]^2 + 2*H[4]*b);
-    return (rad2deg(asin(sqrt( abs((2*H[4])/(γ^2 -1)) )))) < (lossConeAngle/2)
+    return (rad2deg(asin(sqrt( (2*H[4])/(γ^2 -1) )))) < (lossConeAngle/2)
 end
 
 function ixlostcondition(H,t,integrator)
