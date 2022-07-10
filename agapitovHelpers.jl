@@ -21,7 +21,7 @@ using StatsBase
 #######################
 @info "Loading constants..."
 const save_dir = "results_ducting/"
-const folder = "run2/"
+const folder = "run3/"
 
 # case specific
                    #L   MLT  Kp name
@@ -30,10 +30,10 @@ const test_cases = [5.1 21.7 3  "ELA_ND_210105T1454"; # ELA ND 1/05 14:54
                     6.5 19.8 3  "ELB_ND_210108T0646"; # ELB ND 1/08 06:46
                     4.8 19.0 3  "ELA_SD_210111T1750"; # ELA SD 1/11 17:50
                     6   8.4  3  "ELA_NA_210112T0226"] # ELA NA 1/12 02:26
-const omega_m_cases = [0.2, 0.3, 0.4] # these are the different frequencies to test
+const omega_m_cases = [0.3] # these are the different frequencies to test
 L_array = test_cases[:,1]
 
-const numParticles = 32*1200;
+const numParticles = 32*600;
 const startTime = 0;
 const endTime = 4;
 tspan = (startTime, endTime); # integration time
@@ -43,7 +43,7 @@ const EHi = 2000;
 const Esteps = 32; # double ELFIN E bins
 const PALo = 4;
 const PAHi = 15;
-const PAsteps = 1200;
+const PAsteps = 600;
 ICrange = [ELo, EHi, Esteps, PALo, PAHi, PAsteps];
 
 const z0 = 0; # start at eq
@@ -59,7 +59,7 @@ const Re   = 6370e3;        # Earth radius, f64
 const c    = 3e8;           # speedo lite, f64
 const Beq  = 3.e-5;         # B field at equator (T), f64
 
-const saveDecimation = 1000; # really only need first and last point
+const saveDecimation = 10000; # really only need first and last point
 @info "Done."
 
 
@@ -86,8 +86,8 @@ function generateFlatParticleDistribution(numParticles::Int64, ICrange, L)
     
     @views f0 = [[(E+511.)/511. deg2rad(PA)] for PA in PA_bins for E in E_bins for i in 1:N] # creates a 2xN array with initial PA and Energy
 
-    #####       [[z0 pz0                          ζ0               mu0                          λ0 Φ0              ]             ]
-    @views h0 = [[z0 sqrt(IC[1]^2 - 1)*cos(IC[2]) rand()*2*pi*dPhi .5*(IC[1]^2-1)*sin(IC[2])^2  λ0 rand()*2*pi*dPhi] for IC in f0] # creates a 5xN array with inital h0 terms
+    #####       [[z0 pz0                          ζ0               mu0                          λ0 Φ0               B_w0 ]             ]
+    @views h0 = [[z0 sqrt(IC[1]^2 - 1)*cos(IC[2]) rand()*2*pi*dPhi .5*(IC[1]^2-1)*sin(IC[2])^2  λ0 rand()*2*pi*dPhi 0    ] for IC in f0] # creates a 5xN array with inital h0 terms
     f0 = vcat(f0...) # convert Array{Array{Float64,2},1} to Array{Float64,2}
     h0 = vcat(h0...) # since i used list comprehension it is now a nested list
 
@@ -130,7 +130,7 @@ end
 
 function eom!(dH,H,p::SVector{8},t::Float64)
     # These equations define the motion.
-
+    #                  lambda in radians                     
     # z, pz, zeta, mu, lambda, phi = H
     # p[1] p[2]     p[3]     p[4]    p[5] p[6]  p[7] p[8]
     # eta, epsilon, Omegape, omegam, a,   dPhi, B_w, B_w_normalizer = p
@@ -147,10 +147,11 @@ function eom!(dH,H,p::SVector{8},t::Float64)
     γ = sqrt(1 + H[2]^2 + 2*H[4]*b);
     K = copysign(1, H[5]) * (p[3] * (cosλ^(-5/2)))/sqrt(b/p[4] - 1);
 
-    Bw = p[8] * (10 ^ abs( p[7][1] * (abs(H[5]) - p[7][4]) * exp(-abs(H[5]) * p[7][3] - p[7][2]))) * tanh(rad2deg(H[5]))
+    # B_w
+    H[7] = p[8] * (10 ^ abs( p[7][1] * (abs(rad2deg(H[5])) - p[7][4]) * exp(-abs(rad2deg(H[5])) * p[7][3] - p[7][2]))) * tanh(rad2deg(H[5]))
 
-    #     eta * epsilon * B_w_normalizer * u * sqrt (2 mu b) / gamma
-    psi = p[1] * p[2] * sqrt(2*H[4]*b)/γ;
+    #     eta  * epsilon * B_w  * sqrt(2 mu   b)/gamma
+    psi = p[1] * p[2]    * H[7] * sqrt(2*H[4]*b)/γ;
 
     # actual integration vars
     dH1 = H[2]/γ;
@@ -160,7 +161,8 @@ function eom!(dH,H,p::SVector{8},t::Float64)
     dH5 = H[2]/(γ*cosλ*sqrt(1+3*sinλ^2));
     dH6 = p[1]*(K*dH1 - p[4]);
 
-    dH .= SizedVector{6}([ dH1, dH2, dH3, dH4, dH5, dH6 ]);
+    dH .= SizedVector{7}([ dH1, dH2, dH3, dH4, dH5, dH6, 0 ]);
+    
 end
 
 function palostcondition(H,t,integrator)

@@ -2,16 +2,13 @@ include("agapitovHelpers.jl")
 include("agapitovmodel.jl")
 
 
-
-
-
 # plot all wave models
 wave_model_array, wave_model_normalizer_array, wave_model_coeff_array = setup_wave_model(test_cases)
 for i in eachindex(wave_model_array)
     if isone(i)
-        plot(0:.01:90, wave_model_normalizer_array[i].*wave_model_array[i].(0:.01:90), label = test_cases[:,end][i])
+        plot(0:.01:90,tanh.(0:.01:90)*wave_model_normalizer_array[i].*wave_model_array[i].(0:.01:90), label = test_cases[:,end][i])
     else
-        plot!(0:.01:90, wave_model_normalizer_array[i].*wave_model_array[i].(0:.01:90), label = test_cases[:,end][i])
+        plot!(0:.01:90,tanh.(0:.01:90)*wave_model_normalizer_array[i].*wave_model_array[i].(0:.01:90), label = test_cases[:,end][i])
     end
 end
 
@@ -55,7 +52,7 @@ function prec_to_trap_ratio(rm::Resultant_Matrix)
     j_trap = fit(Histogram, E_trap, logrange(ELo, EHi, Esteps+1))
     f = j_prec.weights ./ j_trap.weights
     return f, j_prec.weights, j_trap.weights
-  end
+end
 
 
 ############
@@ -79,8 +76,11 @@ initial_PA = [rm.allPA[i][1] for i = 1:length(rm.allT)]
 final_PA = [rm.allPA[i][end] for i = 1:length(rm.allT)]
 
 trap_range = findall(x->2*(lossConeAngle+0.002)>x>(lossConeAngle+0.002), final_PA)
-inclusion_range = findall(x->4.002<x<5.002, initial_PA)
+PA_inclusion_range = findall(x->(5<=x<=10), initial_PA)
+E_inclusion_range = findall(x->200<x<210, initial_E)
 loss_range = findall(x->x<(lossConeAngle+0.002), final_PA)
+
+x_range = intersect(PA_inclusion_range, E_inclusion_range)
 
 
 E_prec = sort(final_E[loss_range])
@@ -92,5 +92,33 @@ f = j_prec.weights ./ j_trap.weights
 
 
 
+
+
+plot(E_bins, 1e-10.+results_array[1][1], label="omega_m = 0.2", xscale=:log10, yscale=:log10)
+plot!(E_bins, 1e-10.+results_array[2][1], label="omega_m = 0.3")
+plot!(E_bins, 1e-10.+results_array[3][1], label="omega_m = 0.4", ylim=(1e-3, 1))
+
+
+
+
+
+
+
+
+
+@load "results_ducting/run2/ELA_ND_210105T1454_4_38400.jld2" sol
+
+allT = Vector{Vector{Float64}}();
+allBw = Vector{Vector{Float64}}();
+allLambda = Vector{Vector{Float64}}();
+for traj in sol
+
+    vars = Array(traj');
+    timesteps = length(traj.t);
+    
+    @views push!(allT, traj.t);
+    @views push!(allLambda, rad2deg.(vars[:,5]));
+    @views push!(allBw, wave_model_normalizer_array[1]*wave_model_array[1].(rad2deg.(vars[:,5])))
+end
 
 
