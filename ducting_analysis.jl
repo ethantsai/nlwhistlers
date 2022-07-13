@@ -4,14 +4,18 @@ include("agapitovmodel.jl")
 
 # plot all wave models
 wave_model_array, wave_model_normalizer_array, wave_model_coeff_array = setup_wave_model(test_cases)
-for i in eachindex(wave_model_array)
-    if isone(i)
-        plot(0:.01:90,tanh.(0:.01:90)*wave_model_normalizer_array[i].*wave_model_array[i].(0:.01:90), label = test_cases[:,end][i])
-    else
-        plot!(0:.01:90,tanh.(0:.01:90)*wave_model_normalizer_array[i].*wave_model_array[i].(0:.01:90), label = test_cases[:,end][i])
-    end
-end
+i=1
+plot1 = plot(0:.01:90,tanh.(0:.01:90)*wave_model_normalizer_array[i].*wave_model_array[i].(0:.01:90), label = test_cases[:,end][i], linewidth=2)
+i=2
+plot!(0:.01:90,tanh.(0:.01:90)*wave_model_normalizer_array[i].*wave_model_array[i].(0:.01:90), label = test_cases[:,end][i], linewidth=2)
+i=3
+plot!(0:.01:90,tanh.(0:.01:90)*wave_model_normalizer_array[i].*wave_model_array[i].(0:.01:90), label = test_cases[:,end][i], linewidth=2, linestyle=:dashdot)
+i=4
+plot!(0:.01:90,tanh.(0:.01:90)*wave_model_normalizer_array[i].*wave_model_array[i].(0:.01:90), label = test_cases[:,end][i], linewidth=2)
+i=5
+plot!(0:.01:90,tanh.(0:.01:90)*wave_model_normalizer_array[i].*wave_model_array[i].(0:.01:90), label = test_cases[:,end][i], linewidth=2, linestyle=:dash)
 
+savefig(plot1, "images/wave_models.png")
 
 
 
@@ -37,10 +41,12 @@ function prec_to_trap_ratio(rm::Resultant_Matrix)
     # E_prec = sort(Ematrix[1,findall(isnan,truncated_matrix[end,:])])
     # E_trap = sort(Ematrix[1,findall(!isnan,truncated_Ematrix[end,:])])
   
-    trap_range = findall(x->2*(lossConeAngle+0.002)>x>(lossConeAngle+0.002), final_PA)
+    multiplier = 3
+
+    trap_range = findall(x->multiplier*(lossConeAngle+0.002)>x>(lossConeAngle+0.002), final_PA)
     loss_range = findall(x->x<(lossConeAngle+0.002), final_PA)
     E_prec = sort(final_E[loss_range])
-    E_trap = sort(initial_E[trap_range])
+    E_trap = sort(final_E[trap_range])
   
     # PA_min = round(minimum(initial_PA))-1
     # PA_max = round(maximum(initial_PA))+1
@@ -48,10 +54,17 @@ function prec_to_trap_ratio(rm::Resultant_Matrix)
     # # initial_PA_dist = fit(Histogram, round.(initial_PA), PA_min:1:PA_max)
     # plot(PA_min:1:(PA_max-1), final_PA_dist.weights, label=false)
   
-    j_prec = fit(Histogram, E_prec, logrange(ELo, EHi, Esteps+1))
-    j_trap = fit(Histogram, E_trap, logrange(ELo, EHi, Esteps+1))
-    f = j_prec.weights ./ j_trap.weights
-    return f, j_prec.weights, j_trap.weights
+    j_prec = fit(Histogram, E_prec, logrange(ELo, EHi, Esteps+1)).weights
+    j_trap = fit(Histogram, E_trap, logrange(ELo, EHi, Esteps+1)).weights
+
+    f = Vector{Union{Float64,Missing}}(undef, length(j_trap))
+    for i in eachindex(j_trap)
+        if !iszero(j_prec)
+            f[i] = (multiplier-1)*j_prec[i] ./ j_trap[i]
+        end
+    end
+
+    return f, j_prec, j_trap
 end
 
 
@@ -60,12 +73,24 @@ scenario = 1
 ###########^
 num_omega_m = length(omega_m_cases)
 
-index_array = ( 3*(scenario-1) + 1 ) : ( 3*(scenario-1) + num_omega_m )
-if maximum(index_array) > length(L_array)*num_omega_m
+index_array = 1:3 #( 3*(scenario-1) + 1 ) : ( 3*(scenario-1) + num_omega_m )
+if maximum(index_array) > length(L_array)*length(index_array)
     @error "There's only $(length(L_array)) scenarios; pick a valid ID"
 end
 results_array = [prec_to_trap_ratio(x) for x in rm_array]
 
+
+normalizer = 1/results_array[2][1][7] # normalize to dayside precip @ 100 keV to 100%
+i = 1
+plot2 = plot(E_bins, normalizer*results_array[i][1], label=rm_array[i].label, xscale=:log10, yscale=:log10, xlim=(100,2000), ylim=(1e-2, 1))
+i = 2
+plot!(E_bins, normalizer*results_array[i][1], label=rm_array[i].label, xscale=:log10, yscale=:log10, xlim=(100,2000), ylim=(1e-2, 1))
+i = 3
+plot!(E_bins, normalizer*results_array[i][1], label=rm_array[i].label, xscale=:log10, yscale=:log10, xlim=(100,2000), ylim=(1e-2, 1))
+i = 4
+plot!(E_bins, normalizer*results_array[i][1], label=rm_array[i].label, xscale=:log10, yscale=:log10, xlim=(100,2000), ylim=(1e-2, 1))
+
+savefig(plot2, "images/ratios.png")
 
 
 rm = rm_array[3]
