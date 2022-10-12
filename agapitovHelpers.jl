@@ -21,7 +21,7 @@ using StatsBase
 #######################
 @info "Loading constants..."
 const save_dir = "results_ducting/"
-const folder = "run3/"
+const folder = "run5/"
 
 # case specific
                    #L   MLT  Kp name
@@ -33,7 +33,7 @@ const test_cases = [5.1 21.7 3  "ELA_ND_210105T1454"; # ELA ND 1/05 14:54
 const omega_m_cases = [0.3] # these are the different frequencies to test
 L_array = test_cases[:,1]
 
-const numParticles = 32*600;
+const numParticles = 32*1200;
 const startTime = 0;
 const endTime = 4;
 tspan = (startTime, endTime); # integration time
@@ -43,7 +43,7 @@ const EHi = 2000;
 const Esteps = 32; # double ELFIN E bins
 const PALo = 4;
 const PAHi = 15;
-const PAsteps = 600;
+const PAsteps = 1200;
 ICrange = [ELo, EHi, Esteps, PALo, PAHi, PAsteps];
 
 const z0 = 0; # start at eq
@@ -61,6 +61,7 @@ const Beq  = 3.e-5;         # B field at equator (T), f64
 
 const saveDecimation = 10000; # really only need first and last point
 @info "Done."
+
 
 
 function generateFlatParticleDistribution(numParticles::Int64, ICrange, L)
@@ -113,6 +114,59 @@ function generateFlatParticleDistribution(numParticles::Int64, ICrange, L)
     return h0, f0, η, ε, Omegape, resolution;
 end
 
+function generateSkewedParticleDistribution(numParticles::Int64, ICrange, L)
+    ELo, EHi, Esteps, PALo, PAHi, PAsteps = ICrange
+    
+
+    @info "Generating a flat particle distribution with"
+    @info "$Esteps steps of energy from $ELo KeV to $EHi KeV"
+    @info "$PAsteps steps of pitch angles from $PALo deg to $PAHi deg"
+
+    nBins = PAsteps*Esteps
+    N = numParticles ÷ nBins # num of particles per bin
+    E_bins = logrange(ELo,EHi, Int64(Esteps))
+    PA_bins = range(PALo, PAHi, length = Int64(PAsteps))
+    @info "Flat distribution with $N particles/bin in $nBins bins"
+
+    if numParticles%nBins != 0
+        @warn "Truncating $(numParticles%nBins) particles for an even distribution"
+    end
+    if iszero(N)
+        N = 1;
+        @warn "Use higher number of particles next time. Simulating 1 trajectory/bin."
+        @warn "Minimum number of particles to simulate is 1 particles/bin."
+    end
+    
+    @views f0 = [[(E+511.)/511. deg2rad(PA)] for PA in PA_bins for E in E_bins for i in 1:N] # creates a 2xN array with initial PA and Energy
+
+    #####       [[z0 pz0                          ζ0               mu0                          λ0 Φ0               B_w0 ]             ]
+    @views h0 = [[z0 sqrt(IC[1]^2 - 1)*cos(IC[2]) rand()*2*pi*dPhi .5*(IC[1]^2-1)*sin(IC[2])^2  λ0 rand()*2*pi*dPhi 0    ] for IC in f0] # creates a 5xN array with inital h0 terms
+    f0 = vcat(f0...) # convert Array{Array{Float64,2},1} to Array{Float64,2}
+    h0 = vcat(h0...) # since i used list comprehension it is now a nested list
+
+    # Other ICs that are important
+    # Define basic ICs and parameters
+    B0          = Beq*sqrt(1. +3. *sin(λ0)^2.)/L^3.;     # starting B field at eq
+    # B0          = B_eq_measured*1e-9                        # measured equatorial field strength
+    Omegace0    = (1.6e-19*B0)/(9.11e-31);                    # electron gyrofreq @ the equator
+    Omegape     = L;
+    @info "Omegape = $Omegape"
+    ε           = (Bw*1e-12)/B0;                      # Bw = 300 pT
+    η           = Omegace0*L*Re/c;              # should be like 10^3
+    @info "L shell of $L w/ wave amplitude of $Bw pT"
+    @info "Yields ε = $ε and η = $η"
+
+    resolution  = (1/η) / 20;  # determines max step size of the integrator
+    # due to issues accuracy issues around sqrt(mu)~0, experimentally 
+    # found that 20x smaller is sufficient to yield stable results
+                                                    
+    @info "Min integration step of $resolution"
+    @info "Created Initial Conditions for $(length(h0[:,1])) particles"
+    
+    return h0, f0, η, ε, Omegape, resolution;
+end
+
+
 function setup_wave_model(test_cases)
     # take L, MLT, and Kp from test cases
     # return array of functions, normalizers, and coefficients
@@ -124,8 +178,9 @@ function setup_wave_model(test_cases)
         push!(wave_model_array, wave_model)
         push!(wave_model_normalizer_array, obtain_normalizer(wave_model))
         push!(wave_model_coeff_array, agapitov_coeffs(case[3], α_ij_matrix(case[1], case[2]))  )
-    end  
-    return wave_model_array, wave_model_normalizer_array, wave_model_coeff_array
+    end 
+    wave_normalizer = minimum(wave_model_normalizer_array)
+    return wave_model_array, wave_model_coeff_array, wave_normalizer
 end
 
 function eom!(dH,H,p::SVector{8},t::Float64)
