@@ -5,18 +5,18 @@ include("agapitovmodel.jl")
 
 # plot all wave models
 wave_model_array, wave_model_coeff_array, wave_normalizer = setup_wave_model(test_cases)
-i=1
-plot1 = plot(0:.01:90,tanh.(0:.01:90)*wave_normalizer.*wave_model_array[i].(0:.01:90), label = test_cases[:,end][i], linewidth=2)
-i=2
-plot!(0:.01:90,tanh.(0:.01:90)*wave_normalizer.*wave_model_array[i].(0:.01:90), label = test_cases[:,end][i], linewidth=2)
-i=3
-plot!(0:.01:90,tanh.(0:.01:90)*wave_normalizer.*wave_model_array[i].(0:.01:90), label = test_cases[:,end][i], linewidth=2, linestyle=:dashdot)
-i=4
-plot!(0:.01:90,tanh.(0:.01:90)*wave_normalizer.*wave_model_array[i].(0:.01:90), label = test_cases[:,end][i], linewidth=2)
-i=5
-plot!(0:.01:90,tanh.(0:.01:90)*wave_normalizer.*wave_model_array[i].(0:.01:90), label = test_cases[:,end][i], linewidth=2, linestyle=:dash)
+# i=1
+# plot1 = plot(0:.01:90,tanh.(0:.01:90)*wave_normalizer.*wave_model_array[i].(0:.01:90), label = test_cases[:,end][i], linewidth=2)
+# i=2
+# plot!(0:.01:90,tanh.(0:.01:90)*wave_normalizer.*wave_model_array[i].(0:.01:90), label = test_cases[:,end][i], linewidth=2)
+# i=3
+# plot!(0:.01:90,tanh.(0:.01:90)*wave_normalizer.*wave_model_array[i].(0:.01:90), label = test_cases[:,end][i], linewidth=2, linestyle=:dashdot)
+# i=4
+# plot!(0:.01:90,tanh.(0:.01:90)*wave_normalizer.*wave_model_array[i].(0:.01:90), label = test_cases[:,end][i], linewidth=2)
+# i=5
+# plot!(0:.01:90,tanh.(0:.01:90)*wave_normalizer.*wave_model_array[i].(0:.01:90), label = test_cases[:,end][i], linewidth=2, linestyle=:dash)
 
-savefig(plot1, "images/wave_models.png")
+# savefig(plot1, "images/wave_models.png")
 
 
 
@@ -93,8 +93,12 @@ plot!(E_bins, normalizer*results_array[i][1], label=rm_array[i].label, xscale=:l
 i = 5
 plot!(E_bins, normalizer*results_array[i][1], label=rm_array[i].label, xscale=:log10, yscale=:log10, xlim=(100,2000), ylim=(1e-2, 1))
 
+i = 2
+plot2 = plot(E_bins, normalizer*results_array[i][1], label=rm_array[i].label*"_n=38400", xscale=:log10, yscale=:log10, xlim=(100,2000), ylim=(1e-2, 1))
+plot!(E_bins, normalizer*hires_event1, label=rm_array[1].label*"_n=115200", xscale=:log10, yscale=:log10, xlim=(100,2000), ylim=(1e-2, 1))
 
-savefig(plot2, "images/ratios.png")
+
+savefig(plot2, "images/somechanges.png")
 
 
 rm = rm_array[5]

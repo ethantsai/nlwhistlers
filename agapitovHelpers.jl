@@ -20,22 +20,29 @@ using StatsBase
 ## Constants n stuff ##
 #######################
 @info "Loading constants..."
-const save_dir = "results_ducting/"
-const folder = "run5/"
+save_dir = "results_ducting/"
+folder = "run10/"
 
 # case specific
                    #L   MLT  Kp name
-const test_cases = [5.1 21.7 3  "ELA_ND_210105T1454"; # ELA ND 1/05 14:54
-                    7.1 8.4  3  "ELB_SA_210106T1154"; # ELB SA 1/06 11:54
-                    6.5 19.8 3  "ELB_ND_210108T0646"; # ELB ND 1/08 06:46
-                    4.8 19.0 3  "ELA_SD_210111T1750"; # ELA SD 1/11 17:50
-                    6   8.4  3  "ELA_NA_210112T0226"] # ELA NA 1/12 02:26
-const omega_m_cases = [0.3] # these are the different frequencies to test
+# test_cases = [5.1 21.7 3  "ELA_ND_210105T1454"; # ELA ND 1/05 14:54
+#                     7.1 8.4  3  "ELB_SA_210106T1154"; # ELB SA 1/06 11:54
+#                     6.5 19.8 3  "ELB_ND_210108T0646"; # ELB ND 1/08 06:46
+#                     4.8 19.0 3  "ELA_SD_210111T1750"; # ELA SD 1/11 17:50
+#                     6   8.4  3  "ELA_NA_210112T0226"] # ELA NA 1/12 02:26
+
+test_cases = [6   8.4  3  "ELA_NA_210112T0226_20"]; # ELA NA 1/12 02:26, waves go to 20
+#                     7.1 8.4  3  "ELB_SA_210106T1154_40"] # ELB SA 1/06 11:54, waves go to 40
+
+# test_cases = [5 22  3  "L5";
+#               6 22  3  "L6"]
+
+omega_m_cases = [0.3] # these are the different frequencies to test
 L_array = test_cases[:,1]
 
-const numParticles = 32*1200;
+const numParticles = 32*1200*5;
 const startTime = 0;
-const endTime = 4;
+const endTime = 10;
 tspan = (startTime, endTime); # integration time
 
 const ELo = 50;
@@ -53,7 +60,7 @@ const lossConeAngle = 4;
 
 const Bw = 1000;  # pT
 const a = 3;     # exp(-a * (cos(Φ/dΦ)^2))
-const dPhi = 30; # exp(-a * (cos(Φ/dΦ)^2)) number of waves in each packet
+const dPhi = 300; # exp(-a * (cos(Φ/dΦ)^2)) number of waves in each packet
 
 const Re   = 6370e3;        # Earth radius, f64
 const c    = 3e8;           # speedo lite, f64
@@ -106,7 +113,7 @@ function generateFlatParticleDistribution(numParticles::Int64, ICrange, L)
 
     resolution  = (1/η) / 20;  # determines max step size of the integrator
     # due to issues accuracy issues around sqrt(mu)~0, experimentally 
-    # found that 20x smaller is sufficient to yield stable results
+    # found that 30x smaller is sufficient to yield stable results
                                                     
     @info "Min integration step of $resolution"
     @info "Created Initial Conditions for $(length(h0[:,1])) particles"
@@ -193,8 +200,8 @@ function eom!(dH,H,p::SVector{8},t::Float64)
     sinλ = sin(H[5]);
     cosλ = cos(H[5]);
     g = exp(-p[5] * (cos(H[6]/(2*π*p[6]))^2)) +  exp(-p[5] * (sin(H[6]/(2*π*p[6]))^2))  
-    sinζ = g*sin(H[3]);
-    cosζ = g*cos(H[3]);
+    sinζ = sin(H[3])*g;
+    cosζ = cos(H[3])*g;
     
     # helper variables
     b = sqrt(1+3*sinλ^2)/(cosλ^6);
@@ -203,8 +210,16 @@ function eom!(dH,H,p::SVector{8},t::Float64)
     K = copysign(1, H[5]) * (p[3] * (cosλ^(-5/2)))/sqrt(b/p[4] - 1);
 
     # B_w
-    H[7] = p[8] * (10 ^ abs( p[7][1] * (abs(rad2deg(H[5])) - p[7][4]) * exp(-abs(rad2deg(H[5])) * p[7][3] - p[7][2]))) * tanh(rad2deg(H[5]))
-
+    # H[7] = p[8] * (10 ^ abs( p[7][1] * (abs(rad2deg(H[5])) - p[7][4]) * exp(-abs(rad2deg(H[5])) * p[7][3] - p[7][2]))) * tanh(rad2deg(H[5]))
+    
+    if H[5]>deg2rad(20)
+        H[7] = 0
+    else
+        H[7] = tanh((H[5]/deg2rad(1)))
+    end
+                           # 1 when >20 deg, 0 when <20 deg
+                           
+     
     #     eta  * epsilon * B_w  * sqrt(2 mu   b)/gamma
     psi = p[1] * p[2]    * H[7] * sqrt(2*H[4]*b)/γ;
 
@@ -270,6 +285,8 @@ function extract(sol::EnsembleSolution)
     allE = Vector{Vector{Float64}}();
     allPA = Vector{Vector{Float64}}();
     allT = Vector{Vector{Float64}}();
+    allLambda = Vector{Vector{Float64}}();
+    allBw = Vector{Vector{Float64}}();
     for traj in sol
     # for i in eachindex(sol)
     #     traj = sol[i];
@@ -290,6 +307,8 @@ function extract(sol::EnsembleSolution)
             @views push!(allPZ, vars[:,2]);
             @views push!(allPA, Alpha);
             @views push!(allE, @. (511*(gamma - 1)));
+            @views push!(allLambda, vars[:,5]);
+            @views push!(allBw, vars[:,7]);
         catch
             last_positive_index = minimum(findall(x->x<=0,vars[:,4])) -1 
             @info "Caught negative mu"
@@ -308,11 +327,13 @@ function extract(sol::EnsembleSolution)
             @views push!(allPZ, vars[1:last_positive_index,2]);
             @views push!(allPA, Alpha);
             @views push!(allE, @. (511*(gamma - 1)));
+            @views push!(allLambda, vars[:,5]);
+            @views push!(allBw, vars[:,7]);
         end
 
     end
     @info "$(length(sol)) particles loaded in..."
-    return allT, allZ, allPZ, allE, allPA;
+    return allT, allZ, allPZ, allE, allPA, allLambda, allBw;
 end
 
 function postProcessor(allT::Vector{Vector{Float64}}, allZ::Vector{Vector{Float64}}, allPZ::Vector{Vector{Float64}}, allE::Vector{Vector{Float64}}, allPA::Vector{Vector{Float64}})
@@ -375,6 +396,8 @@ struct Resultant_Matrix
     allT::Vector{Vector{Float64}}
     allPA::Vector{Vector{Float64}}
     allE::Vector{Vector{Float64}}
+    allLambda::Vector{Vector{Float64}}
+    allBw::Vector{Vector{Float64}}
     lostParticles::Matrix{Float64}
     tVec::Vector{Float64}
     Zmatrix::Matrix{Float64}
@@ -384,7 +407,7 @@ struct Resultant_Matrix
 end
 
 function sol2rm(sol, label)
-    allT, allZ, allPZ, allE, allPA = extract(sol);
+    allT, allZ, allPZ, allE, allPA, allLambda, allBw = extract(sol);
     tVec, Zmatrix, PZmatrix, PAmatrix, Ematrix = postProcessor(allT, allZ, allPZ, allPA, allE);
-    return Resultant_Matrix(label, length(sol), tVec[end], allZ, allPZ, allT, allPA, allE,countLostParticles(allT, tVec[end]), tVec, Zmatrix, PZmatrix, Ematrix, PAmatrix)
+    return Resultant_Matrix(label, length(sol), tVec[end], allZ, allPZ, allT, allPA, allE, allLambda, allBw, countLostParticles(allT, tVec[end]), tVec, Zmatrix, PZmatrix, Ematrix, PAmatrix)
 end
