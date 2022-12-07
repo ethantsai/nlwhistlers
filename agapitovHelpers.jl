@@ -21,36 +21,35 @@ using StatsBase
 #######################
 @info "Loading constants..."
 save_dir = "results_ducting/"
-folder = "run10/"
+folder = "run13/"
 
 # case specific
                    #L   MLT  Kp name
 # test_cases = [5.1 21.7 3  "ELA_ND_210105T1454"; # ELA ND 1/05 14:54
-#                     7.1 8.4  3  "ELB_SA_210106T1154"; # ELB SA 1/06 11:54
-#                     6.5 19.8 3  "ELB_ND_210108T0646"; # ELB ND 1/08 06:46
-#                     4.8 19.0 3  "ELA_SD_210111T1750"; # ELA SD 1/11 17:50
-#                     6   8.4  3  "ELA_NA_210112T0226"] # ELA NA 1/12 02:26
+            #   7.1 8.4  3  "ELB_SA_210106T1154"]; # ELB SA 1/06 11:54
+            #   6.5 19.8 3  "ELB_ND_210108T0646"; # ELB ND 1/08 06:46
+            #   4.8 19.0 3  "ELA_SD_210111T1750"; # ELA SD 1/11 17:50
+            #   6   8.4  3  "ELA_NA_210112T0226"] # ELA NA 1/12 02:26
 
-test_cases = [6   8.4  3  "ELA_NA_210112T0226_20"]; # ELA NA 1/12 02:26, waves go to 20
+# test_cases = [6   8.4  3  "ELA_NA_210112T0226_20"]; # ELA NA 1/12 02:26, waves go to 20
 #                     7.1 8.4  3  "ELB_SA_210106T1154_40"] # ELB SA 1/06 11:54, waves go to 40
 
-# test_cases = [5 22  3  "L5";
-#               6 22  3  "L6"]
+test_cases = [6 22  3  "L6_hr"]
 
-omega_m_cases = [0.3] # these are the different frequencies to test
+omega_m_cases = [0.2] # these are the different frequencies to test
 L_array = test_cases[:,1]
 
-const numParticles = 32*1200*5;
+const numParticles = 2*2800;
 const startTime = 0;
-const endTime = 10;
+const endTime = 20;
 tspan = (startTime, endTime); # integration time
 
-const ELo = 50;
-const EHi = 2000;
-const Esteps = 32; # double ELFIN E bins
-const PALo = 4;
-const PAHi = 15;
-const PAsteps = 1200;
+const ELo = 63;
+const EHi = 63;
+const Esteps = 1; 
+const PALo = 3;
+const PAHi = 30;
+const PAsteps = 2800;
 ICrange = [ELo, EHi, Esteps, PALo, PAHi, PAsteps];
 
 const z0 = 0; # start at eq
@@ -94,8 +93,10 @@ function generateFlatParticleDistribution(numParticles::Int64, ICrange, L)
     
     @views f0 = [[(E+511.)/511. deg2rad(PA)] for PA in PA_bins for E in E_bins for i in 1:N] # creates a 2xN array with initial PA and Energy
 
-    #####       [[z0 pz0                          ζ0               mu0                          λ0 Φ0               B_w0 ]             ]
-    @views h0 = [[z0 sqrt(IC[1]^2 - 1)*cos(IC[2]) rand()*2*pi*dPhi .5*(IC[1]^2-1)*sin(IC[2])^2  λ0 rand()*2*pi*dPhi 0    ] for IC in f0] # creates a 5xN array with inital h0 terms
+    # mu0 = .5*(IC[1]^2-1)*sin(IC[2])^2
+    # q0 = sqrt(2*mu0) = sqrt((IC[1]^2-1)*sin(IC[2])^2)
+    #####       [[z0 pz0                          ζ0               q0                              λ0 Φ0               B_w0 ]             ]
+    @views h0 = [[z0 sqrt(IC[1]^2 - 1)*cos(IC[2]) rand()*2*pi*dPhi sqrt((IC[1]^2-1)*sin(IC[2])^2)  λ0 rand()*2*pi*dPhi 0    ] for IC in f0] # creates a 5xN array with inital h0 terms
     f0 = vcat(f0...) # convert Array{Array{Float64,2},1} to Array{Float64,2}
     h0 = vcat(h0...) # since i used list comprehension it is now a nested list
 
@@ -146,8 +147,8 @@ function generateSkewedParticleDistribution(numParticles::Int64, ICrange, L)
     
     @views f0 = [[(E+511.)/511. deg2rad(PA)] for PA in PA_bins for E in E_bins for i in 1:N] # creates a 2xN array with initial PA and Energy
 
-    #####       [[z0 pz0                          ζ0               mu0                          λ0 Φ0               B_w0 ]             ]
-    @views h0 = [[z0 sqrt(IC[1]^2 - 1)*cos(IC[2]) rand()*2*pi*dPhi .5*(IC[1]^2-1)*sin(IC[2])^2  λ0 rand()*2*pi*dPhi 0    ] for IC in f0] # creates a 5xN array with inital h0 terms
+    #####       [[z0 pz0                          ζ0               q0                              λ0 Φ0               B_w0 ]             ]
+    @views h0 = [[z0 sqrt(IC[1]^2 - 1)*cos(IC[2]) rand()*2*pi*dPhi sqrt((IC[1]^2-1)*sin(IC[2])^2)  λ0 rand()*2*pi*dPhi 0    ] for IC in f0] # creates a 5xN array with inital h0 terms
     f0 = vcat(f0...) # convert Array{Array{Float64,2},1} to Array{Float64,2}
     h0 = vcat(h0...) # since i used list comprehension it is now a nested list
 
@@ -206,7 +207,7 @@ function eom!(dH,H,p::SVector{8},t::Float64)
     # helper variables
     b = sqrt(1+3*sinλ^2)/(cosλ^6);
     db = (3*(27*sinλ-5*sin(3*H[5])))/(cosλ^8*(4+12*sinλ^2));
-    γ = sqrt(1 + H[2]^2 + 2*H[4]*b);
+    γ = sqrt(1 + H[2]^2 + H[4]^2*b);
     K = copysign(1, H[5]) * (p[3] * (cosλ^(-5/2)))/sqrt(b/p[4] - 1);
 
     # B_w
@@ -219,15 +220,20 @@ function eom!(dH,H,p::SVector{8},t::Float64)
     end
                            # 1 when >20 deg, 0 when <20 deg
                            
-     
+    # old psi 
     #     eta  * epsilon * B_w  * sqrt(2 mu   b)/gamma
-    psi = p[1] * p[2]    * H[7] * sqrt(2*H[4]*b)/γ;
+    # psi = p[1] * p[2]    * H[7] * sqrt(2*H[4]*b)/γ;
+    
+    # new_psi = sqrt(2mu) * old_psi = q * old_psi 
+    #     eta  * epsilon * B_w  * sqrt(b)/gamma
+    psi = p[1] * p[2]    * H[7] * sqrt(b)/γ;
+    
 
     # actual integration vars
     dH1 = H[2]/γ;
-    dH2 = -(H[4]*db)/γ - (psi*cosζ);
-    dH3 = p[1]*(K*dH1 - p[4] + b/γ) + (psi*sinζ)/(2*H[4]*K);
-    dH4 = -(psi*cosζ)/K;
+    dH2 = -(0.5 * H[4]^2 * db)/γ - (H[4] * psi * cosζ);
+    dH3 = p[1]*(K*dH1 - p[4] + b/γ) + (psi*sinζ)/(H[4]*K);
+    dH4 = -(H[4]*psi*cosζ)/K;
     dH5 = H[2]/(γ*cosλ*sqrt(1+3*sinλ^2));
     dH6 = p[1]*(K*dH1 - p[4]);
 
@@ -293,15 +299,15 @@ function extract(sol::EnsembleSolution)
     #     @info i
         
         vars = Array(traj');
-        try
+        # try
             timesteps = length(traj.t);
             b = zeros(timesteps);
             gamma = zeros(timesteps);
             Alpha = zeros(timesteps);
 
             @views calcb!(b,vars[:,5]);
-            @views calcGamma!(gamma,vars[:,2],vars[:,4],b);
-            @views calcAlpha!(Alpha,vars[:,4],gamma);
+            @views calcGamma!(gamma,vars[:,2],0.5.*vars[:,4].^2,b);
+            @views calcAlpha!(Alpha,0.5.*vars[:,4].^2,gamma);
             @views push!(allT, traj.t);
             @views push!(allZ, vars[:,1]);
             @views push!(allPZ, vars[:,2]);
@@ -309,27 +315,27 @@ function extract(sol::EnsembleSolution)
             @views push!(allE, @. (511*(gamma - 1)));
             @views push!(allLambda, vars[:,5]);
             @views push!(allBw, vars[:,7]);
-        catch
-            last_positive_index = minimum(findall(x->x<=0,vars[:,4])) -1 
-            @info "Caught negative mu"
-            @info "index $(length(vars[:,4])-last_positive_index) from end"
+        # catch
+        #     last_positive_index = minimum(findall(x->x<=0,vars[:,4])) -1 
+        #     @info "Caught negative mu"
+        #     @info "index $(length(vars[:,4])-last_positive_index) from end"
 
-            timesteps = length(traj.t[1:last_positive_index]);
-            b = zeros(timesteps);
-            gamma = zeros(timesteps);
-            Alpha = zeros(timesteps);
+        #     timesteps = length(traj.t[1:last_positive_index]);
+        #     b = zeros(timesteps);
+        #     gamma = zeros(timesteps);
+        #     Alpha = zeros(timesteps);
 
-            @views calcb!(b,vars[1:last_positive_index,5]);
-            @views calcGamma!(gamma,vars[1:last_positive_index,2],vars[1:last_positive_index,4],b);
-            @views calcAlpha!(Alpha,vars[1:last_positive_index,4],gamma);
-            @views push!(allT, traj.t[1:last_positive_index]);
-            @views push!(allZ, vars[1:last_positive_index,1]);
-            @views push!(allPZ, vars[1:last_positive_index,2]);
-            @views push!(allPA, Alpha);
-            @views push!(allE, @. (511*(gamma - 1)));
-            @views push!(allLambda, vars[:,5]);
-            @views push!(allBw, vars[:,7]);
-        end
+        #     @views calcb!(b,vars[1:last_positive_index,5]);
+        #     @views calcGamma!(gamma,vars[1:last_positive_index,2],0.5*vars[1:last_positive_index,4]^2,b);
+        #     @views calcAlpha!(Alpha,0.5*vars[1:last_positive_index,4]^2,gamma);
+        #     @views push!(allT, traj.t[1:last_positive_index]);
+        #     @views push!(allZ, vars[1:last_positive_index,1]);
+        #     @views push!(allPZ, vars[1:last_positive_index,2]);
+        #     @views push!(allPA, Alpha);
+        #     @views push!(allE, @. (511*(gamma - 1)));
+        #     @views push!(allLambda, vars[:,5]);
+        #     @views push!(allBw, vars[:,7]);
+        # end
 
     end
     @info "$(length(sol)) particles loaded in..."
