@@ -31,7 +31,7 @@ for case_index in eachindex(L_array)
         
         tick()
         sol = solve(ensemble_prob, Tsit5(), EnsembleThreads(), save_everystep=false;
-                                callback=CallbackSet(cb1, cb2, cb3), trajectories=numParticles,
+                                callback=CallbackSet(cb3), trajectories=numParticles,
                                 dtmax=resolution, maxiters=1e8,
                                 saveat = saveDecimation*resolution, kwargshandle=KeywordArgSilent)
         tock()
