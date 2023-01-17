@@ -3,54 +3,22 @@ include("agapitovmodel.jl")
 
 @info "Loading constants..."
 save_dir = "results_ducting/"
-folder = "run11/"
-test_cases = [5 22  3  "L5";
-              6 22  3  "L6"];
-omega_m_cases = [0.2, 0.35] # these are the different frequencies to test
-L_array = test_cases[:,1]
+folder = "run16/"
 
-const numParticles = 2*2700*2;
-const startTime = 0;
-const endTime = 10;
-tspan = (startTime, endTime); # integration time
-
-const ELo = 63;
-const EHi = 138;
-const Esteps = 2;
-const PALo = 4;
-const PAHi = 30;
-const PAsteps = 2700;
-ICrange = [ELo, EHi, Esteps, PALo, PAHi, PAsteps];
-
-const z0 = 0; # start at eq
-const λ0 = 0; # start at eq
-
-const lossConeAngle = 4;
-
-const Bw = 1000;  # pT
-const a = 3;     # exp(-a * (cos(Φ/dΦ)^2))
-const dPhi = 300; # exp(-a * (cos(Φ/dΦ)^2)) number of waves in each packet
-
-const Re   = 6370e3;        # Earth radius, f64
-const c    = 3e8;           # speedo lite, f64
-const Beq  = 3.e-5;         # B field at equator (T), f64
-
-const saveDecimation = 10000; # really only need first and last point
-@info "Done."
+test_cases = [
+    "a7_dphi3_PA3-15_constbw300pt_test3_5_41600.jld2"
+]
 
 rm_array = Vector{Resultant_Matrix}()
 # loading loop™
-for case_index in eachindex(L_array)
-    for omega_m in omega_m_cases
-        loadname = save_dir*folder*test_cases[:,end][case_index]*"_"*string(omega_m)[end]*"_$numParticles.jld2"
-        @info "Loading solution from $loadname..."
-        @time @load loadname sol
-        label = test_cases[:,end][case_index]*"_"*string(omega_m)[end]
-        push!(rm_array, sol2rm(sol, label));
-        @info "Loaded $label."
-    end
+for case in test_cases
+    loadname = save_dir*folder*case
+    @info "Loading solution from $loadname..."
+    @time @load loadname sol
+    label = case
+    push!(rm_array, sol2rm(sol, label));
+    @info "Loaded $label."
 end
-
 
 
 # for case #1, omega_m = 0.2, L = 5; contains both 63 and 138 keV
@@ -73,15 +41,44 @@ initial_E = [rm_case.allE[i][1] for i = 1:length(rm_case.allT)]
 final_E = [rm_case.allE[i][end] for i = 1:length(rm_case.allT)]
 initial_PA = [rm_case.allPA[i][1] for i = 1:length(rm_case.allT)]
 final_PA = [rm_case.allPA[i][end] for i = 1:length(rm_case.allT)]
-prec_range = findall(x->4<=x<=4.1, final_PA) 
-E63_range = findall(x->62<x<64, initial_E)
-E138_range = findall(x->137<x<139, initial_E)
+PA_ROI = findall(x->4.7<x<=5.3, initial_PA) 
+E_ROI = findall(x->9<x<30, initial_E) 
+ROI = intersect(PA_ROI, E_ROI)
 
-plot1 = scatter(xlabel="Initial Pitch Angle (deg)", ylabel="Final Pitch Angle (deg)", title="L = 5, omega_m = 0.2", legend=:topleft)
-plot1 = scatter!([initial_PA[E63_range], initial_PA[E138_range]], [final_PA[E63_range], final_PA[E138_range]], label = ["63 keV" "138 keV"], xlim=[0,30], ylim=[0,90], ms=1, msw=0)
+const ELo = 10;
+const EHi = 1000;
+const Esteps = 32; # double ELFIN E bins
+const PALo = 3;
+const PAHi = 15;
+const PAsteps = 13;
+
+E_bins = logrange(ELo,EHi, Int64(Esteps))
+PA_bins = range(PALo, PAHi, 13)
+
+PA_range = [findall(x -> floor(PA-1e-5) < x < ceil(PA+1e-5), initial_PA) for PA in PA_bins]
+E_range = [findall(x -> floor(E-1e-5) < x < ceil(E+1e-5), initial_E) for E in E_bins]
+permutedims(string.(floor.(E_bins)) .* " keV")
+
+plot1 = scatter(xlabel="Initial Pitch Angle (deg)", ylabel="Final Pitch Angle (deg)", title="L = 5, omega_m = 0.35, dphi = 3", legend=:topleft)
+plot1 = scatter!([initial_PA[range] for range in E_range],
+                 [final_PA[range] for range in E_range],
+                 label = permutedims(string.(floor.(E_bins)) .* " keV"),
+                 xlim=[3,16], ylim=[0,30], ms=1, msw=0, legend = :outertopright)
 plot1 = plot!(0:30, 0:30, label=false, ls=:dash, lc=:red)
 
-histogram2d(initial_PA[E63_range], final_PA[E63_range], xlim=[0,30], ylim=[0,90], nbins=(30,90), clim = (1,1000), cscale=log10)
+
+# plot g(phi)
+
+selection = 1:40:432
+gofphi = [@. exp(-7 * (cos(PHI/(2*π*3))^2)) for PHI in rm_array[1].allPhi[ROI[selection]]]
+BW_ROI = rm_array[1].allBw[ROI[selection]]
+interaction = [gofphi[i] .* BW_ROI[i] for i in eachindex(BW_ROI)]
+plot(rm_array[1].allT[ROI[selection]], interaction,legend=false)
+
+
+
+
+
 
 # for case #1, omega_m = 0.35, L = 5; contains both 63 and 138 keV
 case = 2
