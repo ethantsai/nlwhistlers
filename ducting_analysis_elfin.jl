@@ -164,7 +164,7 @@ plot2 = plot(E_bins, ratio_normalizer*results_array[i][1], label=rm_array[i].lab
 plot!(elfin_prec_010621[1][1:end-5], elfin_ratio_010621[1:end-5], label="elfin-b 1/6")
 plot!(elfin_prec_011221[1][1:end-5], elfin_ratio_011221[1:end-5], label="elfin-a 1/12")
 plot!(title = "[1/6,1/12] prec/trap flux ratio comparison", ylabel="j_parallel/j_perp", xlabel = "Energy (keV)")    
-plot2 = plot!(dpi = 500,size=(1000,450), margin=5mm, bottom_margin=0mm)
+plot2 = plot!(dpi = 500,size=(800,450), margin=5mm, bottom_margin=0mm)
 savefig(plot2, "images/scenario1_ratiocomparison.png")
 
 
@@ -210,7 +210,7 @@ plot2 = plot(E_bins, ratio_normalizer*results_array[i][1], label=rm_array[i].lab
 plot!(elfin_prec_010521[1][1:end-5], elfin_ratio_010521[1:end-5], label="elfin-a 1/5")
 plot!(elfin_prec_010821[1][1:end-5], elfin_ratio_010821[1:end-5], label="elfin-b 1/8")
 plot!(title = "[1/5,1/8] prec/trap flux ratio comparison", ylabel="j_parallel/j_perp", xlabel = "Energy (keV)", legend=:outerbottom)    
-plot2 = plot!(dpi = 500,size=(1000,450), margin=5mm, bottom_margin=0mm)
+plot2 = plot!(dpi = 500,size=(800,450), margin=5mm, bottom_margin=0mm)
 savefig(plot2, "images/scenario2_ratiocomparison.png")
 
 
@@ -246,5 +246,24 @@ ratio_normalizer = elfin_ratio_011121[1] ./ results_array[i][1][13]
 plot2 = plot(E_bins, ratio_normalizer*results_array[i][1], label=rm_array[i].label, xscale=:log10, yscale=:log10, xlim=(50,2000), ylim=(1e-2, 2))
 plot!(elfin_prec_011121[1][1:end-5], elfin_ratio_011121[1:end-5], label="elfin-a 1/11")
 plot!(title = "[1/11] prec/trap flux ratio comparison", ylabel="j_parallel/j_perp", xlabel = "Energy (keV)", legend=:outerbottom)    
-plot2 = plot!(dpi = 500,size=(1000,450), margin=5mm, bottom_margin=0mm)
+plot2 = plot!(dpi = 500,size=(800,450), margin=5mm, bottom_margin=0mm)
 savefig(plot2, "images/scenario3_ratiocomparison.png")
+
+
+
+
+elfin_prec_090420, elfin_error_090420 = extract_idl_csv("090420_time.csv", "090420_prec.csv",
+                                                "090420_precerror.csv", "090420_precerror_time.csv", "ebins.csv", # csvs containing ELFIN measurements
+                                                DateTime(2020,9,4,1,12,28),DateTime(2020,9,4,1,12,32)); # time to sample from ELFIN measurements                                                                
+
+elfin_trap_090420, elfin_error_090420 = extract_idl_csv("090420_time.csv", "090420_perp.csv",
+                                                "090420_precerror.csv", "090420_precerror_time.csv", "ebins.csv", # csvs containing ELFIN measurements
+                                                DateTime(2020,9,4,1,12,28),DateTime(2020,9,4,1,12,32)); # time to sample from ELFIN measurements                                                                
+
+elfin_prec_092620, elfin_error_092620 = extract_idl_csv("092620_time.csv", "092620_prec.csv",
+                                                "092620_precerror.csv", "092620_precerror_time.csv", "ebins.csv", # csvs containing ELFIN measurements
+                                                DateTime(2020,9,26,1,1,12),DateTime(2020,9,26,1,1,20)); # time to sample from ELFIN measurements                                                                
+
+elfin_trap_092620, elfin_error_092620 = extract_idl_csv("092620_time.csv", "092620_perp.csv",
+                                                "092620_precerror.csv", "092620_precerror_time.csv", "ebins.csv", # csvs containing ELFIN measurements
+                                                DateTime(2020,9,26,1,1,12),DateTime(2020,9,26,1,1,20)); # time to sample from ELFIN measurements                                                                

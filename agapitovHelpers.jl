@@ -25,12 +25,14 @@ folder = "run18/"
 mkpath(save_dir*folder)
 
 # case specific
-                   #L   MLT  Kp name
-test_cases = [5.1 21.7 3  "ELA_ND_210105T1454"; # ELA ND 1/05 14:54
-                   7.1 8.4  3  "ELB_SA_210106T1154"; # ELB SA 1/06 11:54
-                   6.5 19.8 3  "ELB_ND_210108T0646"; # ELB ND 1/08 06:46
-                   4.8 19.0 3  "ELA_SD_210111T1750"; # ELA SD 1/11 17:50
-                   6   8.4  3  "ELA_NA_210112T0226"] # ELA NA 1/12 02:26
+             #L   MLT  Kp name
+test_cases = [# 7.1 8.4  2  "ELB_SA_210106T1154"; # ELB SA 1/06 11:54
+             # 6.5 19.8 0  "ELB_ND_210108T0646"; # ELB ND 1/08 06:46
+             # 4.8 19.0 3  "ELA_SD_210111T1750"; # ELA SD 1/11 17:50
+             6   8.4  3  "ELA_NA_210112T0226"; # ELA NA 1/12 02:26
+             6.5 3.8  3  "ELA_ND_200904T0112"; # ELA ND 9/24 01:12
+             4.8 2.6  4  "ELB_ND_200926T0101"] # ELB ND 9/26 01:01
+
 omega_m_cases = [0.3] # these are the different frequencies to test
 L_array = test_cases[:,1]
 
