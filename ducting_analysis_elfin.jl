@@ -17,7 +17,7 @@ test_cases = ["ELB_SA_210106T1154_3_124800",
               "ELA_SD_210111T1750_3_124800",
               "ELA_NA_210112T0226_3_124800",
               "ELA_ND_200904T0112_3_124800",
-            #   "ELB_ND_200926T0101_3_124800",
+              "ELB_ND_200926T0101_3_124800",
               ]
 
 rm_array = Vector{Resultant_Matrix}()
@@ -31,7 +31,6 @@ for case in test_cases
         @info "Loaded $case."
     end
 end
-
 
 function prec_to_trap_ratio(rm::Resultant_Matrix)
     initial_E = [rm.allE[i][1] for i = 1:length(rm.allT)]
@@ -217,20 +216,38 @@ plot2 = plot!(dpi = 500,size=(800,450), margin=5mm, bottom_margin=3mm)
 savefig(plot2, "images/011121_ratiocomparison.png")
 
 
+############
+scenario = 5 # applies to elfin 9/4
+############
+elfin_prec_090420, elfin_error_090420, elfin_trap_090420, elfin_error_090420 = extract_elfin_prec_trap("090420_01",
+DateTime(2020,9,4,1,12,28),DateTime(2020,9,4,1,12,32)
+)
+elfin_ratio_090420 = obtain_elfin_ratio(elfin_prec_090420, elfin_trap_090420)
+i = scenario
+plot1 = plot(E_bins, results_array[i][1], label=rm_array[i].label, xscale=:log10, yscale=:log10, xlim=(50,2000), ylim=(1e-2, 15))
+plot!(elfin_prec_090420[1][1:end-5], elfin_ratio_090420[1:end-5], label="elfin-a 9/4")    
 
+normalizer = normalize_to_elfin(elfin_ratio_090420, results_array[i][1])
+plot2 = plot(E_bins, normalizer*results_array[i][1], label=rm_array[i].label, xscale=:log10, yscale=:log10, xlim=(50,2000), ylim=(1e-2, 2))
+plot!(elfin_prec_090420[1][1:end-5], elfin_ratio_090420[1:end-5], label="elfin-a 9/4")
+plot!(title = "9/4 prec/trap flux ratio comparison", ylabel="j_parallel/j_perp", xlabel = "Energy (keV)")    
+plot2 = plot!(dpi = 500,size=(800,450), margin=5mm, bottom_margin=3mm)
+savefig(plot2, "images/090420_ratiocomparison.png")
 
-elfin_prec_090420, elfin_error_090420 = extract_idl_csv("090420_time.csv", "090420_prec.csv",
-                                                "090420_precerror.csv", "090420_precerror_time.csv", "ebins.csv", # csvs containing ELFIN measurements
-                                                DateTime(2020,9,4,1,12,28),DateTime(2020,9,4,1,12,32)); # time to sample from ELFIN measurements                                                                
+############
+scenario = 6 # applies to elfin 9/26
+############
+elfin_prec_092620, elfin_error_092620, elfin_trap_092620, elfin_error_092620 = extract_elfin_prec_trap("092620_00",
+DateTime(2020,9,26,1,1,12),DateTime(2020,9,26,1,1,20)
+)
+elfin_ratio_092620 = obtain_elfin_ratio(elfin_prec_092620, elfin_trap_092620)
+i = scenario
+plot1 = plot(E_bins, results_array[i][1], label=rm_array[i].label, xscale=:log10, yscale=:log10, xlim=(50,2000), ylim=(1e-2, 15))
+plot!(elfin_prec_092620[1][1:end-5], elfin_ratio_092620[1:end-5], label="elfin-b 9/26")    
 
-elfin_trap_090420, elfin_error_090420 = extract_idl_csv("090420_time.csv", "090420_perp.csv",
-                                                "090420_precerror.csv", "090420_precerror_time.csv", "ebins.csv", # csvs containing ELFIN measurements
-                                                DateTime(2020,9,4,1,12,28),DateTime(2020,9,4,1,12,32)); # time to sample from ELFIN measurements                                                                
-
-elfin_prec_092620, elfin_error_092620 = extract_idl_csv("092620_time.csv", "092620_prec.csv",
-                                                "092620_precerror.csv", "092620_precerror_time.csv", "ebins.csv", # csvs containing ELFIN measurements
-                                                DateTime(2020,9,26,1,1,12),DateTime(2020,9,26,1,1,20)); # time to sample from ELFIN measurements                                                                
-
-elfin_trap_092620, elfin_error_092620 = extract_idl_csv("092620_time.csv", "092620_perp.csv",
-                                                "092620_precerror.csv", "092620_precerror_time.csv", "ebins.csv", # csvs containing ELFIN measurements
-                                                DateTime(2020,9,26,1,1,12),DateTime(2020,9,26,1,1,20)); # time to sample from ELFIN measurements                                                                
+normalizer = normalize_to_elfin(elfin_ratio_092620, results_array[i][1])
+plot2 = plot(E_bins, normalizer*results_array[i][1], label=rm_array[i].label, xscale=:log10, yscale=:log10, xlim=(50,2000), ylim=(1e-2, 2))
+plot!(elfin_prec_092620[1][1:end-5], elfin_ratio_092620[1:end-5], label="elfin-b 9/26")
+plot!(title = "9/26 prec/trap flux ratio comparison", ylabel="j_parallel/j_perp", xlabel = "Energy (keV)")    
+plot2 = plot!(dpi = 500,size=(800,450), margin=5mm, bottom_margin=3mm)
+savefig(plot2, "images/092620_ratiocomparison.png")
