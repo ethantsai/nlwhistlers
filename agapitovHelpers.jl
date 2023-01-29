@@ -21,39 +21,41 @@ using StatsBase
 #######################
 @info "Loading constants..."
 save_dir = "results_ducting/"
-folder = "run18/"
+folder = "run19/"
 mkpath(save_dir*folder)
 
 # case specific
              #L   MLT  Kp name
-test_cases = [#7.1 8.4  2  "ELB_SA_210106T1154"; # ELB SA 01/06 11:54
+test_cases = [7.1 8.4  2  "ELB_SA_210106T1154"; # ELB SA 01/06 11:54
               #6.5 19.8 0  "ELB_ND_210108T0646"; # ELB ND 01/08 06:46
               #4.8 19.0 3  "ELA_SD_210111T1750"; # ELA SD 01/11 17:50
-              #6   8.4  3  "ELA_NA_210112T0226"; # ELA NA 01/12 02:26
+              6   8.4  3  "ELA_NA_210112T0226"]; # ELA NA 01/12 02:26
               #6.5 3.8  3  "ELA_ND_200904T0112"; # ELA ND 09/04 01:12
               #4.8 2.6  4  "ELB_ND_200926T0101"; # ELB ND 09/26 01:01
-              5.1 20.2 3  "ELA_SD_210203T0902"; # ELA SD 02/03 09:02
-              6.6 19.3 3  "ELA_SD_210203T1342"; # ELA SD 02/03 13:42
-              6.2 5.8  3  "ELA_NA_210203T2046"; # ELA NA 02/03 20:46
-              7.1 10.2 4  "ELA_SD_211001T0501"; # ELA SD 10/01 05:01
-              6.1 9.0  3  "ELA_SD_211001T0810"; # ELA SD 10/01 08:10
-              6.1 13.1 3  "ELA_SA_211101T0424"; # ELA SA 11/01 04:24
-              4.5 20.8 3  "ELA_SA_211102T2218"] # ELA SA 11/02 22:18
+              #5.1 20.2 3  "ELA_SD_210203T0902"; # ELA SD 02/03 09:02
+              #6.6 19.3 3  "ELA_SD_210203T1342"; # ELA SD 02/03 13:42
+              #6.2 5.8  3  "ELA_NA_210203T2046"; # ELA NA 02/03 20:46
+              #7.1 10.2 4  "ELA_SD_211001T0501"; # ELA SD 10/01 05:01
+              #6.1 9.0  3  "ELA_SD_211001T0810"; # ELA SD 10/01 08:10
+              #6.1 13.1 3  "ELA_SA_211101T0424"; # ELA SA 11/01 04:24
+              #4.5 20.8 3  "ELA_SA_211102T2218"] # ELA SA 11/02 22:18
 
 omega_m_cases = [0.3] # these are the different frequencies to test
 L_array = test_cases[:,1]
 
-const numParticles = 32*1300*3;
+const numParticles = 200000;
 const startTime = 0;
 const endTime = 15;
 tspan = (startTime, endTime); # integration time
 
-const ELo = 10;
+const ELo = 52;
 const EHi = 1000;
 const Esteps = 32; # double ELFIN E bins
 const PALo = 3;
 const PAHi = 15;
-const PAsteps = 1300;
+const PAsteps = 1300; # only used for flat particle distribution
+const factor = 50; #only used for skewed particle distribution
+# num particles in highest energy bin = factor * num particles in lowest energy bin
 ICrange = [ELo, EHi, Esteps, PALo, PAHi, PAsteps];
 
 const z0 = 0; # start at eq
@@ -126,30 +128,35 @@ function generateFlatParticleDistribution(numParticles::Int64, ICrange, L)
     return h0, f0, η, ε, Omegape, resolution;
 end
 
-function generateSkewedParticleDistribution(numParticles::Int64, ICrange, L)
+function generateSkewedParticleDistribution(numParticles::Int64, ICrange, L, factor)
+    #=
+    generates the initial conditions that biases more particles to higher energy
+    for better statistics.
+
+    Uses factor to determine how many more particles are wanted at the highest
+    energy compared to the lowest energy. 
+    =#
     ELo, EHi, Esteps, PALo, PAHi, PAsteps = ICrange
-    
 
-    @info "Generating a flat particle distribution with"
+    @info "Generating a exponential particle distribution such that"
     @info "$Esteps steps of energy from $ELo KeV to $EHi KeV"
+    @info "with $(factor)x more particles at $EHi KeV than at $ELo KeV"
     @info "$PAsteps steps of pitch angles from $PALo deg to $PAHi deg"
-
-    nBins = PAsteps*Esteps
-    N = numParticles ÷ nBins # num of particles per bin
-    E_bins = logrange(ELo,EHi, Int64(Esteps))
-    PA_bins = range(PALo, PAHi, length = Int64(PAsteps))
-    @info "Flat distribution with $N particles/bin in $nBins bins"
-
-    if numParticles%nBins != 0
-        @warn "Truncating $(numParticles%nBins) particles for an even distribution"
-    end
-    if iszero(N)
-        N = 1;
-        @warn "Use higher number of particles next time. Simulating 1 trajectory/bin."
-        @warn "Minimum number of particles to simulate is 1 particles/bin."
-    end
     
-    @views f0 = [[(E+511.)/511. deg2rad(PA)] for PA in PA_bins for E in E_bins for i in 1:N] # creates a 2xN array with initial PA and Energy
+    E_bins = logrange(ELo,EHi, Int64(Esteps))
+
+    N = numParticles
+    exponent = log(factor)/log(Esteps)
+    num_particles_per_E_bin = floor.((N / sum((1:Esteps).^exponent)) * (1:Esteps).^exponent)
+    num_particles_per_E_bin[1:Int64(N-sum(num_particles_per_E_bin))] .+= 1
+    PA_bins = [range(PALo, PAHi, length = Int64(steps)) for steps in num_particles_per_E_bin]
+    
+    @info "Skewed distribution with:"
+    @info "$(num_particles_per_E_bin[1]) particles in first energy bin"
+    @info "$(num_particles_per_E_bin[end]) particles in last energy bin"
+    @info "Total particles to simulate: $(sum(num_particles_per_E_bin))."
+    
+    f0 = [[(E_bins[i]+511.)/511. deg2rad(PA)] for i in 1:Esteps for PA in PA_bins[i] ]
 
     #####       [[z0 pz0                          ζ0               q0                              λ0 Φ0               B_w0 ]             ]
     @views h0 = [[z0 sqrt(IC[1]^2 - 1)*cos(IC[2]) rand()*2*pi*dPhi sqrt((IC[1]^2-1)*sin(IC[2])^2)  λ0 rand()*2*pi*dPhi 0    ] for IC in f0] # creates a 5xN array with inital h0 terms

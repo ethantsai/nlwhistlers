@@ -15,7 +15,7 @@ total_sims = length(L_array)*length(omega_m_cases)
 println()
 # loop for simulation
 for case_index in eachindex(L_array)
-    h0, f0, η, ε, Omegape, resolution = generateFlatParticleDistribution(numParticles, ICrange, L_array[case_index]);
+    h0, f0, η, ε, Omegape, resolution = generateSkewedParticleDistribution(numParticles, ICrange, L_array[case_index], factor);
 
     wave_model_coeffs = wave_model_coeff_array[case_index]
 
