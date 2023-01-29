@@ -53,7 +53,9 @@ const EHi = 1000;
 const Esteps = 32; # double ELFIN E bins
 const PALo = 3;
 const PAHi = 15;
-const PAsteps = 1300;
+const PAsteps = 1300; # only used for flat particle distribution
+const factor = 50; #only used for skewed particle distribution
+# num particles in highest energy bin = factor * num particles in lowest energy bin
 ICrange = [ELo, EHi, Esteps, PALo, PAHi, PAsteps];
 
 const z0 = 0; # start at eq
@@ -126,30 +128,36 @@ function generateFlatParticleDistribution(numParticles::Int64, ICrange, L)
     return h0, f0, η, ε, Omegape, resolution;
 end
 
-function generateSkewedParticleDistribution(numParticles::Int64, ICrange, L)
-    ELo, EHi, Esteps, PALo, PAHi, PAsteps = ICrange
-    
+function generateSkewedParticleDistribution(numParticles::Int64, ICrange, L, factor)
+    #=
+    generates the initial conditions that biases more particles to higher energy
+    for better statistics.
 
-    @info "Generating a flat particle distribution with"
+    Uses factor to determine how many more particles are wanted at the highest
+    energy compared to the lowest energy. 
+    =#
+    ELo, EHi, Esteps, PALo, PAHi, PAsteps = ICrange
+
+    @info "Generating a exponential particle distribution such that"
     @info "$Esteps steps of energy from $ELo KeV to $EHi KeV"
+    @info "with $(factor)x more particles at $EHi KeV than at $ELo KeV"
     @info "$PAsteps steps of pitch angles from $PALo deg to $PAHi deg"
 
-    nBins = PAsteps*Esteps
-    N = numParticles ÷ nBins # num of particles per bin
-    E_bins = logrange(ELo,EHi, Int64(Esteps))
-    PA_bins = range(PALo, PAHi, length = Int64(PAsteps))
-    @info "Flat distribution with $N particles/bin in $nBins bins"
-
-    if numParticles%nBins != 0
-        @warn "Truncating $(numParticles%nBins) particles for an even distribution"
-    end
-    if iszero(N)
-        N = 1;
-        @warn "Use higher number of particles next time. Simulating 1 trajectory/bin."
-        @warn "Minimum number of particles to simulate is 1 particles/bin."
-    end
     
-    @views f0 = [[(E+511.)/511. deg2rad(PA)] for PA in PA_bins for E in E_bins for i in 1:N] # creates a 2xN array with initial PA and Energy
+    E_bins = logrange(ELo,EHi, Int64(Esteps))
+
+    N = numParticles
+    exponent = log(factor)/log(Esteps)
+    num_particles_per_E_bin = floor.((N / sum((1:Esteps).^exponent)) * (1:Esteps).^exponent)
+    num_particles_per_E_bin[1:Int64(N-sum(num_particles_per_E_bin))] .+= 1
+    PA_bins = [range(PALo, PAHi, length = Int64(steps)) for steps in num_particles_per_E_bin]
+    
+    @info "Skewed distribution with:"
+    @info "$(num_particles_per_E_bin[1]) particles in first energy bin"
+    @info "$(num_particles_per_E_bin[end]) particles in last energy bin"
+    @info "Total particles to simulate: $(sum(num_particles_per_E_bin))."
+    
+    f0 = [[(E_bins[i]+511.)/511. deg2rad(PA)] for i in 1:Esteps for PA in PA_bins[i] ]
 
     #####       [[z0 pz0                          ζ0               q0                              λ0 Φ0               B_w0 ]             ]
     @views h0 = [[z0 sqrt(IC[1]^2 - 1)*cos(IC[2]) rand()*2*pi*dPhi sqrt((IC[1]^2-1)*sin(IC[2])^2)  λ0 rand()*2*pi*dPhi 0    ] for IC in f0] # creates a 5xN array with inital h0 terms
