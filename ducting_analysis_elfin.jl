@@ -18,6 +18,8 @@ test_cases = ["ELB_SA_210106T1154_3_124800",
               "ELA_NA_210112T0226_3_124800",
               "ELA_ND_200904T0112_3_124800",
               "ELB_ND_200926T0101_3_124800",
+              "ELA_SD_210203T0902_3_124800",
+              "ELA_SD_210203T1342_3_124800"
               ]
 
 rm_array = Vector{Resultant_Matrix}()
@@ -70,11 +72,10 @@ results_array = [prec_to_trap_ratio(x) for x in rm_array]
 
 using CSV, DataFrames
 
-function extract_idl_csv(
+function extract_idl_ratio(
     time_name::String,
     data_name::String,
     error_name::String,
-    error_time_name::String,
     ebin_name::String,
     start::DateTime, stop::DateTime)
 
@@ -82,7 +83,6 @@ function extract_idl_csv(
     data_csv_name = "idl_csvs/"*data_name
     ebins_csv_name = "idl_csvs/"*ebin_name
     error_csv_name = "idl_csvs/"*error_name
-    errortime_name = "idl_csvs/"*error_time_name
 
     times_df =  CSV.File(time_csv_name; header=false, delim=',', types=Float64) |> DataFrame
     time = unix2datetime.(times_df.Column1)
@@ -90,15 +90,7 @@ function extract_idl_csv(
     time_of_interest = time[indices]
     @info "Summing over $(time_of_interest[end]-time_of_interest[1])"
 
-    errtimes_df = CSV.File(errortime_name; header=false, delim=',', types=Float64) |> DataFrame
-    errtime = unix2datetime.(errtimes_df.Column1)
-    errindices = findall((errtime.>start).&(errtime.<stop)) # these are the indices corresponding to the time range to sum over
-    if length(errindices) != length(indices)
-        @error "Length mismatch between time and error time."
-        return
-    end
-
-    # import particle flux data 
+    # import ratio data 
     data_df  =  CSV.File(data_csv_name; header=false, delim=',', types=Float64) |> DataFrame
     data = [[data_df[row,col] for col in 1:length(data_df[1,:])] for row in 1:16]
     error_df  =  CSV.File(error_csv_name; header=false, delim=',', types=Float64) |> DataFrame
@@ -110,27 +102,22 @@ function extract_idl_csv(
         data_of_interest[i][findall(.!isfinite.(data[i]))] .= 0.0
         error_of_interest[i][findall(.!isfinite.(error[i]))] .= 0.0
     end
-    flux = [sum(data_of_interest[energy][indices]) for energy in 1:16]
+    avg_ratio = [mean(data_of_interest[energy][indices]) for energy in 1:16]
 
 
-    error = [sqrt(sum((data_of_interest[energy][indices].*error_of_interest[energy][errindices]).^2)) for energy in 1:16]
+    error = [sqrt(mean((data_of_interest[energy][indices].*error_of_interest[energy][indices]).^2)) for energy in 1:16]
 
     ebins_df = CSV.File(ebins_csv_name; header=false, delim=',', types=Float64) |> DataFrame
     ebins = ebins_df.Column1
 
-    return (ebins, flux), error
+    return (ebins, avg_ratio), error
 end
 
-function extract_elfin_prec_trap(datestring, tstart, tend)
-    elfin_prec, elfin_prec_error = extract_idl_csv(datestring*"_time.csv", datestring*"_prec.csv",
-                                                    datestring*"_precerror.csv", datestring*"_precerror_time.csv", "ebins.csv", # csvs containing ELFIN measurements
+function extract_elfin_p2t_ratio(datestring, tstart, tend)
+    elfin_p2t, elfin_p2t_error = extract_idl_ratio(datestring*"_time.csv", datestring*"_p2t.csv",
+                                                    datestring*"_p2t_err.csv", "ebins.csv", # csvs containing ELFIN measurements
                                                     tstart, tend); # time to sample from ELFIN measurements                                                                
-
-    elfin_trap, elfin_trap_error = extract_idl_csv(datestring*"_time.csv", datestring*"_perp.csv",
-                                                    datestring*"_precerror.csv", datestring*"_precerror_time.csv", "ebins.csv", # csvs containing ELFIN measurements
-                                                    tstart, tend); # time to sample from ELFIN measurements                                                                
-
-    return elfin_prec, elfin_prec_error, elfin_trap, elfin_trap_error
+    return elfin_p2t, elfin_p2t_error
 end
 
 function obtain_elfin_ratio(elfin_prec, elfin_trap)
@@ -141,113 +128,173 @@ function normalize_to_elfin(elfin_ratio, sim_ratio)
     return elfin_ratio[1] / sim_ratio[13]
 end
 
+function make_elfin_error_bars(elfin_data, elfin_error)
+    lo = elfin_data[2] .- elfin_error
+    hi = elfin_data[2] .+ elfin_error
+    return lo, hi
+end
+
+#################
+## Plot Colors ##
+#################
+
+using Plots.PlotMeasures
+function hexcolor(r::UInt8, g::UInt8, b::UInt8)
+    return RGB(Int(r)/255,Int(g)/255,Int(b)/255)
+end
+bipride_pink = RGB(234/255, 2/255, 112/255);
+bipride_orange = RGB(255/255, 79/255, 0/255);
+bipride_lavender = RGB(155/255, 79/255, 150/255);
+bipride_blue = RGB(0/255, 56/255, 168/255);
+c1 = hexcolor(0xff,0x4f,0x00)
+c2 = hexcolor(0xf8,0x00,0x4d)
+c3 = hexcolor(0xd3,0x00,0x7d)
+c4 = hexcolor(0x8f,0x19,0x9f)
+c5 = hexcolor(0x00,0x38,0xa8)
+
 
 ############
-scenario = 1 # applies to elfin 1/6 and 1/12
+i = 1 # applies to elfin 1/6 and 1/12
+scenario = "010621_11"
 ############
-elfin_prec_010621, elfin_error_010621, elfin_trap_010621, elfin_error_010621 = extract_elfin_prec_trap("010621", DateTime(2021,1,6,11,53,50),DateTime(2021,1,6,11,54,1))
-elfin_ratio_010621 = obtain_elfin_ratio(elfin_prec_010621, elfin_trap_010621)
-i = scenario
-plot1 = plot(E_bins, results_array[i][1], label=rm_array[i].label, xscale=:log10, yscale=:log10, xlim=(50,2000), ylim=(1e-2, 15))
-plot!(elfin_prec_010621[1][1:end-5], elfin_ratio_010621[1:end-5], label="elfin-b 1/6")    
-
-normalizer = normalize_to_elfin(elfin_ratio_010621, results_array[i][1])
-plot2 = plot(E_bins, normalizer*results_array[i][1], label=rm_array[i].label, xscale=:log10, yscale=:log10, xlim=(50,2000), ylim=(1e-2, 2))
-plot!(elfin_prec_010621[1][1:end-5], elfin_ratio_010621[1:end-5], label="elfin-b 1/6")
+elfin_p2t, elfin_p2t_error = extract_elfin_p2t_ratio(
+    scenario, DateTime(2021,1,6,11,53,50),DateTime(2021,1,6,11,54,1)
+    )
+normalizer = normalize_to_elfin(elfin_p2t[2], results_array[i][1])
+plot(E_bins, normalizer*results_array[i][1], label=rm_array[i].label, color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
+plot!(xscale=:log10, yscale=:log10, xlim=(10,1000), ylim=(1e-2, 15))
+plot!(elfin_p2t, yerror=elfin_p2t_error, color = c5, marker = stroke(3,c5), linewidth=4, markersize = 3, label="ELFIN-B 1/6")
 plot!(title = "1/6 prec/trap flux ratio comparison", ylabel="j_parallel/j_perp", xlabel = "Energy (keV)")    
 plot2 = plot!(dpi = 500,size=(800,450), margin=5mm, bottom_margin=3mm)
-savefig(plot2, "images/010621_ratiocomparison.png")
+savefig(plot2, "images/"*scenario*"_ratiocomparison.png")
 
 
 ############
-scenario = 4 # applies to elfin 1/12
+i = 2 # applies to 1/8
+scenario = "010821_06"
 ############
-elfin_prec_011221, elfin_error_011221, elfin_trap_011221, elfin_error_011221 = extract_elfin_prec_trap("011221", DateTime(2021,1,12,2,26,28),DateTime(2021,1,12,2,26,38))
-elfin_ratio_011221 = obtain_elfin_ratio(elfin_prec_011221, elfin_trap_011221)
-i = scenario
-plot1 = plot(E_bins, results_array[i][1], label=rm_array[i].label, xscale=:log10, yscale=:log10, xlim=(50,2000), ylim=(1e-2, 15))
-plot!(elfin_prec_011221[1][1:end-5], elfin_ratio_011221[1:end-5], label="elfin-a 1/12")    
-
-normalizer = normalize_to_elfin(elfin_ratio_011221, results_array[i][1])
-plot2 = plot(E_bins, normalizer*results_array[i][1], label=rm_array[i].label, xscale=:log10, yscale=:log10, xlim=(50,2000), ylim=(1e-2, 2))
-plot!(elfin_prec_011221[1][1:end-5], elfin_ratio_011221[1:end-5], label="elfin-a 1/12")
-plot!(title = "1/12 prec/trap flux ratio comparison", ylabel="j_parallel/j_perp", xlabel = "Energy (keV)")    
-plot2 = plot!(dpi = 500,size=(800,450), margin=5mm, bottom_margin=3mm)
-savefig(plot2, "images/011221_ratiocomparison.png")
-
-
-############
-scenario = 2 # applies to 1/8
-############
-# elfin_prec_010521, elfin_error_010521, elfin_trap_010521, elfin_error_010521 = extract_elfin_prec_trap("010521", DateTime(2021,1,5,14,57,44),DateTime(2021,1,5,14,57,49))
-# elfin_ratio_010521 = obtain_elfin_ratio(elfin_prec_010521, elfin_trap_010521)
-elfin_prec_010821, elfin_error_010821, elfin_trap_010821, elfin_error_010821 = extract_elfin_prec_trap("010821", DateTime(2021,1,8,6,46,49),DateTime(2021,1,08,6,46,56))
-elfin_ratio_010821 = obtain_elfin_ratio(elfin_prec_010821, elfin_trap_010821)
-i = scenario
-plot1 = plot(E_bins, results_array[i][1], label=rm_array[i].label, xscale=:log10, yscale=:log10, xlim=(50,2000), ylim=(1e-2, 15))
-plot!(elfin_prec_010821[1][1:end-5], elfin_ratio_010821[1:end-5], label="elfin-b 1/8")    
-
-normalizer = normalize_to_elfin(elfin_ratio_010821, results_array[i][1])
-plot2 = plot(E_bins, normalizer*results_array[i][1], label=rm_array[i].label, xscale=:log10, yscale=:log10, xlim=(50,2000), ylim=(1e-2, 2))
-plot!(elfin_prec_010821[1][1:end-5], elfin_ratio_010821[1:end-5], label="elfin-b 1/8")
+elfin_p2t, elfin_p2t_error = extract_elfin_p2t_ratio(
+    scenario, DateTime(2021,1,8,6,46,49),DateTime(2021,1,08,6,46,56)
+    )
+normalizer = normalize_to_elfin(elfin_p2t[2], results_array[i][1])
+plot(E_bins, normalizer*results_array[i][1], label=rm_array[i].label, color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
+plot!(xscale=:log10, yscale=:log10, xlim=(10,1000), ylim=(1e-2, 15))
+plot!(elfin_p2t, yerror=elfin_p2t_error, color = c5, marker = stroke(3,c5), linewidth=4, markersize = 3, label="ELFIN-B 1/8")
 plot!(title = "1/8 prec/trap flux ratio comparison", ylabel="j_parallel/j_perp", xlabel = "Energy (keV)")    
 plot2 = plot!(dpi = 500,size=(800,450), margin=5mm, bottom_margin=3mm)
-savefig(plot2, "images/010821_ratiocomparison.png")
-
-
+savefig(plot2, "images/"*scenario*"_ratiocomparison.png")
 
 
 ############
-scenario = 3 # applies to elfin 1/11
+i = 3 # applies to elfin 1/11
+scenario = "011121_17"
 ############
-elfin_prec_011121, elfin_error_011121, elfin_trap_011121, elfin_error_011121 = extract_elfin_prec_trap("011121",
-DateTime(2021,1,11,17,50,50),DateTime(2021,1,11,17,50,58)
-)
-elfin_ratio_011121 = obtain_elfin_ratio(elfin_prec_011121, elfin_trap_011121)
-i = scenario
-plot1 = plot(E_bins, results_array[i][1], label=rm_array[i].label, xscale=:log10, yscale=:log10, xlim=(50,2000), ylim=(1e-2, 15))
-plot!(elfin_prec_011121[1][1:end-5], elfin_ratio_011121[1:end-5], label="elfin-a 1/11")    
-
-normalizer = normalize_to_elfin(elfin_ratio_011121, results_array[i][1])
-plot2 = plot(E_bins, normalizer*results_array[i][1], label=rm_array[i].label, xscale=:log10, yscale=:log10, xlim=(50,2000), ylim=(1e-2, 2))
-plot!(elfin_prec_011121[1][1:end-5], elfin_ratio_011121[1:end-5], label="elfin-a 1/11")
+elfin_p2t, elfin_p2t_error = extract_elfin_p2t_ratio(
+    scenario, DateTime(2021,1,11,17,50,50),DateTime(2021,1,11,17,50,58)
+    )
+normalizer = normalize_to_elfin(elfin_p2t[2], results_array[i][1])
+plot(E_bins, normalizer*results_array[i][1], label=rm_array[i].label, color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
+plot!(xscale=:log10, yscale=:log10, xlim=(10,1000), ylim=(1e-2, 15))
+plot!(elfin_p2t, yerror=elfin_p2t_error, color = c5, marker = stroke(3,c5), linewidth=4, markersize = 3, label="ELFIN-A 1/11")
 plot!(title = "1/11 prec/trap flux ratio comparison", ylabel="j_parallel/j_perp", xlabel = "Energy (keV)")    
 plot2 = plot!(dpi = 500,size=(800,450), margin=5mm, bottom_margin=3mm)
-savefig(plot2, "images/011121_ratiocomparison.png")
+savefig(plot2, "images/"*scenario*"_ratiocomparison.png")
 
 
 ############
-scenario = 5 # applies to elfin 9/4
+i = 4 # applies to elfin 1/12
+scenario = "011221_02"
 ############
-elfin_prec_090420, elfin_error_090420, elfin_trap_090420, elfin_error_090420 = extract_elfin_prec_trap("090420_01",
-DateTime(2020,9,4,1,12,28),DateTime(2020,9,4,1,12,32)
-)
-elfin_ratio_090420 = obtain_elfin_ratio(elfin_prec_090420, elfin_trap_090420)
-i = scenario
-plot1 = plot(E_bins, results_array[i][1], label=rm_array[i].label, xscale=:log10, yscale=:log10, xlim=(50,2000), ylim=(1e-2, 15))
-plot!(elfin_prec_090420[1][1:end-5], elfin_ratio_090420[1:end-5], label="elfin-a 9/4")    
+elfin_p2t, elfin_p2t_error = extract_elfin_p2t_ratio(
+    scenario, DateTime(2021,1,12,2,26,28),DateTime(2021,1,12,2,26,38)
+    )
+normalizer = normalize_to_elfin(elfin_p2t[2], results_array[i][1])
+plot(E_bins, normalizer*results_array[i][1], label=rm_array[i].label, color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
+plot!(xscale=:log10, yscale=:log10, xlim=(10,1000), ylim=(1e-2, 15))
+plot!(elfin_p2t, yerror=elfin_p2t_error, color = c5, marker = stroke(3,c5), linewidth=4, markersize = 3, label="ELFIN-A 1/12")
+plot!(title = "1/12 prec/trap flux ratio comparison", ylabel="j_parallel/j_perp", xlabel = "Energy (keV)")    
+plot2 = plot!(dpi = 500,size=(800,450), margin=5mm, bottom_margin=3mm)
+savefig(plot2, "images/"*scenario*"_ratiocomparison.png")
 
-normalizer = normalize_to_elfin(elfin_ratio_090420, results_array[i][1])
-plot2 = plot(E_bins, normalizer*results_array[i][1], label=rm_array[i].label, xscale=:log10, yscale=:log10, xlim=(50,2000), ylim=(1e-2, 2))
-plot!(elfin_prec_090420[1][1:end-5], elfin_ratio_090420[1:end-5], label="elfin-a 9/4")
+
+############
+i = 5 # applies to elfin 9/4
+scenario = "090420_01"
+############
+elfin_p2t, elfin_p2t_error = extract_elfin_p2t_ratio(
+    scenario, DateTime(2020,9,4,1,12,28),DateTime(2020,9,4,1,12,32)
+    )
+normalizer = normalize_to_elfin(elfin_p2t[2], results_array[i][1])
+plot(E_bins, normalizer*results_array[i][1], label=rm_array[i].label, color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
+plot!(xscale=:log10, yscale=:log10, xlim=(10,1000), ylim=(1e-2, 15))
+plot!(elfin_p2t, yerror=elfin_p2t_error, color = c5, marker = stroke(3,c5), linewidth=4, markersize = 3, label="ELFIN-A 9/4")
 plot!(title = "9/4 prec/trap flux ratio comparison", ylabel="j_parallel/j_perp", xlabel = "Energy (keV)")    
 plot2 = plot!(dpi = 500,size=(800,450), margin=5mm, bottom_margin=3mm)
-savefig(plot2, "images/090420_ratiocomparison.png")
+savefig(plot2, "images/"*scenario*"_ratiocomparison.png")
+
 
 ############
-scenario = 6 # applies to elfin 9/26
+i = 6 # applies to elfin 9/26
+scenario = "092620_00"
 ############
-elfin_prec_092620, elfin_error_092620, elfin_trap_092620, elfin_error_092620 = extract_elfin_prec_trap("092620_00",
-DateTime(2020,9,26,1,1,12),DateTime(2020,9,26,1,1,20)
-)
-elfin_ratio_092620 = obtain_elfin_ratio(elfin_prec_092620, elfin_trap_092620)
-i = scenario
-plot1 = plot(E_bins, results_array[i][1], label=rm_array[i].label, xscale=:log10, yscale=:log10, xlim=(50,2000), ylim=(1e-2, 15))
-plot!(elfin_prec_092620[1][1:end-5], elfin_ratio_092620[1:end-5], label="elfin-b 9/26")    
-
-normalizer = normalize_to_elfin(elfin_ratio_092620, results_array[i][1])
-plot2 = plot(E_bins, normalizer*results_array[i][1], label=rm_array[i].label, xscale=:log10, yscale=:log10, xlim=(50,2000), ylim=(1e-2, 2))
-plot!(elfin_prec_092620[1][1:end-5], elfin_ratio_092620[1:end-5], label="elfin-b 9/26")
+elfin_p2t, elfin_p2t_error = extract_elfin_p2t_ratio(
+    scenario, DateTime(2020,9,26,1,1,12),DateTime(2020,9,26,1,1,20)
+    )
+normalizer = normalize_to_elfin(elfin_p2t[2], results_array[i][1])
+plot(E_bins, normalizer*results_array[i][1], label=rm_array[i].label, color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
+plot!(xscale=:log10, yscale=:log10, xlim=(10,1000), ylim=(1e-2, 15))
+plot!(elfin_p2t, yerror=elfin_p2t_error, color = c5, marker = stroke(3,c5), linewidth=4, markersize = 3, label="ELFIN-B 9/26")
 plot!(title = "9/26 prec/trap flux ratio comparison", ylabel="j_parallel/j_perp", xlabel = "Energy (keV)")    
 plot2 = plot!(dpi = 500,size=(800,450), margin=5mm, bottom_margin=3mm)
-savefig(plot2, "images/092620_ratiocomparison.png")
+savefig(plot2, "images/"*scenario*"_ratiocomparison.png")
+
+
+############
+i = 7 # applies to elfin 2/3 9:xx
+scenario = "020321_09"
+############
+elfin_p2t, elfin_p2t_error = extract_elfin_p2t_ratio(
+    scenario, DateTime(2021,2,3,9,1,43),DateTime(2021,2,3,9,1,56)
+    )
+normalizer = normalize_to_elfin(elfin_p2t[2], results_array[i][1])
+plot(E_bins, normalizer*results_array[i][1], label=rm_array[i].label, color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
+plot!(xscale=:log10, yscale=:log10, xlim=(10,1000), ylim=(1e-2, 15))
+plot!(elfin_p2t, yerror=elfin_p2t_error, color = c5, marker = stroke(3,c5), linewidth=4, markersize = 3, label="ELFIN-A 2/3 09:01")
+plot!(title = "2/3 prec/trap flux ratio comparison", ylabel="j_parallel/j_perp", xlabel = "Energy (keV)")    
+plot2 = plot!(dpi = 500,size=(800,450), margin=5mm, bottom_margin=3mm)
+savefig(plot2, "images/"*scenario*"_ratiocomparison.png")
+
+
+
+############
+i = 8 # applies to elfin 2/3 13:xx
+scenario = "020321_13"
+############
+elfin_p2t, elfin_p2t_error = extract_elfin_p2t_ratio(
+    scenario, DateTime(2021,2,3,13,42,25),DateTime(2021,2,3,13,42,32)
+    )
+normalizer = normalize_to_elfin(elfin_p2t[2], results_array[i][1])
+plot(E_bins, normalizer*results_array[i][1], label=rm_array[i].label, color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
+plot!(xscale=:log10, yscale=:log10, xlim=(10,1000), ylim=(1e-2, 15))
+plot!(elfin_p2t, yerror=elfin_p2t_error, color = c5, marker = stroke(3,c5), linewidth=4, markersize = 3, label="ELFIN-A 2/3 13:42")
+plot!(title = "2/3 prec/trap flux ratio comparison", ylabel="j_parallel/j_perp", xlabel = "Energy (keV)")    
+plot2 = plot!(dpi = 500,size=(800,450), margin=5mm, bottom_margin=3mm)
+savefig(plot2, "images/"*scenario*"_ratiocomparison.png")
+
+
+
+############
+i = 9 # applies to elfin 2/3 13:xx
+scenario = "020321_20"
+############
+elfin_p2t, elfin_p2t_error = extract_elfin_p2t_ratio(
+    scenario, DateTime(2021,2,3,13,42,25),DateTime(2021,2,3,13,42,32)
+    )
+normalizer = normalize_to_elfin(elfin_p2t[2], results_array[i][1])
+plot(E_bins, normalizer*results_array[i][1], label=rm_array[i].label, color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
+plot!(xscale=:log10, yscale=:log10, xlim=(10,1000), ylim=(1e-2, 15))
+plot!(elfin_p2t, yerror=elfin_p2t_error, color = c5, marker = stroke(3,c5), linewidth=4, markersize = 3, label="ELFIN-A 2/3 13:42")
+plot!(title = "2/3 prec/trap flux ratio comparison", ylabel="j_parallel/j_perp", xlabel = "Energy (keV)")    
+plot2 = plot!(dpi = 500,size=(800,450), margin=5mm, bottom_margin=3mm)
+savefig(plot2, "images/"*scenario*"_ratiocomparison.png")
+
