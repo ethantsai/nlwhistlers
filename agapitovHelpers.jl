@@ -356,7 +356,7 @@ function extract(sol::EnsembleSolution)
         # end
 
     end
-    @info "$(length(sol)) particles loaded in..."
+    @info "$(length(sol)) particles loaded in."
     return allT, allZ, allPZ, allQ, allZeta, allPhi, allE, allPA, allLambda, allBw;
 end
 
@@ -380,7 +380,7 @@ function postProcessor(allT::Vector{Vector{Float64}}, allZ::Vector{Vector{Float6
         @views Ematrix[1:length(allT[i]),i] = allE[i]
         @views PAmatrix[1:length(allT[i]),i] = allPA[i]
     end
-    @info "Matrices generated..."
+    @info "Matrices generated."
     return tVec, Zmatrix, PZmatrix, Ematrix, PAmatrix
 end
 
@@ -411,6 +411,7 @@ function countLostParticles(allT::Vector{Vector{Float64}}, endTime::Float64)
     @info "Total of $(lostParticles[end,end]) particles lost during sim"
     return lostParticles
 end
+
 struct Resultant_Matrix
     label::String
     numParticles::Int64
@@ -434,7 +435,9 @@ struct Resultant_Matrix
 end
 
 function sol2rm(sol, label)
-    allT, allZ, allPZ, allQ, allZeta, allPhi, allE, allPA, allLambda, allBw = extract(sol);
-    tVec, Zmatrix, PZmatrix, PAmatrix, Ematrix = postProcessor(allT, allZ, allPZ, allPA, allE);
+    @info "Extracting data..."
+    @time allT, allZ, allPZ, allQ, allZeta, allPhi, allE, allPA, allLambda, allBw = extract(sol);
+    @info "Processing data..."
+    @time tVec, Zmatrix, PZmatrix, PAmatrix, Ematrix = postProcessor(allT, allZ, allPZ, allPA, allE);
     return Resultant_Matrix(label, length(sol), tVec[end], allZ, allPZ, allQ, allZeta, allPhi, allT, allPA, allE, allLambda, allBw, countLostParticles(allT, tVec[end]), tVec, Zmatrix, PZmatrix, Ematrix, PAmatrix)
 end
