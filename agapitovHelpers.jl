@@ -27,23 +27,24 @@ mkpath(save_dir*folder)
 # case specific
              #L   MLT  Kp name
 test_cases = [7.1 8.4  2  "ELB_SA_210106T1154"; # ELB SA 01/06 11:54
-              #6.5 19.8 0  "ELB_ND_210108T0646"; # ELB ND 01/08 06:46
-              #4.8 19.0 3  "ELA_SD_210111T1750"; # ELA SD 01/11 17:50
-              6   8.4  3  "ELA_NA_210112T0226"]; # ELA NA 01/12 02:26
-              #6.5 3.8  3  "ELA_ND_200904T0112"; # ELA ND 09/04 01:12
-              #4.8 2.6  4  "ELB_ND_200926T0101"; # ELB ND 09/26 01:01
-              #5.1 20.2 3  "ELA_SD_210203T0902"; # ELA SD 02/03 09:02
-              #6.6 19.3 3  "ELA_SD_210203T1342"; # ELA SD 02/03 13:42
-              #6.2 5.8  3  "ELA_NA_210203T2046"; # ELA NA 02/03 20:46
-              #7.1 10.2 4  "ELA_SD_211001T0501"; # ELA SD 10/01 05:01
-              #6.1 9.0  3  "ELA_SD_211001T0810"; # ELA SD 10/01 08:10
-              #6.1 13.1 3  "ELA_SA_211101T0424"; # ELA SA 11/01 04:24
-              #4.5 20.8 3  "ELA_SA_211102T2218"] # ELA SA 11/02 22:18
+              6.5 19.8 0  "ELB_ND_210108T0646"; # ELB ND 01/08 06:46
+              4.8 19.0 3  "ELA_SD_210111T1750"; # ELA SD 01/11 17:50
+              6   8.4  3  "ELA_NA_210112T0226"; # ELA NA 01/12 02:26
+              6.5 3.8  3  "ELA_ND_200904T0112"; # ELA ND 09/04 01:12
+              4.8 2.6  4  "ELB_ND_200926T0101"; # ELB ND 09/26 01:01
+              5.1 20.2 3  "ELA_SD_210203T0902"; # ELA SD 02/03 09:02
+              6.6 19.3 3  "ELA_SD_210203T1342"; # ELA SD 02/03 13:42
+              6.2 5.8  3  "ELA_NA_210203T2046"; # ELA NA 02/03 20:46
+              7.5 5.7  3  "ELA_NA_210203T2047"; # ELA NA 02/03 20:47
+              6.4 10.2 4  "ELA_SD_211001T0501"; # ELA SD 10/01 05:01
+              6.6 8.8  3  "ELA_SD_211001T0810"; # ELA SD 10/01 08:10
+              6.1 13.1 3  "ELA_SA_211101T0424"; # ELA SA 11/01 04:24
+              4.5 20.8 3  "ELA_SA_211102T2218"] # ELA SA 11/02 22:18
 
 omega_m_cases = [0.3] # these are the different frequencies to test
 L_array = test_cases[:,1]
 
-const numParticles = 200000;
+const numParticles = 250000;
 const startTime = 0;
 const endTime = 15;
 tspan = (startTime, endTime); # integration time
