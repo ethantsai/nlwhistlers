@@ -442,3 +442,14 @@ function sol2rm(sol, label)
     @time tVec, Zmatrix, PZmatrix, PAmatrix, Ematrix = postProcessor(allT, allZ, allPZ, allPA, allE);
     return Resultant_Matrix(label, length(sol), tVec[end], allZ, allPZ, allQ, allZeta, allPhi, allT, allPA, allE, allLambda, allBw, countLostParticles(allT, tVec[end]), tVec, Zmatrix, PZmatrix, Ematrix, PAmatrix)
 end
+
+function last_index_before_zero(x::Vector{Float64})
+    k = 1
+    @inbounds for i in eachindex(x)
+        if iszero(x[i])
+            k = i-1
+            return k
+        end
+    end
+    return
+end
