@@ -82,6 +82,7 @@ function extract_idl_ratio(
 end
 
 function extract_elfin_p2t_ratio(datestring, tstart, tend)
+    @info "Loading csv data from $datestring"
     elfin_p2t, elfin_p2t_error = extract_idl_ratio(datestring*"_time.csv", datestring*"_p2t.csv",
                                                     datestring*"_p2t_err.csv", "ebins.csv", # csvs containing ELFIN measurements
                                                     tstart, tend); # time to sample from ELFIN measurements                                                                
@@ -99,7 +100,10 @@ function obtain_elfin_ratio(elfin_prec, elfin_trap)
 end
 
 function normalize_to_elfin(elfin_ratio, sim_ratio)
-    return elfin_ratio[1] / sim_ratio[3]
+    # goal is to normalize to first two channels of ELFIN 
+    # mean[63 and 97] keV is 80.61 keV
+    # sim has 83 keV at index 6
+    return mean(elfin_ratio[1:2]) / sim_ratio[6]
 end
 
 function make_elfin_error_bars(elfin_data, elfin_error)
@@ -125,3 +129,15 @@ c2 = hexcolor(0xf8,0x00,0x4d);
 c3 = hexcolor(0xd3,0x00,0x7d);
 c4 = hexcolor(0x8f,0x19,0x9f);
 c5 = hexcolor(0x00,0x38,0xa8);
+
+
+using DirectConvolution
+
+# https://github.com/vincent-picaud/DirectConvolution.jl
+# https://pixorblog.wordpress.com/2016/07/13/savitzky-golay-filters-julia/
+function smooth(signal, filterwidth::Int, polydegree::Int)
+    s = Float64[i for i in signal]
+    sg = SG_Filter(halfWidth=filterwidth,degree=polydegree)
+    ss = apply_SG_filter(s, sg)
+    return ss # 1d savitzky-golay smoothed signal
+end
