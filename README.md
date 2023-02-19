@@ -45,7 +45,7 @@ sudo ln -s /usr/lib/julia-X.X.X/bin/julia /usr/local/bin/julia
 
   2. Install packages by hitting `]` and then entering:
 ```
-add TickTock, ConfParser, Profile, Dates, Random, StaticArrays, Distributed, OrdinaryDiffEq, JLD2, Plots, PyPlot, InteractiveUtils, PlutoUI, LoopVectorization, BenchmarkTools, StatsPlots, DataFrames, CSV, LaTeXStrings
+add TickTock, ConfParser, Profile, Dates, Random, StaticArrays, Distributed, OrdinaryDiffEq, JLD2, Plots, PyPlot, InteractiveUtils, PlutoUI, LoopVectorization, BenchmarkTools, StatsPlots, DataFrames, CSV, LaTeXStrings, StatsBase, DirectConvolution
 ```
 
 ## Run code
