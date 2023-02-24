@@ -19,18 +19,18 @@ folder = "run19/"
 # case = "ELA_NA_210112T0226_3_250000", done
 # case = "ELA_ND_200904T0112_3_250000", done
 # case = "ELB_ND_200926T0101_3_250000", done
-# case = "ELA_SD_210203T0902_3_250000", done (took 10 hrs)
-# case = "ELA_SD_210203T1342_3_250000"
-# case = "ELA_NA_210203T2046_3_250000"
+# case = "ELA_SD_210203T0902_3_250000", done
+# case = "ELA_SD_210203T1342_3_250000", done
+# case = "ELA_NA_210203T2046_3_250000", done
 # case = "ELA_NA_210203T2047_3_250000", done
-# case = "ELA_SD_211001T0501_3_250000", done (took 10 hrs)
-# case = "ELA_SD_211001T0810_3_250000"
-# case = "ELA_SA_211101T0424_3_250000"
+# case = "ELA_SD_211001T0501_3_250000", done
+# case = "ELA_SD_211001T0810_3_250000", done
+# case = "ELA_SA_211101T0424_3_250000", done
 # case = "ELA_SA_211102T2218_3_250000"
 
-# @time @load save_dir*folder*case*".jld2" sol;
-# rm = sol2rm(sol, case);
-# @time @save "result_matrix/"*case[1:18]*".jld2" rm
+@time @load save_dir*folder*case*".jld2" sol;
+rm = sol2rm(sol, case);
+@time @save "result_matrix/"*case[1:18]*".jld2" rm
 
 
 
@@ -343,4 +343,31 @@ plot!(elfin_p2t, yerror=elfin_p2t_error, color = c5, marker = stroke(3,c5), line
 plot!(title = mm*"/"*dd*" "*HH*":"*MM*" prec/trap flux ratio comparison", ylabel="j_parallel/j_perp", xlabel = "Energy (keV)")    
 plot2 = plot!(dpi = 500,size=(800,450), margin=20px, bottom_margin=12px)
 savefig(plot2, "images/"*scenario*"_ratiocomparison.png")
+
+
+
+
+
+
+
+
+# dawn comparison
+scenario = "ELA_SD_211001T0810"
+@time @load "result_matrix/"*scenario*".jld2" rm
+id, yy, mm, dd, HH, MM = extract_idyymmddHHMM(scenario)
+sim_ratio = prec_to_trap_ratio(rm)
+sim_ratio_sm = smooth(sim_ratio[1], 6, 5)
+
+scenario = "HI_DAWN_3_250000"
+@time @load "result_matrix/"*scenario*".jld2" rm
+sim_ratio_2 = prec_to_trap_ratio(rm)
+sim_ratio_sm_2 = smooth(sim_ratio_2[1], 6, 5)
+
+plot(E_bins, sim_ratio_sm, label=scenario[9:end]*"_model", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
+plot!(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 15))
+plot!(E_bins, 1.2*sim_ratio_sm_2, label=scenario[9:end]*"_omegap=10", color = c4, marker = stroke(3,c4), linewidth=2, markersize = 1)
+
+
+
+
 
