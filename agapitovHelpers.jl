@@ -21,7 +21,7 @@ using StatsBase
 #######################
 @info "Loading constants..."
 save_dir = "results_ducting/"
-folder = "run19/"
+folder = "run20/"
 mkpath(save_dir*folder)
 
 # case specific
@@ -72,7 +72,7 @@ const Re   = 6370e3;        # Earth radius, f64
 const c    = 3e8;           # speedo lite, f64
 const Beq  = 3.e-5;         # B field at equator (T), f64
 
-const saveDecimation = 10000; # really only need first and last point
+const saveDecimation = 40000; # really only need first and last point
 @info "Done."
 
 
@@ -119,7 +119,7 @@ function generateFlatParticleDistribution(numParticles::Int64, ICrange, L)
     @info "L shell of $L w/ wave amplitude of $Bw pT"
     @info "Yields ε = $ε and η = $η"
 
-    resolution  = (1/η) / 20;  # determines max step size of the integrator
+    resolution  = (1/η) / 15;  # determines max step size of the integrator
     # due to issues accuracy issues around sqrt(mu)~0, experimentally 
     # found that 30x smaller is sufficient to yield stable results
                                                     
@@ -176,7 +176,7 @@ function generateSkewedParticleDistribution(numParticles::Int64, ICrange, L, fac
     @info "L shell of $L w/ wave amplitude of $Bw pT"
     @info "Yields ε = $ε and η = $η"
 
-    resolution  = (1/η) / 20;  # determines max step size of the integrator
+    resolution  = (1/η) / 15;  # determines max step size of the integrator
     # due to issues accuracy issues around sqrt(mu)~0, experimentally 
     # found that 20x smaller is sufficient to yield stable results
                                                     
@@ -193,22 +193,25 @@ function setup_wave_model(test_cases)
     wave_model_array = Vector{Function}()
     wave_model_coeff_array = Vector{SVector{4, Float64}}()
     wave_model_normalizer_array = Vector{Float64}()
+    wave_model_shifter_array = Vector{Float64}()
+    threshold = 40; #degrees, when wave model should be invalidated
     for case in eachrow(test_cases)
         wave_model(lambda) = B_w(lambda, case[3], α_ij_matrix(case[1], case[2]))
         push!(wave_model_array, wave_model)
-        push!(wave_model_normalizer_array, obtain_normalizer(wave_model))
+        push!(wave_model_normalizer_array, obtain_normalizer(wave_model, threshold))
         push!(wave_model_coeff_array, agapitov_coeffs(case[3], α_ij_matrix(case[1], case[2]))  )
+        push!(wave_model_shifter_array, wave_model(threshold))
     end 
     wave_normalizer = minimum(wave_model_normalizer_array)
-    return wave_model_array, wave_model_coeff_array, wave_normalizer
+    return wave_model_array, wave_model_coeff_array, wave_normalizer, wave_model_shifter_array
 end
 
-function eom!(dH,H,p::SVector{8},t::Float64)
+function eom!(dH,H,p::SVector{9},t::Float64)
     # These equations define the motion.
     #                  lambda in radians                     
     # z, pz, zeta, mu, lambda, phi = H
-    # p[1] p[2]     p[3]     p[4]    p[5] p[6]  p[7] p[8]
-    # eta, epsilon, Omegape, omegam, a,   dPhi, B_w, B_w_normalizer = p
+    # p[1] p[2]     p[3]     p[4]    p[5] p[6]  p[7] p[8]           p[9]
+    # eta, epsilon, Omegape, omegam, a,   dPhi, B_w, B_w_normalizer B_w_shifter = p
 
     sinλ = sin(H[5]);
     cosλ = cos(H[5]);
@@ -224,7 +227,11 @@ function eom!(dH,H,p::SVector{8},t::Float64)
     K = copysign(1, H[5]) * (p[3] * (cosλ^(-5/2)))/sqrt(b/p[4] - 1);
 
     # B_w
-    H[7] = p[8] * (10 ^ abs( p[7][1] * (abs(rad2deg(H[5])) - p[7][4]) * exp(-abs(rad2deg(H[5])) * p[7][3] - p[7][2]))) * tanh(rad2deg(H[5]))
+    if H[5] > 0.6981317007977318 # agapitov not really valid above 40 deg
+        H[7] = 0
+    else
+        H[7] = p[8] * ((10 ^ abs( p[7][1] * (abs(rad2deg(H[5])) - p[7][4]) * exp(-abs(rad2deg(H[5])) * p[7][3] - p[7][2]))) - p[9]) * tanh(rad2deg(H[5]))
+    end
     
     # if H[5]>deg2rad(20)
         # H[7] = 0
@@ -289,7 +296,7 @@ calcAlpha(α::Vector{Float64},μ::Vector{Float64}, γ::Vector{Float64}) = @. α 
 logrange(x1, x2, n::Int64) = [10^y for y in range(log10(x1), log10(x2), length=n)]
 const E_bins = logrange(ELo,EHi, Int64(Esteps))
 
-obtain_normalizer(f::Function) = maximum(f.(0:0.01:90))^-1
+obtain_normalizer(f::Function,t) = maximum(f.(0:0.01:90).-f(t))^-1
 
 calcb!(b::Vector{Float64}, lambda) = @. b = sqrt(1+3*sin(lambda)^2)/(cos(lambda)^6)
 calcGamma!(gamma::Vector{Float64}, pz, mu, b::Vector{Float64}) = @. gamma = sqrt(1 + pz^2 + 2*mu*b)

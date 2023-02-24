@@ -7,7 +7,7 @@ include("agapitovHelpers.jl")
 include("agapitovmodel.jl")
 tick()
 
-wave_model_array, wave_model_coeff_array, wave_normalizer = setup_wave_model(test_cases)
+wave_model_array, wave_model_coeff_array, wave_normalizer, wave_shifter_array = setup_wave_model(test_cases)
 total_sims = length(L_array)*length(omega_m_cases)
 @info "Performing simulations on $(length(L_array)) scenarios with $(length(omega_m_cases)) cases each."
 @info "For a total of $total_sims sims."
@@ -18,15 +18,16 @@ for case_index in eachindex(L_array)
     h0, f0, η, ε, Omegape, resolution = generateSkewedParticleDistribution(numParticles, ICrange, L_array[case_index], factor);
 
     wave_model_coeffs = wave_model_coeff_array[case_index]
+    wave_shifter = wave_shifter_array[case_index]
 
     for n in eachindex(omega_m_cases)
         omega_m = omega_m_cases[n]
         @info "Starting new sim: $(test_cases[:,end][case_index]) with omega_m = $omega_m"
         savename = save_dir*folder*test_cases[:,end][case_index]*"_"*string(omega_m)[end]*"_$numParticles.jld2"
 
-        params = @SVector [η, ε, Omegape, omega_m, a, dPhi, wave_model_coeffs, wave_normalizer];
+        params = @SVector [η, ε, Omegape, omega_m, a, dPhi, wave_model_coeffs, wave_normalizer, wave_shifter];
         prob = ODEProblem(eom!, ~, tspan, params);
-        prob_func = ((prob,i,repeat) -> remake(prob, u0 = h0[i,:], p = @SVector [η, ε, Omegape, omega_m, a, dPhi, wave_model_coeffs, wave_normalizer]))
+        prob_func = ((prob,i,repeat) -> remake(prob, u0 = h0[i,:], p = @SVector [η, ε, Omegape, omega_m, a, dPhi, wave_model_coeffs, wave_normalizer, wave_shifter]))
         ensemble_prob = EnsembleProblem(prob::ODEProblem,prob_func=prob_func)
         
         tick()
