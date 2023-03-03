@@ -29,10 +29,11 @@ mkpath(save_dir*folder)
 test_cases = [4.5 23   3  "LO_NITE_MODEL";
               4.5 16.5 3  "LO_DUSK_MODEL";
               4.5 8.0  3  "LO_DAWN_MODEL";
-              6.5 23   3  "HI_NITE_MODEL";
-              6.5 16.5 3  "HI_DUSK_MODEL";
-              6.5 8.0  3  "HI_DAWN_MODEL";
               ]
+# test_cases = [6.5 23   3  "HI_NITE_MODEL";
+#               6.5 16.5 3  "HI_DUSK_MODEL";
+#               6.5 8.0  3  "HI_DAWN_MODEL";
+#               ]
 
 omega_m_cases = [0.3] # these are the different frequencies to test
 L_array = test_cases[:,1]
@@ -194,7 +195,7 @@ function setup_wave_model(test_cases)
         push!(wave_model_normalizer_array, obtain_normalizer(wave_model))
         # push!(wave_model_normalizer_array, obtain_normalizer(wave_model, threshold))
         push!(wave_model_coeff_array, agapitov_coeffs(case[3], α_ij_matrix(case[1], case[2]))  )
-        push!(wave_model_shifter_array)
+        push!(wave_model_shifter_array, 0)
         # push!(wave_model_shifter_array, wave_model(threshold))
     end 
     wave_normalizer = minimum(wave_model_normalizer_array)
