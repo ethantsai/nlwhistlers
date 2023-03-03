@@ -21,25 +21,18 @@ using StatsBase
 #######################
 @info "Loading constants..."
 save_dir = "results_ducting/"
-folder = "run20/"
+folder = "run21/"
 mkpath(save_dir*folder)
 
 # case specific
              #L   MLT  Kp name
-test_cases = [7.1 8.4  2  "ELB_SA_210106T1154"; # ELB SA 01/06 11:54
-              6.5 19.8 0  "ELB_ND_210108T0646"; # ELB ND 01/08 06:46
-              4.8 19.0 3  "ELA_SD_210111T1750"; # ELA SD 01/11 17:50
-              6   8.4  3  "ELA_NA_210112T0226"; # ELA NA 01/12 02:26
-              6.5 3.8  3  "ELA_ND_200904T0112"; # ELA ND 09/04 01:12
-              4.8 2.6  4  "ELB_ND_200926T0101"; # ELB ND 09/26 01:01
-              5.1 20.2 3  "ELA_SD_210203T0902"; # ELA SD 02/03 09:02
-              6.6 19.3 3  "ELA_SD_210203T1342"; # ELA SD 02/03 13:42
-              6.2 5.8  3  "ELA_NA_210203T2046"; # ELA NA 02/03 20:46
-              7.5 5.7  3  "ELA_NA_210203T2047"; # ELA NA 02/03 20:47
-              6.4 10.2 4  "ELA_SD_211001T0501"; # ELA SD 10/01 05:01
-              6.6 8.8  3  "ELA_SD_211001T0810"; # ELA SD 10/01 08:10
-              6.1 13.1 3  "ELA_SA_211101T0424"; # ELA SA 11/01 04:24
-              4.5 20.8 3  "ELA_SA_211102T2218"] # ELA SA 11/02 22:18
+test_cases = [4.5 23   3  "LO_NITE_MODEL";
+              4.5 16.5 3  "LO_DUSK_MODEL";
+              4.5 8.0  3  "LO_DAWN_MODEL";
+              6.5 23   3  "HI_NITE_MODEL";
+              6.5 16.5 3  "HI_DUSK_MODEL";
+              6.5 8.0  3  "HI_DAWN_MODEL";
+              ]
 
 omega_m_cases = [0.3] # these are the different frequencies to test
 L_array = test_cases[:,1]
@@ -55,7 +48,7 @@ const Esteps = 32; # double ELFIN E bins
 const PALo = 3;
 const PAHi = 15;
 const PAsteps = 1300; # only used for flat particle distribution
-const factor = 50; #only used for skewed particle distribution
+const factor = 40; #only used for skewed particle distribution
 # num particles in highest energy bin = factor * num particles in lowest energy bin
 ICrange = [ELo, EHi, Esteps, PALo, PAHi, PAsteps];
 
@@ -121,7 +114,7 @@ function generateFlatParticleDistribution(numParticles::Int64, ICrange, L)
 
     resolution  = (1/η) / 15;  # determines max step size of the integrator
     # due to issues accuracy issues around sqrt(mu)~0, experimentally 
-    # found that 30x smaller is sufficient to yield stable results
+    # found that 15x smaller is sufficient to yield stable results
                                                     
     @info "Min integration step of $resolution"
     @info "Created Initial Conditions for $(length(h0[:,1])) particles"
@@ -178,7 +171,7 @@ function generateSkewedParticleDistribution(numParticles::Int64, ICrange, L, fac
 
     resolution  = (1/η) / 15;  # determines max step size of the integrator
     # due to issues accuracy issues around sqrt(mu)~0, experimentally 
-    # found that 20x smaller is sufficient to yield stable results
+    # found that 15x smaller is sufficient to yield stable results
                                                     
     @info "Min integration step of $resolution"
     @info "Created Initial Conditions for $(length(h0[:,1])) particles"
@@ -198,9 +191,11 @@ function setup_wave_model(test_cases)
     for case in eachrow(test_cases)
         wave_model(lambda) = B_w(lambda, case[3], α_ij_matrix(case[1], case[2]))
         push!(wave_model_array, wave_model)
-        push!(wave_model_normalizer_array, obtain_normalizer(wave_model, threshold))
+        push!(wave_model_normalizer_array, obtain_normalizer(wave_model))
+        # push!(wave_model_normalizer_array, obtain_normalizer(wave_model, threshold))
         push!(wave_model_coeff_array, agapitov_coeffs(case[3], α_ij_matrix(case[1], case[2]))  )
-        push!(wave_model_shifter_array, wave_model(threshold))
+        push!(wave_model_shifter_array)
+        # push!(wave_model_shifter_array, wave_model(threshold))
     end 
     wave_normalizer = minimum(wave_model_normalizer_array)
     return wave_model_array, wave_model_coeff_array, wave_normalizer, wave_model_shifter_array
@@ -227,11 +222,7 @@ function eom!(dH,H,p::SVector{9},t::Float64)
     K = copysign(1, H[5]) * (p[3] * (cosλ^(-5/2)))/sqrt(b/p[4] - 1);
 
     # B_w
-    if H[5] > 0.6981317007977318 # agapitov not really valid above 40 deg
-        H[7] = 0
-    else
-        H[7] = p[8] * ((10 ^ abs( p[7][1] * (abs(rad2deg(H[5])) - p[7][4]) * exp(-abs(rad2deg(H[5])) * p[7][3] - p[7][2]))) - p[9]) * tanh(rad2deg(H[5]))
-    end
+    H[7] = p[8] * ((10 ^ abs( p[7][1] * (abs(rad2deg(H[5])) - p[7][4]) * exp(-abs(rad2deg(H[5])) * p[7][3] - p[7][2]))) - p[9]) * tanh(rad2deg(H[5]/deg2rad(1)))
     
     # if H[5]>deg2rad(20)
         # H[7] = 0
@@ -296,6 +287,7 @@ calcAlpha(α::Vector{Float64},μ::Vector{Float64}, γ::Vector{Float64}) = @. α 
 logrange(x1, x2, n::Int64) = [10^y for y in range(log10(x1), log10(x2), length=n)]
 const E_bins = logrange(ELo,EHi, Int64(Esteps))
 
+obtain_normalizer(f::Function) = maximum(f.(0:0.01:90))^-1
 obtain_normalizer(f::Function,t) = maximum(f.(0:0.01:90).-f(t))^-1
 
 calcb!(b::Vector{Float64}, lambda) = @. b = sqrt(1+3*sin(lambda)^2)/(cos(lambda)^6)

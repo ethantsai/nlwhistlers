@@ -8,6 +8,7 @@ include("agapitovmodel.jl")
 tick()
 
 wave_model_array, wave_model_coeff_array, wave_normalizer, wave_shifter_array = setup_wave_model(test_cases)
+
 total_sims = length(L_array)*length(omega_m_cases)
 @info "Performing simulations on $(length(L_array)) scenarios with $(length(omega_m_cases)) cases each."
 @info "For a total of $total_sims sims."
