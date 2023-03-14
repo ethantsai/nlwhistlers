@@ -17,7 +17,6 @@ test_cases = [7.1 8.4  3  "ELB_SA_210106T1154"; # ELB SA 01/06 11:54
               6.1 13.1 3  "ELA_SA_211101T0424"; # ELA SA 11/01 04:24
               4.5 20.8 3  "ELA_SA_211102T2218"] # ELA SA 11/02 22:18
 
-
 ####################
 # Fig 1 ELFIN demo #
 ####################
@@ -360,4 +359,127 @@ night_plot = plot(p1,p2,p3,p4,p5,p6,layout=(2,3),# plot_title="Nightside Compari
 # savefig(night_plot, "images/nightside_comparisons.png")
 savefig(night_plot, "images/nightside_comparisons.pdf")
 
+
+#####################
+# Fig 4 B_w comapre #
+#####################
+
+# comparison of B_w with >40 = 0
+############
+scenario = "ELB_SA_210106T1154"
+start = DateTime(2021,1,6,11,53,50)
+stop = DateTime(2021,1,6,11,54,1)
+############
+id, yy, mm, dd, HH, MM = extract_idyymmddHHMM(scenario);
+@time @load "result_matrix/"*scenario*".jld2" rm
+sim_ratio = prec_to_trap_ratio(rm)
+sim_ratio_sm = smooth(sim_ratio[1], 6, 5)
+elfin_p2t, elfin_p2t_error = extract_elfin_p2t_ratio(
+    mm*dd*yy*"_"*HH, start, stop
+    )
+@info "Model E_max = $(elfin_p2t[1][last_index_before_zero(elfin_p2t[2])]) keV for scenario $scenario"
+normalizer = normalize_to_elfin(elfin_p2t[2], sim_ratio_sm)
+@time @load "result_matrix_2/"*scenario*"_bwmod.jld2" rm
+sim_ratio_new = prec_to_trap_ratio(rm)
+sim_ratio_new_sm = smooth(sim_ratio_new[1], 6, 5)
+normalizer_new = normalize_to_elfin(elfin_p2t[2], sim_ratio_new_sm)
+plot(E_bins, normalizer*sim_ratio_sm, label=scenario[9:end], color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
+plot!(E_bins, normalizer_new*sim_ratio_new_sm, label=scenario[9:end]*"_bwmod", color = c2, marker = stroke(3,c2), linewidth=4, markersize = 3)
+plot!(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 15))
+plot!(elfin_p2t, yerror=elfin_p2t_error, color = c5, marker = stroke(3,c5), linewidth=4, markersize = 3, label="ELFIN-"*id*" "*mm*"/"*dd*" "*HH*":"*MM)
+plot!(title = mm*"/"*dd*" "*HH*":"*MM*" prec/trap flux ratio comparison", ylabel="j_parallel/j_perp", xlabel = "Energy (keV)")    
+plot2 = plot!(dpi = 500,size=(800,450), margin=20px, bottom_margin=12px)
+savefig(plot2, "images/"*scenario*"_bw_modcomparison.png")
+
+############
+scenario = "ELB_ND_210108T0646"
+start = DateTime(2021,1,8,6,46,49)
+stop = DateTime(2021,1,8,6,46,56)
+############
+id, yy, mm, dd, HH, MM = extract_idyymmddHHMM(scenario);
+@time @load "result_matrix/"*scenario*".jld2" rm
+sim_ratio = prec_to_trap_ratio(rm)
+sim_ratio_sm = smooth(sim_ratio[1], 6, 5)
+elfin_p2t, elfin_p2t_error = extract_elfin_p2t_ratio(
+    mm*dd*yy*"_"*HH, start, stop
+    )
+@info "Model E_max = $(elfin_p2t[1][last_index_before_zero(elfin_p2t[2])]) keV for scenario $scenario"
+normalizer = normalize_to_elfin(elfin_p2t[2], sim_ratio_sm)
+@time @load "result_matrix_2/"*scenario*"_bwmod.jld2" rm
+sim_ratio_new = prec_to_trap_ratio(rm)
+sim_ratio_new_sm = smooth(sim_ratio_new[1], 6, 5)
+normalizer_new = normalize_to_elfin(elfin_p2t[2], sim_ratio_new_sm)
+plot(E_bins, normalizer*sim_ratio_sm, label=scenario[9:end], color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
+plot!(E_bins, normalizer_new*sim_ratio_new_sm, label=scenario[9:end]*"_bwmod", color = c2, marker = stroke(3,c2), linewidth=4, markersize = 3)
+plot!(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 15))
+plot!(elfin_p2t, yerror=elfin_p2t_error, color = c5, marker = stroke(3,c5), linewidth=4, markersize = 3, label="ELFIN-"*id*" "*mm*"/"*dd*" "*HH*":"*MM)
+plot!(title = mm*"/"*dd*" "*HH*":"*MM*" prec/trap flux ratio comparison", ylabel="j_parallel/j_perp", xlabel = "Energy (keV)")    
+plot2 = plot!(dpi = 500,size=(800,450), margin=20px, bottom_margin=12px)
+savefig(plot2, "images/"*scenario*"_bw_modcomparison.png")
+
+
+
+case = "ELB_SA_210106T1154"
+@time @load "hires_result_matrix/$case.jld2" rm;
+A = [maximum(rad2deg.(x)) for x in rmx.allLambda]
+index_of_interest = findall(A .== maximum(A))
+bw_compare = plot([rad2deg.(traj) for traj in rmx.allLambda[index_of_interest]], rmx.allBw[index_of_interest], color = c1, linewidth=4, label = "210106T1154_original")
+case = "ELB_ND_210108T0646"
+@time @load "hires_result_matrix/$case.jld2" rm;
+A = [maximum(rad2deg.(x)) for x in rmx.allLambda]
+index_of_interest = findall(A .== maximum(A))
+bw_compare = plot!([rad2deg.(traj) for traj in rmx.allLambda[index_of_interest]], rmx.allBw[index_of_interest], color = c4, linewidth=4,  label = "210108T0646_original")
+case = "ELB_SA_210106T1154_bwmod"
+@time @load "hires_result_matrix/$case.jld2" rm;
+A = [maximum(rad2deg.(x)) for x in rmx.allLambda]
+index_of_interest = findall(A .== maximum(A))
+bw_compare = plot!([rad2deg.(traj) for traj in rmx.allLambda[index_of_interest]], rmx.allBw[index_of_interest], color = c5, linewidth=4,  label = "210106T1154_bwmod")
+case = "ELB_ND_210108T0646_bwmod"
+@time @load "hires_result_matrix/$case.jld2" rm;
+A = [maximum(rad2deg.(x)) for x in rmx.allLambda]
+index_of_interest = findall(A .== maximum(A))
+bw_compare = plot!([rad2deg.(traj) for traj in rmx.allLambda[index_of_interest]], rmx.allBw[index_of_interest], color = c3, linewidth=4, label = "210108T0646_bwmod")
+bw_compare = plot!(title = "B_w profile comparison", xlabel = "Latitude (degrees)", ylabel = "B_w multiplier", dpi = 500, size=(600,300), margin=15px, bottom_margin=12px)
+# savefig(bw_compare, "images/bwmod_comparison.png")
+
+
+
+
+
+###############
+# Stats Plots #
+###############
+test_cases = [4.5 8.0  3  "LO_DAWN_MODEL" c0;
+              4.5 16.5 3  "LO_DUSK_MODEL" c2;
+              4.5 23.0 3  "LO_NITE_MODEL" c4;
+              ]
+sp_ll = plot(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-3, 2),
+            xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10)
+for case in eachrow(test_cases)
+    L, MLT, Kp, scenario, colour = case
+    @time @load "result_matrix_stats/"*scenario*".jld2" rm
+    @info "loaded $scenario.jld2"
+    sim_ratio = prec_to_trap_ratio(rm)
+    sim_ratio_sm = smooth(sim_ratio[1], 6, 5)
+    sp_ll = plot!(E_bins, sim_ratio_sm, label=" Model: L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
+end
+savefig(sp_ll, "images/ll_compare.png")
+savefig(sp_ll, "images/ll_compare.pdf")
+
+test_cases = [6.5 8.0  3  "HI_DAWN_MODEL" c1;
+              6.5 16.5 3  "HI_DUSK_MODEL" c3;
+              6.5 23.0 3  "HI_NITE_MODEL" c5;
+              ]
+sp_hl = plot(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-3, 2),
+            xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10)
+for case in eachrow(test_cases)
+    L, MLT, Kp, scenario, colour = case
+    @time @load "result_matrix_stats/"*scenario*".jld2" rm
+    @info "loaded $scenario.jld2"
+    sim_ratio = prec_to_trap_ratio(rm)
+    sim_ratio_sm = smooth(sim_ratio[1], 6, 5)
+    sp_hl = plot!(E_bins, sim_ratio_sm, label=" Model: L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
+end
+savefig(sp_hl, "images/hl_compare.png")
+savefig(sp_hl, "images/hl_compare.pdf")
 
