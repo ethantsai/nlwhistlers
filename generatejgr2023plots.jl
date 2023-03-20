@@ -449,37 +449,39 @@ bw_compare = plot!(title = "B_w profile comparison", xlabel = "Latitude (degrees
 ###############
 # Stats Plots #
 ###############
-test_cases = [4.5 8.0  3  "LO_DAWN_MODEL" c0;
-              4.5 16.5 3  "LO_DUSK_MODEL" c2;
-              4.5 23.0 3  "LO_NITE_MODEL" c4;
+test_cases = [4.5 8.0  3  "LO_DAWN_MODEL" c1 "Dawn";
+              4.5 16.5 3  "LO_DUSK_MODEL" c3 "Dusk";
+              4.5 23.0 3  "LO_NITE_MODEL" c5 "Night";
               ]
-sp_ll = plot(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-3, 2),
+sp_ll = plot(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 1),
             xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10)
 for case in eachrow(test_cases)
-    L, MLT, Kp, scenario, colour = case
+    L, MLT, Kp, scenario, colour, label = case
     @time @load "result_matrix_stats/"*scenario*".jld2" rm
     @info "loaded $scenario.jld2"
     sim_ratio = prec_to_trap_ratio(rm)
     sim_ratio_sm = smooth(sim_ratio[1], 6, 5)
-    sp_ll = plot!(E_bins, sim_ratio_sm, label=" Model: L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
+    sp_ll = plot!(E_bins, sim_ratio_sm, label=" $label Model: L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
 end
+sp_ll = plot!(dpi = 500,size=(800,450), margin=20px, bottom_margin=12px)
 savefig(sp_ll, "images/ll_compare.png")
 savefig(sp_ll, "images/ll_compare.pdf")
 
-test_cases = [6.5 8.0  3  "HI_DAWN_MODEL" c1;
-              6.5 16.5 3  "HI_DUSK_MODEL" c3;
-              6.5 23.0 3  "HI_NITE_MODEL" c5;
+test_cases = [6.5 8.0  3  "HI_DAWN_MODEL" c1 "Dawn";
+              6.5 16.5 3  "HI_DUSK_MODEL" c3 "Dusk";
+              6.5 23.0 3  "HI_NITE_MODEL" c5 "Night";
               ]
-sp_hl = plot(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-3, 2),
+sp_hl = plot(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 1),
             xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10)
 for case in eachrow(test_cases)
-    L, MLT, Kp, scenario, colour = case
+    L, MLT, Kp, scenario, colour, label = case
     @time @load "result_matrix_stats/"*scenario*".jld2" rm
     @info "loaded $scenario.jld2"
     sim_ratio = prec_to_trap_ratio(rm)
     sim_ratio_sm = smooth(sim_ratio[1], 6, 5)
-    sp_hl = plot!(E_bins, sim_ratio_sm, label=" Model: L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
+    sp_hl = plot!(E_bins, sim_ratio_sm, label=" $label Model: L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
 end
+sp_hl = plot!(dpi = 500,size=(800,450), margin=20px, bottom_margin=12px)
 savefig(sp_hl, "images/hl_compare.png")
 savefig(sp_hl, "images/hl_compare.pdf")
 
