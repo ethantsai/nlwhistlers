@@ -83,7 +83,7 @@ index = findfirst(x->x==scenario, test_cases[:,4])
 L, MLT, Kp = test_cases[index,1:3]
 start_string = Dates.format(start, DateFormat("yyyy-mm-dd HH:MM:SS"))
 stop_string = Dates.format(stop, DateFormat("HH:MM:SS"))
-plot(E_bins, normalizer*sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
+plot(E_bins, sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
 plot!(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 8))
 plot!(elfin_p2t, yerror=elfin_p2t_error, color = c5, marker = stroke(3,c5), linewidth=4, markersize = 0, label=" ELFIN-$id $start_string-$stop_string" )
 p1 = plot!()
@@ -106,7 +106,7 @@ index = findfirst(x->x==scenario, test_cases[:,4])
 L, MLT, Kp = test_cases[index,1:3]
 start_string = Dates.format(start, DateFormat("yyyy-mm-dd HH:MM:SS"))
 stop_string = Dates.format(stop, DateFormat("HH:MM:SS"))
-plot(E_bins, normalizer*sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
+plot(E_bins, sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
 plot!(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 8))
 plot!(elfin_p2t, yerror=elfin_p2t_error, color = c5, marker = stroke(3,c5), linewidth=4, markersize = 0, label=" ELFIN-$id $start_string-$stop_string" )
 p2 = plot!()
@@ -129,7 +129,7 @@ index = findfirst(x->x==scenario, test_cases[:,4])
 L, MLT, Kp = test_cases[index,1:3]
 start_string = Dates.format(start, DateFormat("yyyy-mm-dd HH:MM:SS"))
 stop_string = Dates.format(stop, DateFormat("HH:MM:SS"))
-plot(E_bins, normalizer*sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
+plot(E_bins, sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
 plot!(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 8))
 plot!(elfin_p2t, yerror=elfin_p2t_error, color = c5, marker = stroke(3,c5), linewidth=4, markersize = 0, label=" ELFIN-$id $start_string-$stop_string" )
 p3 = plot!()
@@ -152,7 +152,7 @@ index = findfirst(x->x==scenario, test_cases[:,4])
 L, MLT, Kp = test_cases[index,1:3]
 start_string = Dates.format(start, DateFormat("yyyy-mm-dd HH:MM:SS"))
 stop_string = Dates.format(stop, DateFormat("HH:MM:SS"))
-plot(E_bins, normalizer*sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
+plot(E_bins, sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
 plot!(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 8))
 plot!(elfin_p2t, yerror=elfin_p2t_error, color = c5, marker = stroke(3,c5), linewidth=4, markersize = 0, label=" ELFIN-$id $start_string-$stop_string" )
 p4 = plot!()
@@ -175,7 +175,7 @@ index = findfirst(x->x==scenario, test_cases[:,4])
 L, MLT, Kp = test_cases[index,1:3]
 start_string = Dates.format(start, DateFormat("yyyy-mm-dd HH:MM:SS"))
 stop_string = Dates.format(stop, DateFormat("HH:MM:SS"))
-plot(E_bins, normalizer*sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
+plot(E_bins, sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
 plot!(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 8))
 plot!(elfin_p2t, yerror=elfin_p2t_error, color = c5, marker = stroke(3,c5), linewidth=4, markersize = 0, label=" ELFIN-$id $start_string-$stop_string" )
 p5 = plot!()
@@ -198,7 +198,7 @@ index = findfirst(x->x==scenario, test_cases[:,4])
 L, MLT, Kp = test_cases[index,1:3]
 start_string = Dates.format(start, DateFormat("yyyy-mm-dd HH:MM:SS"))
 stop_string = Dates.format(stop, DateFormat("HH:MM:SS"))
-plot(E_bins, normalizer*sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
+plot(E_bins, sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
 plot!(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 8))
 plot!(elfin_p2t, yerror=elfin_p2t_error, color = c5, marker = stroke(3,c5), linewidth=4, markersize = 0, label=" ELFIN-$id $start_string-$stop_string" )
 p6 = plot!()
@@ -233,7 +233,7 @@ index = findfirst(x->x==scenario, test_cases[:,4])
 L, MLT, Kp = test_cases[index,1:3]
 start_string = Dates.format(start, DateFormat("yyyy-mm-dd HH:MM:SS"))
 stop_string = Dates.format(stop, DateFormat("HH:MM:SS"))
-plot(E_bins, normalizer*sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
+plot(E_bins, sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
 plot!(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 8))
 plot!(elfin_p2t, yerror=elfin_p2t_error, color = c5, marker = stroke(3,c5), linewidth=4, markersize = 0, label=" ELFIN-$id $start_string-$stop_string" )
 p1 = plot!()
@@ -256,7 +256,7 @@ index = findfirst(x->x==scenario, test_cases[:,4])
 L, MLT, Kp = test_cases[index,1:3]
 start_string = Dates.format(start, DateFormat("yyyy-mm-dd HH:MM:SS"))
 stop_string = Dates.format(stop, DateFormat("HH:MM:SS"))
-plot(E_bins, normalizer*sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
+plot(E_bins, sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
 plot!(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 8))
 plot!(elfin_p2t, yerror=elfin_p2t_error, color = c5, marker = stroke(3,c5), linewidth=4, markersize = 0, label=" ELFIN-$id $start_string-$stop_string" )
 p2 = plot!()
@@ -279,7 +279,7 @@ index = findfirst(x->x==scenario, test_cases[:,4])
 L, MLT, Kp = test_cases[index,1:3]
 start_string = Dates.format(start, DateFormat("yyyy-mm-dd HH:MM:SS"))
 stop_string = Dates.format(stop, DateFormat("HH:MM:SS"))
-plot(E_bins, normalizer*sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
+plot(E_bins, sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
 plot!(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 8))
 plot!(elfin_p2t, yerror=elfin_p2t_error, color = c5, marker = stroke(3,c5), linewidth=4, markersize = 0, label=" ELFIN-$id $start_string-$stop_string" )
 p3 = plot!()
@@ -302,7 +302,7 @@ index = findfirst(x->x==scenario, test_cases[:,4])
 L, MLT, Kp = test_cases[index,1:3]
 start_string = Dates.format(start, DateFormat("yyyy-mm-dd HH:MM:SS"))
 stop_string = Dates.format(stop, DateFormat("HH:MM:SS"))
-plot(E_bins, normalizer*sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
+plot(E_bins, sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
 plot!(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 8))
 plot!(elfin_p2t, yerror=elfin_p2t_error, color = c5, marker = stroke(3,c5), linewidth=4, markersize = 0, label=" ELFIN-$id $start_string-$stop_string" )
 p4 = plot!()
@@ -325,7 +325,7 @@ index = findfirst(x->x==scenario, test_cases[:,4])
 L, MLT, Kp = test_cases[index,1:3]
 start_string = Dates.format(start, DateFormat("yyyy-mm-dd HH:MM:SS"))
 stop_string = Dates.format(stop, DateFormat("HH:MM:SS"))
-plot(E_bins, normalizer*sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
+plot(E_bins, sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
 plot!(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 8))
 plot!(elfin_p2t, yerror=elfin_p2t_error, color = c5, marker = stroke(3,c5), linewidth=4, markersize = 0, label=" ELFIN-$id $start_string-$stop_string" )
 p5 = plot!()
@@ -348,7 +348,7 @@ index = findfirst(x->x==scenario, test_cases[:,4])
 L, MLT, Kp = test_cases[index,1:3]
 start_string = Dates.format(start, DateFormat("yyyy-mm-dd HH:MM:SS"))
 stop_string = Dates.format(stop, DateFormat("HH:MM:SS"))
-plot(E_bins, normalizer*sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
+plot(E_bins, sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
 plot!(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 8))
 plot!(elfin_p2t, yerror=elfin_p2t_error, color = c5, marker = stroke(3,c5), linewidth=4, markersize = 0, label=" ELFIN-$id $start_string-$stop_string" )
 p6 = plot!()
@@ -383,7 +383,7 @@ normalizer = normalize_to_elfin(elfin_p2t[2], sim_ratio_sm)
 sim_ratio_new = prec_to_trap_ratio(rm)
 sim_ratio_new_sm = smooth(sim_ratio_new[1], 6, 5)
 normalizer_new = normalize_to_elfin(elfin_p2t[2], sim_ratio_new_sm)
-plot(E_bins, normalizer*sim_ratio_sm, label=scenario[9:end], color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
+plot(E_bins, sim_ratio_sm, label=scenario[9:end], color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
 plot!(E_bins, normalizer_new*sim_ratio_new_sm, label=scenario[9:end]*"_bwmod", color = c2, marker = stroke(3,c2), linewidth=4, markersize = 3)
 plot!(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 15))
 plot!(elfin_p2t, yerror=elfin_p2t_error, color = c5, marker = stroke(3,c5), linewidth=4, markersize = 3, label="ELFIN-"*id*" "*mm*"/"*dd*" "*HH*":"*MM)
@@ -409,7 +409,7 @@ normalizer = normalize_to_elfin(elfin_p2t[2], sim_ratio_sm)
 sim_ratio_new = prec_to_trap_ratio(rm)
 sim_ratio_new_sm = smooth(sim_ratio_new[1], 6, 5)
 normalizer_new = normalize_to_elfin(elfin_p2t[2], sim_ratio_new_sm)
-plot(E_bins, normalizer*sim_ratio_sm, label=scenario[9:end], color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
+plot(E_bins, sim_ratio_sm, label=scenario[9:end], color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
 plot!(E_bins, normalizer_new*sim_ratio_new_sm, label=scenario[9:end]*"_bwmod", color = c2, marker = stroke(3,c2), linewidth=4, markersize = 3)
 plot!(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 15))
 plot!(elfin_p2t, yerror=elfin_p2t_error, color = c5, marker = stroke(3,c5), linewidth=4, markersize = 3, label="ELFIN-"*id*" "*mm*"/"*dd*" "*HH*":"*MM)
@@ -449,10 +449,39 @@ bw_compare = plot!(title = "B_w profile comparison", xlabel = "Latitude (degrees
 ###############
 # Stats Plots #
 ###############
+# Import CSV
+stats_1_csv_name = "stats_1_norm+.csv"
+stats_2_csv_name = "stats_2_norm+.csv"
+stats_3_csv_name = "stats_3_norm+.csv"
+stats_1 =  CSV.File("stats_csvs/$stats_1_csv_name"; header=true, delim=' ', types=Float64) |> DataFrame
+stats_2 =  CSV.File("stats_csvs/$stats_2_csv_name"; header=true, delim=' ', types=Float64) |> DataFrame
+stats_3 =  CSV.File("stats_csvs/$stats_3_csv_name"; header=true, delim=' ', types=Float64) |> DataFrame
+
+
+# low L shell plot
 test_cases = [4.5 8.0  3  "LO_DAWN_MODEL" c1 "Dawn";
               4.5 16.5 3  "LO_DUSK_MODEL" c3 "Dusk";
               4.5 23.0 3  "LO_NITE_MODEL" c5 "Night";
               ]
+
+energy = stats_1.en
+nite_lo = stats_1."L<6_night"
+nite_md = stats_2."L<6_night"
+nite_hi = stats_3."L<6_night"
+dawn_lo = stats_1."L<6_day"
+dawn_md = stats_2."L<6_day"
+dawn_hi = stats_3."L<6_day"
+dusk_lo = stats_1."L<6_dusk"
+dusk_md = stats_2."L<6_dusk"
+dusk_hi = stats_3."L<6_dusk"
+
+L, MLT, Kp, scenario, colour, label = test_cases[1,:]
+@time @load "result_matrix_stats/"*scenario*".jld2" rm
+@info "loaded $scenario.jld2"
+sim_ratio = prec_to_trap_ratio(rm)
+sim_ratio_sm = smooth(sim_ratio[1], 6, 5)
+normalizer = dawn_md[1] / sim_ratio_sm[3] 
+
 sp_ll = plot(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 1),
             xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10)
 for case in eachrow(test_cases)
@@ -461,16 +490,49 @@ for case in eachrow(test_cases)
     @info "loaded $scenario.jld2"
     sim_ratio = prec_to_trap_ratio(rm)
     sim_ratio_sm = smooth(sim_ratio[1], 6, 5)
-    sp_ll = plot!(E_bins, sim_ratio_sm, label=" $label Model: L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
+    sp_ll = plot!(E_bins, normalizer .* sim_ratio_sm, label=" $label Model: L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
 end
-sp_ll = plot!(dpi = 500,size=(800,450), margin=20px, bottom_margin=12px)
+sp_ll = plot!(energy, dawn_md, label = "ELFIN L<6 Dawn", color = bipride_orange, linewidth=2, markershape=:circle);
+sp_ll = plot!(energy, dawn_md, fillrange=dawn_hi, fillalpha = 0.2, color = c1, label=false)
+sp_ll = plot!(energy, dawn_md, fillrange=dawn_lo, fillalpha = 0.2, color = c1, label=false)
+sp_ll = plot!(energy, dusk_md, label = "ELFIN L<6 Dusk", color = bipride_pink, linewidth=2, markershape=:circle);
+sp_ll = plot!(energy, dusk_md, fillrange=dusk_hi, fillalpha = 0.2, color = c4, label=false)
+sp_ll = plot!(energy, dusk_md, fillrange=dusk_lo, fillalpha = 0.2, color = c4, label=false)
+sp_ll = plot!(energy, nite_md, label = "ELFIN L<6 Night", color = bipride_blue, linewidth=2, markershape=:circle)
+sp_ll = plot!(energy, nite_md, fillrange=nite_hi, fillalpha = 0.2, color = c5, label=false)
+sp_ll = plot!(energy, nite_md, fillrange=nite_lo, fillalpha = 0.2, color = c5, label=false)
+sp_ll = plot!(dpi = 500,size=(800,450), margin=20px, bottom_margin=12px, legend=:bottomleft)
+
 savefig(sp_ll, "images/ll_compare.png")
 savefig(sp_ll, "images/ll_compare.pdf")
 
+
+
+
+# high L shell plot
 test_cases = [6.5 8.0  3  "HI_DAWN_MODEL" c1 "Dawn";
               6.5 16.5 3  "HI_DUSK_MODEL" c3 "Dusk";
               6.5 23.0 3  "HI_NITE_MODEL" c5 "Night";
               ]
+
+energy = stats_1.en
+nite_lo = stats_1."L>6_night"
+nite_md = stats_2."L>6_night"
+nite_hi = stats_3."L>6_night"
+dawn_lo = stats_1."L>6_day"
+dawn_md = stats_2."L>6_day"
+dawn_hi = stats_3."L>6_day"
+dusk_lo = stats_1."L>6_dusk"
+dusk_md = stats_2."L>6_dusk"
+dusk_hi = stats_3."L>6_dusk"
+
+L, MLT, Kp, scenario, colour, label = test_cases[1,:]
+@time @load "result_matrix_stats/"*scenario*".jld2" rm
+@info "loaded $scenario.jld2"
+sim_ratio = prec_to_trap_ratio(rm)
+sim_ratio_sm = smooth(sim_ratio[1], 6, 5)
+normalizer = dawn_md[1] / sim_ratio_sm[3] 
+
 sp_hl = plot(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 1),
             xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10)
 for case in eachrow(test_cases)
@@ -479,9 +541,19 @@ for case in eachrow(test_cases)
     @info "loaded $scenario.jld2"
     sim_ratio = prec_to_trap_ratio(rm)
     sim_ratio_sm = smooth(sim_ratio[1], 6, 5)
-    sp_hl = plot!(E_bins, sim_ratio_sm, label=" $label Model: L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
+    sp_hl = plot!(E_bins, normalizer .* sim_ratio_sm, label=" $label Model: L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
 end
-sp_hl = plot!(dpi = 500,size=(800,450), margin=20px, bottom_margin=12px)
+sp_hl = plot!(energy, dawn_md, label = "ELFIN L>6 Dawn", color = bipride_orange, linewidth=2, markershape=:circle);
+sp_hl = plot!(energy, dawn_md, fillrange=dawn_hi, fillalpha = 0.2, color = c1, label=false)
+sp_hl = plot!(energy, dawn_md, fillrange=dawn_lo, fillalpha = 0.2, color = c1, label=false)
+sp_hl = plot!(energy, dusk_md, label = "ELFIN L>6 Dusk", color = bipride_pink, linewidth=2, markershape=:circle);
+sp_hl = plot!(energy, dusk_md, fillrange=dusk_hi, fillalpha = 0.2, color = c4, label=false)
+sp_hl = plot!(energy, dusk_md, fillrange=dusk_lo, fillalpha = 0.2, color = c4, label=false)
+sp_hl = plot!(energy, nite_md, label = "ELFIN L>6 Night", color = bipride_blue, linewidth=2, markershape=:circle)
+sp_hl = plot!(energy, nite_md, fillrange=nite_hi, fillalpha = 0.2, color = c5, label=false)
+sp_hl = plot!(energy, nite_md, fillrange=nite_lo, fillalpha = 0.2, color = c5, label=false)
+sp_hl = plot!(dpi = 500,size=(800,450), margin=20px, bottom_margin=12px, legend=:bottomleft)
+
 savefig(sp_hl, "images/hl_compare.png")
 savefig(sp_hl, "images/hl_compare.pdf")
 
