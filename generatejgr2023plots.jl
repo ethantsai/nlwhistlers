@@ -34,11 +34,11 @@ index = findfirst(x->x==scenario, test_cases[:,4])
 L, MLT, Kp = test_cases[index,1:3]
 start_string = Dates.format(start, DateFormat("yyyy-mm-dd HH:MM:SS"))
 stop_string = Dates.format(stop, DateFormat("HH:MM:SS"))
-plot(elfin_p2t, yerror=elfin_p2t_error, color = c2, marker = stroke(3,c2), linewidth=4, markersize = 0, label=" ELFIN-$id $start_string-$stop_string" )
+plot(elfin_p2t, yerror=elfin_p2t_error, color = bipride_pink, marker = stroke(3,bipride_pink), linewidth=4, markersize = 0, label=" ELFIN-$id $start_string-$stop_string" )
 ############
 scenario = "ELA_ND_200904T0112"
-start = DateTime(2020,9,4,1,12,20)
-stop = DateTime(2020,9,4,1,12,35)
+start = DateTime(2020,9,4,1,12,24)
+stop = DateTime(2020,9,4,1,12,33)
 ############
 id, yy, mm, dd, HH, MM = extract_idyymmddHHMM(scenario);
 elfin_p2t, elfin_p2t_error = extract_elfin_p2t_ratio(
@@ -49,7 +49,7 @@ L, MLT, Kp = test_cases[index,1:3]
 start_string = Dates.format(start, DateFormat("yyyy-mm-dd HH:MM:SS"))
 stop_string = Dates.format(stop, DateFormat("HH:MM:SS"))
 plot!(elfin_p2t, yerror=elfin_p2t_error, color = c4, marker = stroke(3,c4), linewidth=4, markersize = 0, label=" ELFIN-$id $start_string-$stop_string" )
-plot!(xscale=:log10, yscale=:log10, xlim=(52,1050), ylim=(1e-1, 4), xticks=([100, 1000], [100, 1000]), xminorticks=10)
+plot!(xscale=:log10, yscale=:log10, xlim=(52,1050), ylim=(1e-1, 4), xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10)
 elfin_plot = plot!(size=(800,450), dpi=300, title="ELFIN Precipitating Fluxes", titlefontsize=16,
 xlabel="Energy (keV)", ylabel = "Precipitating to Trapped Electron Flux Ratio",legendfontsize=12, xtickfontsize=12, ytickfontsize=12,
 xlabelfontsize=14, ylabelfontsize=14, margin=20px)
@@ -72,7 +72,7 @@ savefig(elfin_plot, "images/elfin_plot.pdf")
 # 3c & 21-02-03 09:01:43-09:01:56 & Night    & 5.1 & 20.2 & 2 & {\green \faCheckSquare} \\
 # 3d & 21-11-02 22:18:21-22:18:35 & Night    & 4.5 & 20.8 & 2 & {\red \faTimes} \\
 # 3e & 20-09-26 01:01:12-01:01:20 & Night    & 4.8 & 2.6  & 4 & {\red \faTimes} \\
-# 3f & 20-09-04 01:12:28-01:12:32 & Night    & 6.5 & 3.8  & 3 & {\red \faTimes}
+# 3f & 20-09-04 01:12:24-01:12:33 & Night    & 6.5 & 3.8  & 3 & {\red \faTimes}
 
 #############
 # Day Cases #
@@ -96,8 +96,8 @@ index = findfirst(x->x==scenario, test_cases[:,4])
 L, MLT, Kp = test_cases[index,1:3]
 start_string = Dates.format(start, DateFormat("yyyy-mm-dd HH:MM:SS"))
 stop_string = Dates.format(stop, DateFormat("HH:MM:SS"))
-plot(E_bins, sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
-plot!(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 8))
+plot(E_bins, normalizer*sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
+plot!(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 6))
 plot!(elfin_p2t, yerror=elfin_p2t_error, color = c5, marker = stroke(3,c5), linewidth=4, markersize = 0, label=" ELFIN-$id $start_string-$stop_string" )
 p1 = plot!()
 
@@ -119,8 +119,8 @@ index = findfirst(x->x==scenario, test_cases[:,4])
 L, MLT, Kp = test_cases[index,1:3]
 start_string = Dates.format(start, DateFormat("yyyy-mm-dd HH:MM:SS"))
 stop_string = Dates.format(stop, DateFormat("HH:MM:SS"))
-plot(E_bins, sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
-plot!(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 8))
+plot(E_bins, normalizer*sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
+plot!(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 6))
 plot!(elfin_p2t, yerror=elfin_p2t_error, color = c5, marker = stroke(3,c5), linewidth=4, markersize = 0, label=" ELFIN-$id $start_string-$stop_string" )
 p2 = plot!()
 
@@ -142,8 +142,8 @@ index = findfirst(x->x==scenario, test_cases[:,4])
 L, MLT, Kp = test_cases[index,1:3]
 start_string = Dates.format(start, DateFormat("yyyy-mm-dd HH:MM:SS"))
 stop_string = Dates.format(stop, DateFormat("HH:MM:SS"))
-plot(E_bins, sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
-plot!(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 8))
+plot(E_bins, normalizer*sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
+plot!(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 6))
 plot!(elfin_p2t, yerror=elfin_p2t_error, color = c5, marker = stroke(3,c5), linewidth=4, markersize = 0, label=" ELFIN-$id $start_string-$stop_string" )
 p3 = plot!()
 
@@ -165,8 +165,8 @@ index = findfirst(x->x==scenario, test_cases[:,4])
 L, MLT, Kp = test_cases[index,1:3]
 start_string = Dates.format(start, DateFormat("yyyy-mm-dd HH:MM:SS"))
 stop_string = Dates.format(stop, DateFormat("HH:MM:SS"))
-plot(E_bins, sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
-plot!(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 8))
+plot(E_bins, normalizer*sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
+plot!(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 6))
 plot!(elfin_p2t, yerror=elfin_p2t_error, color = c5, marker = stroke(3,c5), linewidth=4, markersize = 0, label=" ELFIN-$id $start_string-$stop_string" )
 p4 = plot!()
 
@@ -188,8 +188,8 @@ index = findfirst(x->x==scenario, test_cases[:,4])
 L, MLT, Kp = test_cases[index,1:3]
 start_string = Dates.format(start, DateFormat("yyyy-mm-dd HH:MM:SS"))
 stop_string = Dates.format(stop, DateFormat("HH:MM:SS"))
-plot(E_bins, sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
-plot!(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 8))
+plot(E_bins, normalizer*sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
+plot!(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 6))
 plot!(elfin_p2t, yerror=elfin_p2t_error, color = c5, marker = stroke(3,c5), linewidth=4, markersize = 0, label=" ELFIN-$id $start_string-$stop_string" )
 p5 = plot!()
 
@@ -211,14 +211,14 @@ index = findfirst(x->x==scenario, test_cases[:,4])
 L, MLT, Kp = test_cases[index,1:3]
 start_string = Dates.format(start, DateFormat("yyyy-mm-dd HH:MM:SS"))
 stop_string = Dates.format(stop, DateFormat("HH:MM:SS"))
-plot(E_bins, sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
-plot!(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 8))
+plot(E_bins, normalizer*sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
+plot!(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 6))
 plot!(elfin_p2t, yerror=elfin_p2t_error, color = c5, marker = stroke(3,c5), linewidth=4, markersize = 0, label=" ELFIN-$id $start_string-$stop_string" )
 p6 = plot!()
 
 day_plot = plot(p1,p2,p3,p4,p5,p6,layout=(2,3),# plot_title="Dayside Comparisons",
                     legendfontsize=12, xtickfontsize=12, ytickfontsize=12, linewidth=4,
-                    size=(1600,1000), dpi=300, margin=8px, xticks=([100, 1000], [100, 1000]), xminorticks=10)
+                    size=(1600,1000), dpi=300, margin=8px, xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10)
 # savefig(day_plot, "images/dayside_comparisons.png")
 savefig(day_plot, "images/dayside_comparisons.pdf")
 
@@ -246,8 +246,8 @@ index = findfirst(x->x==scenario, test_cases[:,4])
 L, MLT, Kp = test_cases[index,1:3]
 start_string = Dates.format(start, DateFormat("yyyy-mm-dd HH:MM:SS"))
 stop_string = Dates.format(stop, DateFormat("HH:MM:SS"))
-plot(E_bins, sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
-plot!(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 8))
+plot(E_bins, normalizer*sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
+plot!(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 6))
 plot!(elfin_p2t, yerror=elfin_p2t_error, color = c5, marker = stroke(3,c5), linewidth=4, markersize = 0, label=" ELFIN-$id $start_string-$stop_string" )
 p1 = plot!()
 
@@ -269,8 +269,8 @@ index = findfirst(x->x==scenario, test_cases[:,4])
 L, MLT, Kp = test_cases[index,1:3]
 start_string = Dates.format(start, DateFormat("yyyy-mm-dd HH:MM:SS"))
 stop_string = Dates.format(stop, DateFormat("HH:MM:SS"))
-plot(E_bins, sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
-plot!(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 8))
+plot(E_bins, normalizer*sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
+plot!(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 6))
 plot!(elfin_p2t, yerror=elfin_p2t_error, color = c5, marker = stroke(3,c5), linewidth=4, markersize = 0, label=" ELFIN-$id $start_string-$stop_string" )
 p2 = plot!()
 
@@ -292,8 +292,8 @@ index = findfirst(x->x==scenario, test_cases[:,4])
 L, MLT, Kp = test_cases[index,1:3]
 start_string = Dates.format(start, DateFormat("yyyy-mm-dd HH:MM:SS"))
 stop_string = Dates.format(stop, DateFormat("HH:MM:SS"))
-plot(E_bins, sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
-plot!(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 8))
+plot(E_bins, normalizer*sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
+plot!(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 6))
 plot!(elfin_p2t, yerror=elfin_p2t_error, color = c5, marker = stroke(3,c5), linewidth=4, markersize = 0, label=" ELFIN-$id $start_string-$stop_string" )
 p3 = plot!()
 
@@ -315,8 +315,8 @@ index = findfirst(x->x==scenario, test_cases[:,4])
 L, MLT, Kp = test_cases[index,1:3]
 start_string = Dates.format(start, DateFormat("yyyy-mm-dd HH:MM:SS"))
 stop_string = Dates.format(stop, DateFormat("HH:MM:SS"))
-plot(E_bins, sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
-plot!(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 8))
+plot(E_bins, normalizer*sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
+plot!(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 6))
 plot!(elfin_p2t, yerror=elfin_p2t_error, color = c5, marker = stroke(3,c5), linewidth=4, markersize = 0, label=" ELFIN-$id $start_string-$stop_string" )
 p4 = plot!()
 
@@ -338,15 +338,15 @@ index = findfirst(x->x==scenario, test_cases[:,4])
 L, MLT, Kp = test_cases[index,1:3]
 start_string = Dates.format(start, DateFormat("yyyy-mm-dd HH:MM:SS"))
 stop_string = Dates.format(stop, DateFormat("HH:MM:SS"))
-plot(E_bins, sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
-plot!(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 8))
+plot(E_bins, normalizer*sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
+plot!(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 6))
 plot!(elfin_p2t, yerror=elfin_p2t_error, color = c5, marker = stroke(3,c5), linewidth=4, markersize = 0, label=" ELFIN-$id $start_string-$stop_string" )
 p5 = plot!()
 
 ############
 scenario = "ELA_ND_200904T0112"
-start = DateTime(2020,9,4,1,12,20)
-stop = DateTime(2020,9,4,1,12,35)
+start = DateTime(2020,9,4,1,12,24)
+stop = DateTime(2020,9,4,1,12,33)
 ############
 @time @load "result_matrix/"*scenario*".jld2" rm
 id, yy, mm, dd, HH, MM = extract_idyymmddHHMM(scenario);
@@ -361,14 +361,14 @@ index = findfirst(x->x==scenario, test_cases[:,4])
 L, MLT, Kp = test_cases[index,1:3]
 start_string = Dates.format(start, DateFormat("yyyy-mm-dd HH:MM:SS"))
 stop_string = Dates.format(stop, DateFormat("HH:MM:SS"))
-plot(E_bins, sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
-plot!(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 8))
+plot(E_bins, normalizer*sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
+plot!(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 6))
 plot!(elfin_p2t, yerror=elfin_p2t_error, color = c5, marker = stroke(3,c5), linewidth=4, markersize = 0, label=" ELFIN-$id $start_string-$stop_string" )
 p6 = plot!()
 
 night_plot = plot(p1,p2,p3,p4,p5,p6,layout=(2,3),# plot_title="Nightside Comparisons",
                     legendfontsize=12, xtickfontsize=12, ytickfontsize=12, linewidth=4,
-                    size=(1600,1000), dpi=300, margin=8px, xticks=([100, 1000], [100, 1000]), xminorticks=10)
+                    size=(1600,1000), dpi=300, margin=8px, xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10)
 # savefig(night_plot, "images/nightside_comparisons.png")
 savefig(night_plot, "images/nightside_comparisons.pdf")
 
@@ -396,7 +396,7 @@ normalizer = normalize_to_elfin(elfin_p2t[2], sim_ratio_sm)
 sim_ratio_new = prec_to_trap_ratio(rm)
 sim_ratio_new_sm = smooth(sim_ratio_new[1], 6, 5)
 normalizer_new = normalize_to_elfin(elfin_p2t[2], sim_ratio_new_sm)
-plot(E_bins, sim_ratio_sm, label=scenario[9:end], color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
+plot(E_bins, normalizer*sim_ratio_sm, label=scenario[9:end], color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
 plot!(E_bins, normalizer_new*sim_ratio_new_sm, label=scenario[9:end]*"_bwmod", color = c2, marker = stroke(3,c2), linewidth=4, markersize = 3)
 plot!(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 15))
 plot!(elfin_p2t, yerror=elfin_p2t_error, color = c5, marker = stroke(3,c5), linewidth=4, markersize = 3, label="ELFIN-"*id*" "*mm*"/"*dd*" "*HH*":"*MM)
@@ -422,7 +422,7 @@ normalizer = normalize_to_elfin(elfin_p2t[2], sim_ratio_sm)
 sim_ratio_new = prec_to_trap_ratio(rm)
 sim_ratio_new_sm = smooth(sim_ratio_new[1], 6, 5)
 normalizer_new = normalize_to_elfin(elfin_p2t[2], sim_ratio_new_sm)
-plot(E_bins, sim_ratio_sm, label=scenario[9:end], color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
+plot(E_bins, normalizer*sim_ratio_sm, label=scenario[9:end], color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
 plot!(E_bins, normalizer_new*sim_ratio_new_sm, label=scenario[9:end]*"_bwmod", color = c2, marker = stroke(3,c2), linewidth=4, markersize = 3)
 plot!(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 15))
 plot!(elfin_p2t, yerror=elfin_p2t_error, color = c5, marker = stroke(3,c5), linewidth=4, markersize = 3, label="ELFIN-"*id*" "*mm*"/"*dd*" "*HH*":"*MM)
