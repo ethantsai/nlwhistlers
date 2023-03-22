@@ -61,18 +61,18 @@ savefig(elfin_plot, "images/elfin_plot.pdf")
 
 # Plot day and nightside comparisons
 # table for paper
-# 2a & 21-02-03 20:46:37-20:46:50 & Dawn/Day & 6.2 & 5.8  & 3 & {\green \faCheckSquare} \\
-# 2b & 21-02-03 20:47:13-20:47:33 & Dawn/Day & 7.5 & 5.7  & 3 & {\green \faCheckSquare} \\
-# 2c & 21-01-06 11:53:50-11:54:01 & Dawn/Day & 7.1 & 8.4  & 2 & {\green \faCheckSquare} \\
-# 2d & 21-10-01 08:10:02-08:10:13 & Dawn/Day & 6.6 & 8.8  & 3 & {\red \faTimes} \\
-# 2e & 21-10-01 04:59:57-05:01:18 & Dawn/Day & 6.4 & 10.2 & 4 & {\green \faCheckSquare} \\
-# 2f & 21-11-01 04:23:34-04:23:44 & Dawn/Day & 6.1 & 13.1 & 3 & {\green \faCheckSquare} \\
-# 3a & 21-01-11 17:50:50-17:50:58 & Night    & 4.8 & 19.0 & 3 & {\red \faQuestion} \\
-# 3b & 21-02-03 13:42:25-13:42:32 & Night    & 6.6 & 19.3 & 3 & {\red \faQuestion} \\
-# 3c & 21-02-03 09:01:43-09:01:56 & Night    & 5.1 & 20.2 & 2 & {\green \faCheckSquare} \\
-# 3d & 21-11-02 22:18:21-22:18:35 & Night    & 4.5 & 20.8 & 2 & {\red \faTimes} \\
-# 3e & 20-09-26 01:01:12-01:01:20 & Night    & 4.8 & 2.6  & 4 & {\red \faTimes} \\
-# 3f & 20-09-04 01:12:24-01:12:33 & Night    & 6.5 & 3.8  & 3 & {\red \faTimes}
+# 2a     & ELA & 21-02-03 20:46:37-20:46:50 & Dawn/Day & 6.2 & 5.8  & 3 & {\green \faCheckSquare} \\
+# 2b     & ELA & 21-02-03 20:47:13-20:47:33 & Dawn/Day & 7.5 & 5.7  & 3 & {\green \faCheckSquare} \\
+# 1a, 2c & ELB & 21-01-06 11:53:50-11:54:01 & Dawn/Day & 7.1 & 8.4  & 2 & {\green \faCheckSquare} \\
+# 2d     & ELA & 21-10-01 08:10:02-08:10:13 & Dawn/Day & 6.6 & 8.8  & 3 & {\red \faTimes} \\
+# 2e     & ELA & 21-10-01 04:59:57-05:01:18 & Dawn/Day & 6.4 & 10.2 & 4 & {\green \faCheckSquare} \\
+# 2f     & ELA & 21-11-01 04:23:34-04:23:44 & Dawn/Day & 6.1 & 13.1 & 3 & {\green \faCheckSquare} \\
+# 3a     & ELA & 21-01-11 17:50:50-17:50:58 & Night    & 4.8 & 19.0 & 3 & {\red \faQuestion} \\
+# 3b     & ELA & 21-02-03 13:42:25-13:42:32 & Night    & 6.6 & 19.3 & 3 & {\red \faQuestion} \\
+# 3c     & ELA & 21-02-03 09:01:43-09:01:56 & Night    & 5.1 & 20.2 & 2 & {\green \faCheckSquare} \\
+# 3d     & ELA & 21-11-02 22:18:21-22:18:35 & Night    & 4.5 & 20.8 & 2 & {\red \faTimes} \\
+# 3e     & ELB & 20-09-26 01:01:12-01:01:20 & Night    & 4.8 & 2.6  & 4 & {\red \faTimes} \\
+# 1b, 3f & ELA & 20-09-04 01:12:24-01:12:33 & Night    & 6.5 & 3.8  & 3 & {\red \faTimes}
 
 #############
 # Day Cases #
