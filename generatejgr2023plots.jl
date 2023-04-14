@@ -392,7 +392,7 @@ elfin_p2t, elfin_p2t_error = extract_elfin_p2t_ratio(
     )
 @info "Model E_max = $(elfin_p2t[1][last_index_before_zero(elfin_p2t[2])]) keV for scenario $scenario"
 normalizer = normalize_to_elfin(elfin_p2t[2], sim_ratio_sm)
-@time @load "result_matrix_2/"*scenario*"_bwmod.jld2" rm
+@time @load "result_matrix_bw_compare/"*scenario*"_bwmod.jld2" rm
 sim_ratio_new = prec_to_trap_ratio(rm)
 sim_ratio_new_sm = smooth(sim_ratio_new[1], 6, 5)
 normalizer_new = normalize_to_elfin(elfin_p2t[2], sim_ratio_new_sm)
@@ -418,7 +418,7 @@ elfin_p2t, elfin_p2t_error = extract_elfin_p2t_ratio(
     )
 @info "Model E_max = $(elfin_p2t[1][last_index_before_zero(elfin_p2t[2])]) keV for scenario $scenario"
 normalizer = normalize_to_elfin(elfin_p2t[2], sim_ratio_sm)
-@time @load "result_matrix_2/"*scenario*"_bwmod.jld2" rm
+@time @load "result_matrix_bw_compare/"*scenario*"_bwmod.jld2" rm
 sim_ratio_new = prec_to_trap_ratio(rm)
 sim_ratio_new_sm = smooth(sim_ratio_new[1], 6, 5)
 normalizer_new = normalize_to_elfin(elfin_p2t[2], sim_ratio_new_sm)
