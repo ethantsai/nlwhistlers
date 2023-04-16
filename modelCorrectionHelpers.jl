@@ -131,8 +131,8 @@ function obtain_B_w_mod(test_cases, scenario, k_mult, window, order, piecewise_l
         end
     end
 
-    B_w_mod_ip = Spline1D(deg, B_w_mod_pc)
-    B_w_mod_ip_rad = Spline1D(deg2rad.(deg), B_w_mod_pc)
+    B_w_mod_ip = Spline1D(deg, B_w_mod_pw)
+    B_w_mod_ip_rad = Spline1D(deg2rad.(deg), B_w_mod_pw)
 
     return B_w_og, B_w_mod, B_w_mod_ip, B_w_mod_ip_rad
 end
