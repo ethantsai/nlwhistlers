@@ -54,6 +54,22 @@ elfin_plot = plot!(size=(800,450), dpi=300, title="ELFIN Precipitating Fluxes", 
 xlabel="Energy (keV)", ylabel = "Precipitating to Trapped Electron Flux Ratio",legendfontsize=12, xtickfontsize=12, ytickfontsize=12,
 xlabelfontsize=14, ylabelfontsize=14, margin=20px)
 
+## want to remove that particular subspin from statistics and replot
+# indices_to_remove = [72] # this one corresponds to microburst
+# id, yy, mm, dd, HH, MM = extract_idyymmddHHMM(scenario);
+# elfin_p2t, elfin_p2t_error = extract_elfin_p2t_ratio(
+#     mm*dd*yy*"_"*HH, start, stop, indices_to_remove
+#     )
+# index = findfirst(x->x==scenario, test_cases[:,4])
+# L, MLT, Kp = test_cases[index,1:3]
+# start_string = Dates.format(start, DateFormat("yyyy-mm-dd HH:MM:SS"))
+# stop_string = Dates.format(stop, DateFormat("HH:MM:SS"))
+# plot!(elfin_p2t, yerror=elfin_p2t_error, color = c4, marker = stroke(3,c4), linewidth=4, markersize = 0, label=" ELFIN-$id $start_string-$stop_string" )
+# plot!(xscale=:log10, yscale=:log10, xlim=(52,1050), ylim=(1e-1, 4), xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10)
+# elfin_plot = plot!(size=(800,450), dpi=300, title="ELFIN Precipitating Fluxes", titlefontsize=16,
+# xlabel="Energy (keV)", ylabel = "Precipitating to Trapped Electron Flux Ratio",legendfontsize=12, xtickfontsize=12, ytickfontsize=12,
+# xlabelfontsize=14, ylabelfontsize=14, margin=20px, legend=false)
+
 savefig(elfin_plot, "images/elfin_plot.pdf")
 
 
@@ -97,7 +113,7 @@ L, MLT, Kp = test_cases[index,1:3]
 start_string = Dates.format(start, DateFormat("yyyy-mm-dd HH:MM:SS"))
 stop_string = Dates.format(stop, DateFormat("HH:MM:SS"))
 plot(E_bins, normalizer*sim_ratio_sm, label=" Model: L=$L, MLT=$MLT, Kp=$Kp", color = c1, marker = stroke(3,c1), linewidth=4, markersize = 3)
-plot!(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 6))
+plot!(xscale=:log10, yscale=:log10, xlim=(1,10000), ylim=(1e-2, 1))
 plot!(elfin_p2t, yerror=elfin_p2t_error, color = c5, marker = stroke(3,c5), linewidth=4, markersize = 0, label=" ELFIN-$id $start_string-$stop_string" )
 p1 = plot!()
 
@@ -571,10 +587,10 @@ savefig(sp_hl, "images/hl_compare.png")
 savefig(sp_hl, "images/hl_compare.pdf")
 
 
-### MLT comparison
+### MLT comparison, FIGURE 4 in JGR2023
 
 # Dawn plot and generate normalizers
-test_cases = [4.5 8.0  3  "LO_DAWN_MODEL" c5 "Dawn-Noon";
+test_cases = [4.5 8.0  3  "hr_LO_DAWN_MODEL" c5 "Dawn-Noon";
               6.5 8.0  3  "hr_HI_DAWN_MODEL" c4 "Dawn-Noon";
               ]
               
@@ -586,39 +602,47 @@ hl_dawn_lo = stats_1."L>5_day"
 hl_dawn_md = stats_2."L>5_day"
 hl_dawn_hi = stats_3."L>5_day"
 
+dawn_plot_lol = plot(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 1),
+            xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10)
+
 L, MLT, Kp, scenario, colour, label = test_cases[1,:]
 @time @load "result_matrix_stats/"*scenario*".jld2" rm
+@info "loaded $scenario.jld2"
 sim_ratio = prec_to_trap_ratio(rm)
 sim_ratio_sm = smooth(sim_ratio[1], 8, 5)
 norm = normalize_to_elfin(ll_dawn_md, sim_ratio_sm)
 b1 = 1/(norm * maximum(sim_ratio_sm))
 normalizer = b1*norm
+dawn_plot_lol = plot!(E_bins, normalizer .* sim_ratio_sm, label="$label Model: L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
+dawn_plot_lol = plot!(energy, b1*ll_dawn_md, fillrange=b1*ll_dawn_hi, fillalpha = 0.2, color = c5, label=false)
+dawn_plot_lol = plot!(energy, b1*ll_dawn_md, fillrange=b1*ll_dawn_lo, fillalpha = 0.2, color = c5, label=false)
+dawn_plot_lol = plot!(energy, b1*ll_dawn_md, label = "ELFIN Dawn-Noon: L<5, 4<MLT<13 ", color = c6, linewidth=2, markershape=:circle);
+dawn_plot_lol = plot!(legendfontsize=12, tickfontsize=12, legend=:bottomleft)
+dawn_plot_lol = plot!(dpi = 500,size=(800,450), margin=20px, bottom_margin=12px)
+savefig(dawn_plot_lol, "images/dawn_plot_lol.png")
+savefig(dawn_plot_lol, "images/dawn_plot_lol.pdf")
 
-dawn_plot = plot(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 1),
+dawn_plot_hil = plot(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 1),
             xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10)
-for case in eachrow(test_cases)
-    L, MLT, Kp, scenario, colour, label = case
-    @time @load "result_matrix_stats/"*scenario*".jld2" rm
-    @info "loaded $scenario.jld2"
-    sim_ratio = prec_to_trap_ratio(rm)
-    sim_ratio_sm = smooth(sim_ratio[1], 8, 5)
-    dawn_plot = plot!(E_bins, normalizer .* sim_ratio_sm, label="$label Model: L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
-end
-dawn_plot = plot!(energy, b1*ll_dawn_md, fillrange=b1*ll_dawn_hi, fillalpha = 0.2, color = c5, label=false)
-dawn_plot = plot!(energy, b1*ll_dawn_md, fillrange=b1*ll_dawn_lo, fillalpha = 0.2, color = c5, label=false)
-dawn_plot = plot!(energy, b1*ll_dawn_md, label = "ELFIN Dawn-Noon: L<5, 4<MLT<13 ", color = c6, linewidth=2, markershape=:circle);
-dawn_plot = plot!(energy, b1*hl_dawn_md, fillrange=b1*hl_dawn_hi, fillalpha = 0.2, color = c4, label=false)
-dawn_plot = plot!(energy, b1*hl_dawn_md, fillrange=b1*hl_dawn_lo, fillalpha = 0.2, color = c4, label=false)
-dawn_plot = plot!(energy, b1*hl_dawn_md, label = "ELFIN Dawn-Noon: L>5, 4<MLT<13 ", color = bipride_pink, linewidth=2, markershape=:circle);
-dawn_plot = plot!(legendfontsize=12, tickfontsize=12, legend=:bottomleft)
-
-dawn_plot_save = plot!(dpi = 500,size=(800,450), margin=20px, bottom_margin=12px)
-savefig(dawn_plot_save, "images/dawn_compare.png")
-savefig(dawn_plot_save, "images/dawn_compare.pdf")
-
+L, MLT, Kp, scenario, colour, label = test_cases[2,:]
+@time @load "result_matrix_stats/"*scenario*".jld2" rm
+@info "loaded $scenario.jld2"
+sim_ratio = prec_to_trap_ratio(rm)
+sim_ratio_sm = smooth(sim_ratio[1], 8, 5)
+norm = normalize_to_elfin(hl_dawn_md, sim_ratio_sm)
+b1 = 1/(norm * maximum(sim_ratio_sm))
+normalizer = b1*norm
+dawn_plot_hil = plot!(E_bins, normalizer .* sim_ratio_sm, label="$label Model: L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
+dawn_plot_hil = plot!(energy, b1*hl_dawn_md, fillrange=b1*hl_dawn_hi, fillalpha = 0.2, color = c4, label=false)
+dawn_plot_hil = plot!(energy, b1*hl_dawn_md, fillrange=b1*hl_dawn_lo, fillalpha = 0.2, color = c4, label=false)
+dawn_plot_hil = plot!(energy, b1*hl_dawn_md, label = "ELFIN Dawn-Noon: L>5, 4<MLT<13 ", color = bipride_pink, linewidth=2, markershape=:circle);
+dawn_plot_hil = plot!(legendfontsize=12, tickfontsize=12, legend=:bottomleft)
+dawn_plot_hil = plot!(dpi = 500,size=(800,450), margin=20px, bottom_margin=12px)
+savefig(dawn_plot_hil, "images/dawn_plot_hil.png")
+savefig(dawn_plot_hil, "images/dawn_plot_hil.pdf")
 
 # Dusk plot
-test_cases = [4.5 16.5 3  "LO_DUSK_MODEL" c5 "Noon-Dusk";
+test_cases = [4.5 16.5 3  "hr_LO_DUSK_MODEL" c5 "Noon-Dusk";
               6.5 16.5 3  "hr_HI_DUSK_MODEL" c4 "Noon-Dusk";
               ]
 
@@ -630,37 +654,43 @@ hl_dusk_lo = stats_1."L>5_dusk"
 hl_dusk_md = stats_2."L>5_dusk"
 hl_dusk_hi = stats_3."L>5_dusk"
 
+dusk_plot_lol = plot(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 1),
+            xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10)
 L, MLT, Kp, scenario, colour, label = test_cases[1,:]
 @time @load "result_matrix_stats/"*scenario*".jld2" rm
+@info "loaded $scenario.jld2"
 sim_ratio = prec_to_trap_ratio(rm)
 sim_ratio_sm = smooth(sim_ratio[1], 8, 5)
 norm = normalize_to_elfin(ll_dusk_md, sim_ratio_sm)
 b1 = 1/(norm * maximum(sim_ratio_sm))
 normalizer = b1*norm
+dusk_plot_lol = plot!(E_bins, normalizer .* sim_ratio_sm, label="$label Model: L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
+dusk_plot_lol = plot!(energy, b1*ll_dusk_md, fillrange=b1*ll_dusk_hi, fillalpha = 0.2, color = c5, label=false)
+dusk_plot_lol = plot!(energy, b1*ll_dusk_md, fillrange=b1*ll_dusk_lo, fillalpha = 0.2, color = c5, label=false)
+dusk_plot_lol = plot!(energy, b1*ll_dusk_md, label = "ELFIN Noon-Dusk: L<5, 13<MLT<18", color = c6, linewidth=2, markershape=:circle);
+dusk_plot_lol = plot!(legendfontsize=12, tickfontsize=12, legend=:bottomleft)
+dusk_plot_lol = plot!(dpi = 500,size=(800,450), margin=20px, bottom_margin=12px)
+savefig(dusk_plot_lol, "images/dusk_compare_lol.png")
+savefig(dusk_plot_lol, "images/dusk_compare_lol.pdf")
 
-dusk_plot = plot(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 1),
+dusk_plot_hil = plot(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 1),
             xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10)
-for case in eachrow(test_cases)
-    L, MLT, Kp, scenario, colour, label = case
-    @time @load "result_matrix_stats/"*scenario*".jld2" rm
-    @info "loaded $scenario.jld2"
-    sim_ratio = prec_to_trap_ratio(rm)
-    sim_ratio_sm = smooth(sim_ratio[1], 8, 5)
-    dusk_plot = plot!(E_bins, normalizer .* sim_ratio_sm, label="$label Model: L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
-end
-dusk_plot = plot!(energy, b1*ll_dusk_md, fillrange=b1*ll_dusk_hi, fillalpha = 0.2, color = c5, label=false)
-dusk_plot = plot!(energy, b1*ll_dusk_md, fillrange=b1*ll_dusk_lo, fillalpha = 0.2, color = c5, label=false)
-dusk_plot = plot!(energy, b1*ll_dusk_md, label = "ELFIN Noon-Dusk: L<5, 13<MLT<18", color = c6, linewidth=2, markershape=:circle);
-dusk_plot = plot!(energy, b1*hl_dusk_md, fillrange=b1*hl_dusk_hi, fillalpha = 0.2, color = c4, label=false)
-dusk_plot = plot!(energy, b1*hl_dusk_md, fillrange=b1*hl_dusk_lo, fillalpha = 0.2, color = c4, label=false)
-dusk_plot = plot!(energy, b1*hl_dusk_md, label = "ELFIN Noon-Dusk: L>5, 13<MLT<18", color = bipride_pink, linewidth=2, markershape=:circle);
-dusk_plot = plot!(legendfontsize=12, tickfontsize=12, legend=:bottomleft)
-
-dusk_plot_save = plot!(dpi = 500,size=(800,450), margin=20px, bottom_margin=12px)
-savefig(dusk_plot_save, "images/dusk_compare.png")
-savefig(dusk_plot_save, "images/dusk_compare.pdf")
-
-
+L, MLT, Kp, scenario, colour, label = test_cases[2,:]
+@time @load "result_matrix_stats/"*scenario*".jld2" rm
+@info "loaded $scenario.jld2"
+sim_ratio = prec_to_trap_ratio(rm)
+sim_ratio_sm = smooth(sim_ratio[1], 12, 5)
+norm = normalize_to_elfin(hl_dusk_md, sim_ratio_sm)
+b1 = 1/(norm * maximum(sim_ratio_sm))
+normalizer = b1*norm
+dusk_plot_hil = plot!(E_bins, normalizer .* sim_ratio_sm, label="$label Model: L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
+dusk_plot_hil = plot!(energy, b1*hl_dusk_md, fillrange=b1*hl_dusk_hi, fillalpha = 0.2, color = c4, label=false)
+dusk_plot_hil = plot!(energy, b1*hl_dusk_md, fillrange=b1*hl_dusk_lo, fillalpha = 0.2, color = c4, label=false)
+dusk_plot_hil = plot!(energy, b1*hl_dusk_md, label = "ELFIN Noon-Dusk: L>5, 13<MLT<18", color = bipride_pink, linewidth=2, markershape=:circle);
+dusk_plot_hil = plot!(legendfontsize=12, tickfontsize=12, legend=:bottomleft)
+dusk_plot_hil = plot!(dpi = 500,size=(800,450), margin=20px, bottom_margin=12px)
+savefig(dusk_plot_hil, "images/dusk_compare_hil.png")
+savefig(dusk_plot_hil, "images/dusk_compare_hil.pdf")
 
 # Night plot
 test_cases = [4.5 23.0 3  "hr_LO_NITE_MODEL" c5 "Night";
@@ -675,36 +705,176 @@ hl_nite_lo = stats_1."L>5_night"
 hl_nite_md = stats_2."L>5_night"
 hl_nite_hi = stats_3."L>5_night"
 
+
+nite_plot_lol = plot(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 1),
+            xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10)
 L, MLT, Kp, scenario, colour, label = test_cases[1,:]
 @time @load "result_matrix_stats/"*scenario*".jld2" rm
+@info "loaded $scenario.jld2"
 sim_ratio = prec_to_trap_ratio(rm)
-sim_ratio_sm = smooth(sim_ratio[1], 4, 5)
+sim_ratio_sm = smooth(sim_ratio[1], 6, 5)
 norm = normalize_to_elfin(ll_nite_md, sim_ratio_sm)
 b1 = 1/(norm * maximum(sim_ratio_sm))
 normalizer = b1*norm
+nite_plot_lol = plot!(E_bins, normalizer .* sim_ratio_sm, label="$label Model: L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
+nite_plot_lol = plot!(energy, b1*ll_nite_md, fillrange=b1*ll_nite_hi, fillalpha = 0.2, color = c5, label=false)
+nite_plot_lol = plot!(energy, b1*ll_nite_md, fillrange=b1*ll_nite_lo, fillalpha = 0.2, color = c5, label=false)
+nite_plot_lol = plot!(energy, b1*ll_nite_md, label = "ELFIN Night: L<5, 18<MLT<4 ", color = c6, linewidth=2, markershape=:circle);
+nite_plot_lol = plot!(legendfontsize=12, tickfontsize=12, legend=:bottomleft)
+nite_plot_lol = plot!(dpi = 500,size=(800,450), margin=20px, bottom_margin=12px)
+savefig(nite_plot_lol, "images/nite_plot_lol.png")
+savefig(nite_plot_lol, "images/nite_plot_lol.pdf")
 
-nite_plot = plot(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 1),
+nite_plot_hil = plot(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 1),
+            xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10)
+L, MLT, Kp, scenario, colour, label = test_cases[2,:]
+@time @load "result_matrix_stats/"*scenario*".jld2" rm
+@info "loaded $scenario.jld2"
+sim_ratio = prec_to_trap_ratio(rm)
+sim_ratio_sm = smooth(sim_ratio[1], 8, 5)
+norm = normalize_to_elfin(hl_nite_md, sim_ratio_sm)
+b1 = 1/(norm * maximum(sim_ratio_sm))
+normalizer = b1*norm
+nite_plot_hil = plot!(E_bins, normalizer .* sim_ratio_sm, label="$label Model: L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
+nite_plot_hil = plot!(energy, b1*hl_nite_md, fillrange=b1*hl_nite_hi, fillalpha = 0.2, color = c4, label=false)
+nite_plot_hil = plot!(energy, b1*hl_nite_md, fillrange=b1*hl_nite_lo, fillalpha = 0.2, color = c4, label=false)
+nite_plot_hil = plot!(energy, b1*hl_nite_md, label = "ELFIN Night: L>5, 18<MLT<4 ", color = bipride_pink, linewidth=2, markershape=:circle);
+nite_plot_hil = plot!(legendfontsize=12, tickfontsize=12, legend=:bottomleft)
+nite_plot_hil = plot!(dpi = 500,size=(800,450), margin=20px, bottom_margin=12px)
+savefig(nite_plot_hil, "images/nite_plot_hil.png")
+savefig(nite_plot_hil, "images/nite_plot_hil.pdf")
+
+statistical_comparison_plot = plot(dawn_plot_lol, dawn_plot_hil, dusk_plot_lol, dusk_plot_hil, nite_plot_lol, nite_plot_hil, layout=(3,2),size=(1200,1600),dpi=500)
+savefig(statistical_comparison_plot, "images/statistical_comparison.png")
+savefig(statistical_comparison_plot, "images/statistical_comparison.pdf")
+
+
+
+
+# elfin_only_plot --> EOP
+
+# low L shell plot
+test_cases = [4.5 8.0  3  "LO_DAWN_MODEL" c1 "Dawn";
+              4.5 16.5 3  "LO_DUSK_MODEL" c3 "Dusk";
+              4.5 23.0 3  "LO_NITE_MODEL" c5 "Night";
+              ]
+
+energy = stats_1.en
+nite_lo = stats_1."L<5_night"
+nite_md = stats_2."L<5_night"
+nite_hi = stats_3."L<5_night"
+dawn_lo = stats_1."L<5_day"
+dawn_md = stats_2."L<5_day"
+dawn_hi = stats_3."L<5_day"
+dusk_lo = stats_1."L<5_dusk"
+dusk_md = stats_2."L<5_dusk"
+dusk_hi = stats_3."L<5_dusk"
+
+
+eop = plot(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 1),
             xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10)
 for case in eachrow(test_cases)
     L, MLT, Kp, scenario, colour, label = case
     @time @load "result_matrix_stats/"*scenario*".jld2" rm
     @info "loaded $scenario.jld2"
     sim_ratio = prec_to_trap_ratio(rm)
-    sim_ratio_sm = smooth(sim_ratio[1], 4, 5)
-    nite_plot = plot!(E_bins, normalizer .* sim_ratio_sm, label="$label Model: L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
+    sim_ratio_sm = smooth(sim_ratio[1], 6, 5)
+    eop = plot!(E_bins, normalizer .* sim_ratio_sm, label=" $label Model: L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
 end
-nite_plot = plot!(energy, b1*ll_nite_md, fillrange=b1*ll_nite_hi, fillalpha = 0.2, color = c5, label=false)
-nite_plot = plot!(energy, b1*ll_nite_md, fillrange=b1*ll_nite_lo, fillalpha = 0.2, color = c5, label=false)
-nite_plot = plot!(energy, b1*ll_nite_md, label = "ELFIN Night: L<5, 18<MLT<4 ", color = c6, linewidth=2, markershape=:circle);
-nite_plot = plot!(energy, b1*hl_nite_md, fillrange=b1*hl_nite_hi, fillalpha = 0.2, color = c4, label=false)
-nite_plot = plot!(energy, b1*hl_nite_md, fillrange=b1*hl_nite_lo, fillalpha = 0.2, color = c4, label=false)
-nite_plot = plot!(energy, b1*hl_nite_md, label = "ELFIN Night: L>5, 18<MLT<4 ", color = bipride_pink, linewidth=2, markershape=:circle);
-nite_plot = plot!(legendfontsize=12, tickfontsize=12, legend=:bottomleft)
+eop = plot!(energy, dawn_md, label = "ELFIN L<5 Dawn", color = bipride_orange, linewidth=2, markershape=:circle);
+eop = plot!(energy, dawn_md, fillrange=dawn_hi, fillalpha = 0.2, color = c1, label=false)
+eop = plot!(energy, dawn_md, fillrange=dawn_lo, fillalpha = 0.2, color = c1, label=false)
+eop = plot!(energy, dusk_md, label = "ELFIN L<5 Dusk", color = bipride_pink, linewidth=2, markershape=:circle);
+eop = plot!(energy, dusk_md, fillrange=dusk_hi, fillalpha = 0.2, color = c4, label=false)
+eop = plot!(energy, dusk_md, fillrange=dusk_lo, fillalpha = 0.2, color = c4, label=false)
+eop = plot!(energy, nite_md, label = "ELFIN L<5 Night", color = bipride_blue, linewidth=2, markershape=:circle)
+eop = plot!(energy, nite_md, fillrange=nite_hi, fillalpha = 0.2, color = c5, label=false)
+eop = plot!(energy, nite_md, fillrange=nite_lo, fillalpha = 0.2, color = c5, label=false)
+eop = plot!(dpi = 500,size=(800,450), margin=20px, bottom_margin=12px, legend=:bottomleft)
 
-nite_plot_save = plot!(dpi = 500,size=(800,450), margin=20px, bottom_margin=12px)
-savefig(nite_plot_save, "images/night_compare.png")
-savefig(nite_plot_save, "images/night_compare.pdf")
+# high L shell plot
+test_cases = [6.5 8.0  3  "HI_DAWN_MODEL" c1 "Dawn";
+              6.5 16.5 3  "HI_DUSK_MODEL" c3 "Dusk";
+              6.5 23.0 3  "HI_NITE_MODEL" c5 "Night";
+              ]
 
-statistical_comparison_plot = plot(dawn_plot, dusk_plot, nite_plot, layout=(3,1),size=(800,1400),dpi=500)
-savefig(statistical_comparison_plot, "images/statistical_comparison.png")
-savefig(statistical_comparison_plot, "images/statistical_comparison.pdf")
+energy = stats_1.en
+nite_lo = stats_1."L>5_night"
+nite_md = stats_2."L>5_night"
+nite_hi = stats_3."L>5_night"
+dawn_lo = stats_1."L>5_day"
+dawn_md = stats_2."L>5_day"
+dawn_hi = stats_3."L>5_day"
+dusk_lo = stats_1."L>5_dusk"
+dusk_md = stats_2."L>5_dusk"
+dusk_hi = stats_3."L>5_dusk"
+
+for case in eachrow(test_cases)
+    L, MLT, Kp, scenario, colour, label = case
+    @time @load "result_matrix_stats/"*scenario*".jld2" rm
+    @info "loaded $scenario.jld2"
+    sim_ratio = prec_to_trap_ratio(rm)
+    sim_ratio_sm = smooth(sim_ratio[1], 6, 5)
+    eop = plot!(E_bins, normalizer .* sim_ratio_sm, label=" $label Model: L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
+end
+eop = plot!(energy, dawn_md, label = "ELFIN L>5 Dawn", color = bipride_orange, linewidth=2, markershape=:circle);
+eop = plot!(energy, dawn_md, fillrange=dawn_hi, fillalpha = 0.2, color = c1, label=false)
+eop = plot!(energy, dawn_md, fillrange=dawn_lo, fillalpha = 0.2, color = c1, label=false)
+eop = plot!(energy, dusk_md, label = "ELFIN L>5 Dusk", color = bipride_pink, linewidth=2, markershape=:circle);
+eop = plot!(energy, dusk_md, fillrange=dusk_hi, fillalpha = 0.2, color = c4, label=false)
+eop = plot!(energy, dusk_md, fillrange=dusk_lo, fillalpha = 0.2, color = c4, label=false)
+eop = plot!(energy, nite_md, label = "ELFIN L>5 Night", color = bipride_blue, linewidth=2, markershape=:circle)
+eop = plot!(energy, nite_md, fillrange=nite_hi, fillalpha = 0.2, color = c5, label=false)
+eop = plot!(energy, nite_md, fillrange=nite_lo, fillalpha = 0.2, color = c5, label=false)
+eop = plot!(dpi = 500,size=(800,450), margin=20px, bottom_margin=12px, legend=:bottomleft)
+
+
+
+############
+start = DateTime(2021,1,12,2,26,27)
+stop = DateTime(2021,1,12,2,26,40)
+############
+id = "A"
+yy = "21"
+mm = "01"
+dd = "12"
+HH = "02"
+MM = "27"
+L, MLT, Kp = 6.0, 8.4, 3
+start_string = Dates.format(start, DateFormat("yyyy-mm-dd HH:MM:SS"))
+stop_string = Dates.format(stop, DateFormat("HH:MM:SS"))
+elfin_p2t, elfin_p2t_error = extract_elfin_p2t_ratio(
+    mm*dd*yy*"_"*HH, start, stop
+    )
+plot(xscale=:log10, yscale=:log10, xlim=(50,1000), ylim=(1e-2, 1),  xminorticks=10, yminorticks=10)
+plot!(elfin_p2t, yerror=elfin_p2t_error, color = c5, marker = stroke(3,c5), linewidth=4, markersize = 0, label=" ELFIN-$id $start_string-$stop_string" )
+elfun_210112 = plot!()
+# savefig(elfun_210112, "images/elfun_210112.png")
+savefig(elfun_210112, "images/elfun_210112.pdf")
+
+
+# FIGURE 5 in JGR2023
+
+using StatsPlots
+
+N_orbits_day = [259,300,382,431,143,151]
+N_orbits_dusk = [171,195,284,323,84,95]
+N_orbits_night = [508,566,971,1025,371,382]
+
+N_spins_day = [2172,2475,3771,5345,1835,2425]
+N_spins_dusk = [1836,1960,3072,3274,856,976]
+N_spins_night = [3886,2902,6816,5598,2391,2121]
+
+theme(:bright)
+ticklabel = ["L<5", "L>5", "L<5", "L>5", "L<5", "L>5"]
+n_orb_plot = groupedbar([N_orbits_day N_orbits_dusk N_orbits_night],
+        bar_position = :stack,
+        bar_width=0.3,
+        xticks=(1:6, ticklabel), label=false, ylim = [0,1800])
+savefig(n_orb_plot, "images/n_orb_plot.pdf")
+
+n_spin_plot = groupedbar([N_spins_day/8 N_spins_dusk/8 N_spins_night/8],
+        bar_position = :stack,
+        bar_width=0.3,
+        xticks=(1:6, ticklabel), label=false, ylim = [0,1800])
+savefig(n_spin_plot, "images/n_spin_plot.pdf")
