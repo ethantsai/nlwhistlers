@@ -45,7 +45,8 @@ function extract_idl_ratio(
     data_name::String,
     error_name::String,
     ebin_name::String,
-    start::DateTime, stop::DateTime)
+    start::DateTime, stop::DateTime,
+    indices_to_remove=[])
 
     time_csv_name = "idl_csvs/"*time_name
     data_csv_name = "idl_csvs/"*data_name
@@ -55,6 +56,9 @@ function extract_idl_ratio(
     times_df =  CSV.File(time_csv_name; header=false, delim=',', types=Float64) |> DataFrame
     time = unix2datetime.(times_df.Column1)
     indices = findall((time.>start).&(time.<stop)) # these are the indices corresponding to the time range to sum over
+    for i in indices_to_remove
+        deleteat!(indices, findall(indices.==i))
+    end
     time_of_interest = time[indices]
     @info "Summing over $(time_of_interest[end]-time_of_interest[1])"
 
@@ -81,11 +85,11 @@ function extract_idl_ratio(
     return (ebins, avg_ratio), error
 end
 
-function extract_elfin_p2t_ratio(datestring, tstart, tend)
+function extract_elfin_p2t_ratio(datestring, tstart, tend, indices_to_remove=[])
     @info "Loading csv data from $datestring"
     elfin_p2t, elfin_p2t_error = extract_idl_ratio(datestring*"_time.csv", datestring*"_p2t.csv",
                                                     datestring*"_p2t_err.csv", "ebins.csv", # csvs containing ELFIN measurements
-                                                    tstart, tend); # time to sample from ELFIN measurements                                                                
+                                                    tstart, tend, indices_to_remove); # time to sample from ELFIN measurements                                                                
     #need to check if data-error is below zero
     for i in eachindex(elfin_p2t_error)
         if elfin_p2t[2][i] < elfin_p2t_error[i]
