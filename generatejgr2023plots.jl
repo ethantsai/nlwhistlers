@@ -676,10 +676,10 @@ savefig(dusk_plot_lol, "images/dusk_compare_lol.pdf")
 dusk_plot_hil = plot(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 1),
             xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10)
 L, MLT, Kp, scenario, colour, label = test_cases[2,:]
-@time @load "result_matrix_stats/"*scenario*".jld2" rm
+# @time @load "result_matrix_stats/"*scenario*".jld2" rm
 @info "loaded $scenario.jld2"
 sim_ratio = prec_to_trap_ratio(rm)
-sim_ratio_sm = smooth(sim_ratio[1], 12, 5)
+sim_ratio_sm = smooth(sim_ratio[1], 5, 5)
 norm = normalize_to_elfin(hl_dusk_md, sim_ratio_sm)
 b1 = 1/(norm * maximum(sim_ratio_sm))
 normalizer = b1*norm
@@ -857,24 +857,43 @@ savefig(elfun_210112, "images/elfun_210112.pdf")
 
 using StatsPlots
 
-N_orbits_day = [259,300,382,431,143,151]
-N_orbits_dusk = [171,195,284,323,84,95]
-N_orbits_night = [508,566,971,1025,371,382]
+# AE<100 L<5 night: Norbits=544.0 Nspins=4210.0
+# AE<100 L<5 day: Norbits=276.0 Nspins=2295.0
+# AE<100 L<5 dusk: Norbits=190.0 Nspins=2026.0
+# AE<100 L>5 night: Norbits=601.0 Nspins=3105.0
+# AE<100 L>5 day: Norbits=319.0 Nspins=2587.0
+# AE<100 L>5 dusk: Norbits=217.0 Nspins=2149.0
+# AE[100,350] L<5 night: Norbits=1182.0 Nspins=8520.0
+# AE[100,350] L<5 day: Norbits=552.0 Nspins=4995.0
+# AE[100,350] L<5 dusk: Norbits=549.0 Nspins=5638.0
+# AE[100,350] L>5 night: Norbits=1232.0 Nspins=6744.0
+# AE[100,350] L>5 day: Norbits=607.0 Nspins=6671.0
+# AE[100,350] L>5 dusk: Norbits=581.0 Nspins=5752.0
+# AE>350 L<5 night: Norbits=448.0 Nspins=2886.0
+# AE>350 L<5 day: Norbits=171.0 Nspins=2108.0
+# AE>350 L<5 dusk: Norbits=164.0 Nspins=1751.0
+# AE>350 L>5 night: Norbits=451.0 Nspins=2485.0
+# AE>350 L>5 day: Norbits=181.0 Nspins=2684.0
+# AE>350 L>5 dusk: Norbits=163.0 Nspins=1533.0
 
-N_spins_day = [2172,2475,3771,5345,1835,2425]
-N_spins_dusk = [1836,1960,3072,3274,856,976]
-N_spins_night = [3886,2902,6816,5598,2391,2121]
+N_orbits_day = [276,319,552,607,171,181]
+N_orbits_dusk = [190,217,549,581,164,163]
+N_orbits_night = [544,601,1182,1232,448,451]
+
+N_spins_day = [2295,2587,4995,6671,2108,2684]
+N_spins_dusk = [2026,2149,5638,5752,1751,1533]
+N_spins_night = [4210,3105,8520,6744,2886,2485]
 
 theme(:bright)
 ticklabel = ["L<5", "L>5", "L<5", "L>5", "L<5", "L>5"]
 n_orb_plot = groupedbar([N_orbits_day N_orbits_dusk N_orbits_night],
         bar_position = :stack,
         bar_width=0.3,
-        xticks=(1:6, ticklabel), label=false, ylim = [0,1800])
+        xticks=(1:6, ticklabel), label=false, ylim = [0,2500])
 savefig(n_orb_plot, "images/n_orb_plot.pdf")
 
 n_spin_plot = groupedbar([N_spins_day/8 N_spins_dusk/8 N_spins_night/8],
         bar_position = :stack,
         bar_width=0.3,
-        xticks=(1:6, ticklabel), label=false, ylim = [0,1800])
+        xticks=(1:6, ticklabel), label=false, ylim = [0,2500])
 savefig(n_spin_plot, "images/n_spin_plot.pdf")
