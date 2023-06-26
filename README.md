@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/367134831.svg)](https://zenodo.org/badge/latestdoi/367134831)
+
 # Setup/Update Instructions
 
 ## Install and set up Julia for Windows
@@ -55,9 +57,6 @@ add TickTock, ConfParser, Profile, Dates, Random, StaticArrays, Distributed, Ord
   2. On any machine, you can just do `julia runEnsemble.jl` to run it.
 
 
-
-
-
 ## Profiling Code
 
 Using Profile and PProf
@@ -66,12 +65,6 @@ Using Profile and PProf
   - View: `pprof(;webport=58599)`
 
 Make sure graphviz is installed. The arrows a -> b are a calls b and the numbers provide run time information, with second percentage being percent total run time and first percentage being how much itself takes (as compared to its subroutines).
-
-
-
-## Miscellaneous
-
-Batch rename:
 
 ```
 ls|while read file; do mv "$file" "$(echo "$file"|sed -e 's/[() ]//g')";done
