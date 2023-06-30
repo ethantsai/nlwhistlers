@@ -32,9 +32,35 @@ folder = "run19/"
 rm = sol2rm(sol, case);
 @time @save "result_matrix/"*case[1:18]*".jld2" rm
 
+# case = "HI_DAWN_MODEL_3_1000000"
+# @time @load save_dir*folder*case*".jld2" sol;
+# rm = sol2rm(sol, case);
+# @time @save "result_matrix_stats/hr_"*case[1:13]*".jld2" rm
 
+# case = "HI_DUSK_MODEL_3_1000000"
+# @time @load save_dir*folder*case*".jld2" sol;
+# rm = sol2rm(sol, case);
+# @time @save "result_matrix_stats/hr_"*case[1:13]*".jld2" rm
 
+# case = "HI_NITE_MODEL_3_1000000"
+# @time @load save_dir*folder*case*".jld2" sol;
+# rm = sol2rm(sol, case);
+# @time @save "result_matrix_stats/hr_"*case[1:13]*".jld2" rm
 
+# case = "LO_DAWN_MODEL_3_1000000"
+# @time @load save_dir*folder*case*".jld2" sol;
+# rm = sol2rm(sol, case);
+# @time @save "result_matrix_stats/hr_"*case[1:13]*".jld2" rm
+
+# case = "LO_DUSK_MODEL_3_1000000"
+# @time @load save_dir*folder*case*".jld2" sol;
+# rm = sol2rm(sol, case);
+# @time @save "result_matrix_stats/hr_"*case[1:13]*".jld2" rm
+
+# case = "LO_NITE_MODEL_3_1000000"
+# @time @load save_dir*folder*case*".jld2" sol;
+# rm = sol2rm(sol, case);
+# @time @save "result_matrix_stats/hr_"*case[1:13]*".jld2" rm
 
 
 ############
