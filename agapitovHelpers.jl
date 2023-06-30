@@ -21,16 +21,16 @@ using StatsBase
 #######################
 @info "Loading constants..."
 save_dir = "results_ducting/"
-folder = "run21/"
+folder = "run23/"
 mkpath(save_dir*folder)
 
 # case specific
              #L   MLT  Kp name
-test_cases = [4.5 23   3  "LO_NITE_MODEL";
-              4.5 16.5 3  "LO_DUSK_MODEL";
-              4.5 8.0  3  "LO_DAWN_MODEL";
-              ]
-# test_cases = [6.5 23   3  "HI_NITE_MODEL";
+# test_cases = [4.5 23   3  "LO_NITE_MODEL";
+#               4.5 16.5 3  "LO_DUSK_MODEL";
+#               4.5 8.0  3  "LO_DAWN_MODEL";
+#               ]
+test_cases = [6.5 23   3  "HI_NITE_WNAX"];
 #               6.5 16.5 3  "HI_DUSK_MODEL";
 #               6.5 8.0  3  "HI_DAWN_MODEL";
 #               ]
@@ -220,7 +220,23 @@ function eom!(dH,H,p::SVector{9},t::Float64)
     b = sqrt(1+3*sinλ^2)/(cosλ^6);
     db = (3*(27*sinλ-5*sin(3*H[5])))/(cosλ^8*(4+12*sinλ^2));
     γ = sqrt(1 + H[2]^2 + H[4]^2*b);
-    K = copysign(1, H[5]) * (p[3] * (cosλ^(-5/2)))/sqrt(b/p[4] - 1);
+
+    # for field aligned waves, use this:
+    # K = copysign(1, H[5]) * (p[3] * (cosλ^(-5/2)))/sqrt(b/p[4] - 1);
+
+    # for oblique waves, use one of the three options:
+    # deg2rad(15) = 0.2617993877991494
+    # deg2rad(2) = 0.03490658503988659
+    # model 1: slightly oblique
+    theta_g = arccos(2*p[4]/b);
+    wna = theta_g * (H[5]/0.2617993877991494) / (1 + H[5]/0.2617993877991494);
+    # model 2: moderately oblique
+    theta_r = arccos(p[4]/b);
+    wna = theta_r * (H[5]/0.2617993877991494) / (1 + H[5]/0.2617993877991494);
+    # model 3: very oblique
+    theta_r = arccos(p[4]/b);
+    wna = theta_r - 0.03490658503988659;
+    K = copysign(1, H[5]) * (p[3] * (cosλ^(-5/2)))/sqrt((cos(wna)*b)/p[4] - 1);
 
     # B_w
     H[7] = p[8] * ((10 ^ abs( p[7][1] * (abs(rad2deg(H[5])) - p[7][4]) * exp(-abs(rad2deg(H[5])) * p[7][3] - p[7][2]))) - p[9]) * tanh(rad2deg(H[5]/deg2rad(1)))
