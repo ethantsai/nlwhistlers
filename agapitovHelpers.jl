@@ -30,7 +30,7 @@ mkpath(save_dir*folder)
 #               4.5 16.5 3  "LO_DUSK_MODEL";
 #               4.5 8.0  3  "LO_DAWN_MODEL";
 #               ]
-test_cases = [6.5 23   3  "HI_NITE_WNAX"];
+test_cases = [6.5 23   3  "HI_NITE_WNA3"];
 #               6.5 16.5 3  "HI_DUSK_MODEL";
 #               6.5 8.0  3  "HI_DAWN_MODEL";
 #               ]
@@ -228,14 +228,14 @@ function eom!(dH,H,p::SVector{9},t::Float64)
     # deg2rad(15) = 0.2617993877991494
     # deg2rad(2) = 0.03490658503988659
     # model 1: slightly oblique
-    theta_g = arccos(2*p[4]/b);
-    wna = theta_g * (H[5]/0.2617993877991494) / (1 + H[5]/0.2617993877991494);
+    # theta_g = acos(2*p[4]/b);
+    # wna = cos(2*p[4]/b) * (H[5]/0.2617993877991494) / (1 + H[5]/0.2617993877991494);
     # model 2: moderately oblique
-    theta_r = arccos(p[4]/b);
-    wna = theta_r * (H[5]/0.2617993877991494) / (1 + H[5]/0.2617993877991494);
+    # theta_r = acos(p[4]/b);
+    # wna = acos(p[4]/b) * (H[5]/0.2617993877991494) / (1 + H[5]/0.2617993877991494);
     # model 3: very oblique
-    theta_r = arccos(p[4]/b);
-    wna = theta_r - 0.03490658503988659;
+    # theta_r = acos(p[4]/b);
+    wna = acos(p[4]/b) - 0.03490658503988659;
     K = copysign(1, H[5]) * (p[3] * (cosλ^(-5/2)))/sqrt((cos(wna)*b)/p[4] - 1);
 
     # B_w
