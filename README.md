@@ -14,7 +14,7 @@
 ## For Mac
 
   1. remove any existing symlink: `rm -f /usr/local/bin/julia`
-  2. make new symlink: `sudo ln -s /Applications/Julia-1.7.app/Contents/Resources/julia/bin/julia /usr/local/bin/julia`
+  2. make new symlink: `sudo ln -s /Applications/Julia-1.9.app/Contents/Resources/julia/bin/julia /usr/local/bin/julia`
 
 
 ## For Ubuntu
