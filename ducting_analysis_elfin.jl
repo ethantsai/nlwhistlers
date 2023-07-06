@@ -7,7 +7,7 @@ include("agapitovPlotHelpers.jl")
 #######################
 @info "Loading constants..."
 save_dir = "results_ducting/"
-folder = "run19/"
+folder = "run23/"
 
 @info "E_min is $ELo keV"
 @info "E_max is $EHi keV"
@@ -61,6 +61,11 @@ rm = sol2rm(sol, case);
 # @time @load save_dir*folder*case*".jld2" sol;
 # rm = sol2rm(sol, case);
 # @time @save "result_matrix_stats/hr_"*case[1:13]*".jld2" rm
+
+case = "HI_NITE_WNA2_3_250000"
+@time @load save_dir*folder*case*".jld2" sol;
+rm = sol2rm(sol, case);
+@time @save "result_matrix_oblique/"*case[1:13]*".jld2" rm
 
 
 ############
