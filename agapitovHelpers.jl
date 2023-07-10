@@ -15,13 +15,12 @@ using Plots
 using StatsBase
 @info "Packages compiled."
 
-
 #######################
 ## Constants n stuff ##
 #######################
 @info "Loading constants..."
 save_dir = "results_ducting/"
-folder = "run23/"
+folder = "run24/"
 mkpath(save_dir*folder)
 
 # case specific
@@ -30,7 +29,7 @@ mkpath(save_dir*folder)
 #               4.5 16.5 3  "LO_DUSK_MODEL";
 #               4.5 8.0  3  "LO_DAWN_MODEL";
 #               ]
-test_cases = [6.5 23   3  "HI_NITE_WNA1"];
+test_cases = [6.5 23   3  "HI_NITE_WNA3"];
 #               6.5 16.5 3  "HI_DUSK_MODEL";
 #               6.5 8.0  3  "HI_DAWN_MODEL";
 #               ]
@@ -96,8 +95,8 @@ function generateFlatParticleDistribution(numParticles::Int64, ICrange, L)
 
     # mu0 = .5*(IC[1]^2-1)*sin(IC[2])^2
     # q0 = sqrt(2*mu0) = sqrt((IC[1]^2-1)*sin(IC[2])^2)
-    #####       [[z0 pz0                          ζ0               q0                              λ0 Φ0                 B_w0 ]             ]
-    @views h0 = [[z0 sqrt(IC[1]^2 - 1)*cos(IC[2]) rand()*2*pi*dPhi sqrt((IC[1]^2-1)*sin(IC[2])^2)  λ0 rand()*2*pi*2*dPhi 0    ] for IC in f0] # creates a 5xN array with inital h0 terms
+    #####       [[z0 pz0                          ζ0               q0                              λ0 Φ0                 B_w0 K0]             ]
+    @views h0 = [[z0 sqrt(IC[1]^2 - 1)*cos(IC[2]) rand()*2*pi*dPhi sqrt((IC[1]^2-1)*sin(IC[2])^2)  λ0 rand()*2*pi*2*dPhi 0    0] for IC in f0] # creates a 5xN array with inital h0 terms
     f0 = vcat(f0...) # convert Array{Array{Float64,2},1} to Array{Float64,2}
     h0 = vcat(h0...) # since i used list comprehension it is now a nested list
 
@@ -153,8 +152,8 @@ function generateSkewedParticleDistribution(numParticles::Int64, ICrange, L, fac
     
     f0 = [[(E_bins[i]+511.)/511. deg2rad(PA)] for i in 1:Esteps for PA in PA_bins[i] ]
 
-    #####       [[z0 pz0                          ζ0               q0                              λ0 Φ0               B_w0 ]             ]
-    @views h0 = [[z0 sqrt(IC[1]^2 - 1)*cos(IC[2]) rand()*2*pi*dPhi sqrt((IC[1]^2-1)*sin(IC[2])^2)  λ0 rand()*2*pi*dPhi 0    ] for IC in f0] # creates a 5xN array with inital h0 terms
+    #####       [[z0 pz0                          ζ0               q0                              λ0 Φ0               B_w0 K0]             ]
+    @views h0 = [[z0 sqrt(IC[1]^2 - 1)*cos(IC[2]) rand()*2*pi*dPhi sqrt((IC[1]^2-1)*sin(IC[2])^2)  λ0 rand()*2*pi*dPhi 0    0] for IC in f0] # creates a 5xN array with inital h0 terms
     f0 = vcat(f0...) # convert Array{Array{Float64,2},1} to Array{Float64,2}
     h0 = vcat(h0...) # since i used list comprehension it is now a nested list
 
@@ -202,7 +201,7 @@ function setup_wave_model(test_cases)
     return wave_model_array, wave_model_coeff_array, wave_normalizer, wave_model_shifter_array
 end
 
-function eom!(dH,H,p::SVector{9},t::Float64)
+function eom!(dH,H,p,t::Float64)
     # These equations define the motion.
     #                  lambda in radians                     
     # z, pz, zeta, mu, lambda, phi = H
@@ -222,21 +221,21 @@ function eom!(dH,H,p::SVector{9},t::Float64)
     γ = sqrt(1 + H[2]^2 + H[4]^2*b);
 
     # for field aligned waves, use this:
-    # K = copysign(1, H[5]) * (p[3] * (cosλ^(-5/2)))/sqrt(b/p[4] - 1);
+    # H[8] = copysign(1, H[5]) * (p[3] * (cosλ^(-5/2)))/sqrt(b/p[4] - 1);
 
     # for oblique waves, use one of the three options:
     # deg2rad(15) = 0.2617993877991494
     # deg2rad(2) = 0.03490658503988659
     # model 1: slightly oblique
     # theta_g = acos(2*p[4]/b);
-    wna = acos(2*p[4]/b) * (H[5]/0.2617993877991494) / (1 + H[5]/0.2617993877991494);
+    # wna = acos(2*p[4]/b) * (H[5]/0.2617993877991494) / (1 + H[5]/0.2617993877991494);
     # model 2: moderately oblique
     # theta_r = acos(p[4]/b);
     # wna = acos(p[4]/b) * (H[5]/0.2617993877991494) / (1 + H[5]/0.2617993877991494);
     # model 3: very oblique
     # theta_r = acos(p[4]/b);
-    # wna = acos(p[4]/b) - 0.03490658503988659;
-    K = copysign(1, H[5]) * (p[3] * (cosλ^(-5/2)))/sqrt((cos(wna)*b)/p[4] - 1);
+    wna = acos(p[4]/b) - 0.03490658503988659;
+    H[8] = copysign(1, H[5]) * (p[3] * (cosλ^(-5/2)))/sqrt((cos(wna)*b)/p[4] - 1);
 
     # B_w
     H[7] = p[8] * ((10 ^ abs( p[7][1] * (abs(rad2deg(H[5])) - p[7][4]) * exp(-abs(rad2deg(H[5])) * p[7][3] - p[7][2]))) - p[9]) * tanh(rad2deg(H[5]/deg2rad(1)))
@@ -260,12 +259,12 @@ function eom!(dH,H,p::SVector{9},t::Float64)
     # actual integration vars
     dH1 = H[2]/γ;
     dH2 = -(0.5 * H[4]^2 * db)/γ - (H[4] * psi * cosζ) - (H[4] * psi * cosζ * dg);
-    dH3 = p[1]*(K*dH1 - p[4] + b/γ) + (psi*sinζ)/(H[4]*K);
-    dH4 = -(psi*cosζ)/K;
+    dH3 = p[1]*(H[8]*dH1 - p[4] + b/γ) + (psi*sinζ)/(H[4]*H[8]);
+    dH4 = -(psi*cosζ)/H[8];
     dH5 = H[2]/(γ*cosλ*sqrt(1+3*sinλ^2));
-    dH6 = p[1]*(K*dH1 - p[4]);
+    dH6 = p[1]*(H[8]*dH1 - p[4]);
 
-    dH .= SizedVector{7}([ dH1, dH2, dH3, dH4, dH5, dH6, 0 ]);
+    dH .= SizedVector{8}([ dH1, dH2, dH3, dH4, dH5, dH6, 0, 0 ]);
     
 end
 
@@ -311,8 +310,6 @@ calcb!(b::Vector{Float64}, lambda) = @. b = sqrt(1+3*sin(lambda)^2)/(cos(lambda)
 calcGamma!(gamma::Vector{Float64}, pz, mu, b::Vector{Float64}) = @. gamma = sqrt(1 + pz^2 + 2*mu*b)
 calcAlpha!(alpha::Vector{Float64}, mu, gamma::Vector{Float64}) = @. alpha = rad2deg(asin(sqrt((2*mu)/(gamma^2 - 1))))
 
-
-
 # plot helpers
 function extract(sol::EnsembleSolution)
     allZ = Vector{Vector{Float64}}();
@@ -325,56 +322,33 @@ function extract(sol::EnsembleSolution)
     allT = Vector{Vector{Float64}}();
     allLambda = Vector{Vector{Float64}}();
     allBw = Vector{Vector{Float64}}();
-    for traj in sol
-    # for i in eachindex(sol)
-    #     traj = sol[i];
-    #     @info i
-        
+    allK = Vector{Vector{Float64}}();
+    for traj in sol      
         vars = Array(traj');
-        # try
-            timesteps = length(traj.t);
-            b = zeros(timesteps);
-            gamma = zeros(timesteps);
-            Alpha = zeros(timesteps);
+        timesteps = length(traj.t);
+        b = zeros(timesteps);
+        gamma = zeros(timesteps);
+        Alpha = zeros(timesteps);
 
-            @views calcb!(b,vars[:,5]);
-            @views calcGamma!(gamma,vars[:,2],0.5.*vars[:,4].^2,b);
-            @views calcAlpha!(Alpha,0.5.*vars[:,4].^2,gamma);
-            @views push!(allT, traj.t);
-            @views push!(allZ, vars[:,1]);
-            @views push!(allPZ, vars[:,2]);
-            @views push!(allQ, vars[:,4]);
-            @views push!(allZeta, vars[:,3]);
-            @views push!(allPhi, vars[:,6]);
-            @views push!(allPA, Alpha);
-            @views push!(allE, @. (511*(gamma - 1)));
-            @views push!(allLambda, vars[:,5]);
-            @views push!(allBw, vars[:,7]);
-        # catch
-        #     last_positive_index = minimum(findall(x->x<=0,vars[:,4])) -1 
-        #     @info "Caught negative mu"
-        #     @info "index $(length(vars[:,4])-last_positive_index) from end"
-
-        #     timesteps = length(traj.t[1:last_positive_index]);
-        #     b = zeros(timesteps);
-        #     gamma = zeros(timesteps);
-        #     Alpha = zeros(timesteps);
-
-        #     @views calcb!(b,vars[1:last_positive_index,5]);
-        #     @views calcGamma!(gamma,vars[1:last_positive_index,2],0.5*vars[1:last_positive_index,4]^2,b);
-        #     @views calcAlpha!(Alpha,0.5*vars[1:last_positive_index,4]^2,gamma);
-        #     @views push!(allT, traj.t[1:last_positive_index]);
-        #     @views push!(allZ, vars[1:last_positive_index,1]);
-        #     @views push!(allPZ, vars[1:last_positive_index,2]);
-        #     @views push!(allPA, Alpha);
-        #     @views push!(allE, @. (511*(gamma - 1)));
-        #     @views push!(allLambda, vars[:,5]);
-        #     @views push!(allBw, vars[:,7]);
-        # end
-
+        @views calcb!(b,vars[:,5]);
+        @views calcGamma!(gamma,vars[:,2],0.5.*vars[:,4].^2,b);
+        @views calcAlpha!(Alpha,0.5.*vars[:,4].^2,gamma);
+        @views calcWNA!(wna, b, vars[:,5]);
+        @views calcK!(K, vars[:,5], wna, b);
+        @views push!(allT, traj.t);
+        @views push!(allZ, vars[:,1]);
+        @views push!(allPZ, vars[:,2]);
+        @views push!(allQ, vars[:,4]);
+        @views push!(allZeta, vars[:,3]);
+        @views push!(allPhi, vars[:,6]);
+        @views push!(allPA, Alpha);
+        @views push!(allE, @. (511*(gamma - 1)));
+        @views push!(allLambda, vars[:,5]);
+        @views push!(allBw, vars[:,7]);
+        @views push!(allK, vars[:,8]);
     end
     @info "$(length(sol)) particles loaded in."
-    return allT, allZ, allPZ, allQ, allZeta, allPhi, allE, allPA, allLambda, allBw;
+    return allT, allZ, allPZ, allQ, allZeta, allPhi, allE, allPA, allLambda, allBw, allK;
 end
 
 function postProcessor(allT::Vector{Vector{Float64}}, allZ::Vector{Vector{Float64}}, allPZ::Vector{Vector{Float64}}, allE::Vector{Vector{Float64}}, allPA::Vector{Vector{Float64}})
@@ -443,6 +417,7 @@ struct Resultant_Matrix
     allE::Vector{Vector{Float64}}
     allLambda::Vector{Vector{Float64}}
     allBw::Vector{Vector{Float64}}
+    allK::Vector{Vector{Float64}}
     lostParticles::Matrix{Float64}
     tVec::Vector{Float64}
     Zmatrix::Matrix{Float64}
@@ -453,10 +428,10 @@ end
 
 function sol2rm(sol, label)
     @info "Extracting data..."
-    @time allT, allZ, allPZ, allQ, allZeta, allPhi, allE, allPA, allLambda, allBw = extract(sol);
+    @time allT, allZ, allPZ, allQ, allZeta, allPhi, allE, allPA, allLambda, allBw, allK = extract(sol);
     @info "Processing data..."
     @time tVec, Zmatrix, PZmatrix, PAmatrix, Ematrix = postProcessor(allT, allZ, allPZ, allPA, allE);
-    return Resultant_Matrix(label, length(sol), tVec[end], allZ, allPZ, allQ, allZeta, allPhi, allT, allPA, allE, allLambda, allBw, countLostParticles(allT, tVec[end]), tVec, Zmatrix, PZmatrix, Ematrix, PAmatrix)
+    return Resultant_Matrix(label, length(sol), tVec[end], allZ, allPZ, allQ, allZeta, allPhi, allT, allPA, allE, allLambda, allBw, allK, countLostParticles(allT, tVec[end]), tVec, Zmatrix, PZmatrix, Ematrix, PAmatrix)
 end
 
 function last_index_before_zero(x::Vector{Float64})

@@ -26,9 +26,9 @@ for case_index in eachindex(L_array)
         @info "Starting new sim: $(test_cases[:,end][case_index]) with omega_m = $omega_m"
         savename = save_dir*folder*test_cases[:,end][case_index]*"_"*string(omega_m)[end]*"_$numParticles.jld2"
 
-        params = @SVector [η, ε, Omegape, omega_m, a, dPhi, wave_model_coeffs, wave_normalizer, wave_shifter];
+        params = (η, ε, Omegape, omega_m, a, dPhi, wave_model_coeffs, wave_normalizer, wave_shifter);
         prob = ODEProblem(eom!, ~, tspan, params);
-        prob_func = ((prob,i,repeat) -> remake(prob, u0 = h0[i,:], p = @SVector [η, ε, Omegape, omega_m, a, dPhi, wave_model_coeffs, wave_normalizer, wave_shifter]))
+        prob_func = ((prob,i,repeat) -> remake(prob, u0 = h0[i,:], p = (η, ε, Omegape, omega_m, a, dPhi, wave_model_coeffs, wave_normalizer, wave_shifter)))
         ensemble_prob = EnsembleProblem(prob::ODEProblem,prob_func=prob_func)
         
         tick()
