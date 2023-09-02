@@ -20,7 +20,7 @@ using StatsBase
 #######################
 @info "Loading constants..."
 save_dir = "results_ducting/"
-folder = "run24/"
+folder = "run28/"
 mkpath(save_dir*folder)
 
 # case specific
@@ -29,26 +29,28 @@ mkpath(save_dir*folder)
 #               4.5 16.5 3  "LO_DUSK_MODEL";
 #               4.5 8.0  3  "LO_DAWN_MODEL";
 #               ]
-test_cases = [6.5 23   3  "HI_NITE_WNA3"];
-#               6.5 16.5 3  "HI_DUSK_MODEL";
-#               6.5 8.0  3  "HI_DAWN_MODEL";
-#               ]
+# test_cases = [6.5 23   3  "HI_NITE_WNA3"];
+# #               6.5 16.5 3  "HI_DUSK_MODEL";
+# #               6.5 8.0  3  "HI_DAWN_MODEL";
+# #               ]
 
-omega_m_cases = [0.3] # these are the different frequencies to test
+test_cases = [6.5 23   3  "HI_NITE_MODEL_small"]
+
+omega_m_cases = [0.15, 0.45] # these are the different frequencies to test
 L_array = test_cases[:,1]
 
-const numParticles = 250000;
+const numParticles = 13;
 const startTime = 0;
 const endTime = 15;
 tspan = (startTime, endTime); # integration time
 
-const ELo = 52;
-const EHi = 1000;
-const Esteps = 32; # double ELFIN E bins
+const ELo = 500;
+const EHi = 500;
+const Esteps = 1; # double ELFIN E bins
 const PALo = 3;
 const PAHi = 15;
-const PAsteps = 1300; # only used for flat particle distribution
-const factor = 40; #only used for skewed particle distribution
+const PAsteps = 13; # only used for flat particle distribution
+const factor = 1; #only used for skewed particle distribution
 # num particles in highest energy bin = factor * num particles in lowest energy bin
 ICrange = [ELo, EHi, Esteps, PALo, PAHi, PAsteps];
 
@@ -65,7 +67,7 @@ const Re   = 6370e3;        # Earth radius, f64
 const c    = 3e8;           # speedo lite, f64
 const Beq  = 3.e-5;         # B field at equator (T), f64
 
-const saveDecimation = 40000; # really only need first and last point
+const saveDecimation = 40; # really only need first and last point
 @info "Done."
 
 
@@ -221,7 +223,7 @@ function eom!(dH,H,p,t::Float64)
     γ = sqrt(1 + H[2]^2 + H[4]^2*b);
 
     # for field aligned waves, use this:
-    # H[8] = copysign(1, H[5]) * (p[3] * (cosλ^(-5/2)))/sqrt(b/p[4] - 1);
+    H[8] = copysign(1, H[5]) * (p[3] * (cosλ^(-5/2)))/sqrt(b/p[4] - 1);
 
     # for oblique waves, use one of the three options:
     # deg2rad(15) = 0.2617993877991494
@@ -234,8 +236,8 @@ function eom!(dH,H,p,t::Float64)
     # wna = acos(p[4]/b) * (H[5]/0.2617993877991494) / (1 + H[5]/0.2617993877991494);
     # model 3: very oblique
     # theta_r = acos(p[4]/b);
-    wna = acos(p[4]/b) - 0.03490658503988659;
-    H[8] = copysign(1, H[5]) * (p[3] * (cosλ^(-5/2)))/sqrt((cos(wna)*b)/p[4] - 1);
+    # wna = acos(p[4]/b) - 0.03490658503988659;
+    # H[8] = copysign(1, H[5]) * (p[3] * (cosλ^(-5/2)))/sqrt((cos(wna)*b)/p[4] - 1);
 
     # B_w
     H[7] = p[8] * ((10 ^ abs( p[7][1] * (abs(rad2deg(H[5])) - p[7][4]) * exp(-abs(rad2deg(H[5])) * p[7][3] - p[7][2]))) - p[9]) * tanh(rad2deg(H[5]/deg2rad(1)))
@@ -291,6 +293,28 @@ cb1 = DiscreteCallback(palostcondition,affect!);
 cb2 = DiscreteCallback(ixlostcondition,affect!);
 cb3 = DiscreteCallback(eqlostcondition,affect!);
 
+function run_model(numParticles, ICrange, L, factor, omega_m,
+    wave_model_coeffs, wave_shifter, save_decimation)
+
+    h0, f0, η, ε, Omegape, resolution = generateSkewedParticleDistribution(numParticles, ICrange, L, factor);
+
+    @info "Starting new sim with omega_m = $omega_m"
+
+    params = (η, ε, Omegape, omega_m, a, dPhi, wave_model_coeffs, wave_normalizer, wave_shifter);
+    prob = ODEProblem(eom!, ~, tspan, params);
+    prob_func = ((prob,i,repeat) -> remake(prob, u0 = h0[i,:], p = (η, ε, Omegape, omega_m, a, dPhi, wave_model_coeffs, wave_normalizer, wave_shifter)))
+    ensemble_prob = EnsembleProblem(prob::ODEProblem,prob_func=prob_func)
+    
+    sol = solve(ensemble_prob, Tsit5(), EnsembleThreads(), save_everystep=false;
+                            callback=CallbackSet(cb3), trajectories=numParticles,
+                            dtmax=resolution, maxiters=1e8,
+                            saveat = save_decimation*resolution, kwargshandle=KeywordArgSilent)
+    
+    @info "Done!"
+
+    println()
+    return sol
+end
 
 # Simple calcs
 calcb(b::Vector{Float64},λ::Vector{Float64}) = @. b = sqrt(1+3*sin(λ)^2)/(cos(λ)^6)
@@ -333,8 +357,6 @@ function extract(sol::EnsembleSolution)
         @views calcb!(b,vars[:,5]);
         @views calcGamma!(gamma,vars[:,2],0.5.*vars[:,4].^2,b);
         @views calcAlpha!(Alpha,0.5.*vars[:,4].^2,gamma);
-        @views calcWNA!(wna, b, vars[:,5]);
-        @views calcK!(K, vars[:,5], wna, b);
         @views push!(allT, traj.t);
         @views push!(allZ, vars[:,1]);
         @views push!(allPZ, vars[:,2]);
