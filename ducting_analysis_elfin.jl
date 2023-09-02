@@ -7,7 +7,7 @@ include("agapitovPlotHelpers.jl")
 #######################
 @info "Loading constants..."
 save_dir = "results_ducting/"
-folder = "run23/"
+folder = "run28/"
 
 @info "E_min is $ELo keV"
 @info "E_max is $EHi keV"
