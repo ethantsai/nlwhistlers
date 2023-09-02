@@ -1,4 +1,4 @@
-function prec_to_trap_ratio(rm::Resultant_Matrix)
+function prec_to_trap_ratio(rm)
     initial_E = [rm.allE[i][1] for i = 1:length(rm.allT)]
     final_E = [rm.allE[i][end] for i = 1:length(rm.allT)]
     initial_PA = [rm.allPA[i][1] for i = 1:length(rm.allT)]
@@ -135,6 +135,8 @@ c3 = hexcolor(0xd3,0x00,0x7d); # magenta
 c4 = hexcolor(0x8f,0x19,0x9f); # purple
 c5 = hexcolor(0x00,0x38,0xa8); # blue
 c6 = hexcolor(0x00,0xA6,0xFF); # light blue
+c7 = hexcolor(0x00,0xAB,0x12); # green
+c8 = hexcolor(0x00,0xF7,0x1A); # light green
 
 
 using DirectConvolution
