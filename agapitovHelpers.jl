@@ -44,13 +44,13 @@ const startTime = 0;
 const endTime = 15;
 tspan = (startTime, endTime); # integration time
 
-const ELo = 500;
-const EHi = 500;
-const Esteps = 1; # double ELFIN E bins
+const ELo = 52;
+const EHi = 1000;
+const Esteps = 32; # double ELFIN E bins
 const PALo = 3;
 const PAHi = 15;
-const PAsteps = 13; # only used for flat particle distribution
-const factor = 1; #only used for skewed particle distribution
+const PAsteps = 1300; # only used for flat particle distribution
+const factor = 40; #only used for skewed particle distribution
 # num particles in highest energy bin = factor * num particles in lowest energy bin
 ICrange = [ELo, EHi, Esteps, PALo, PAHi, PAsteps];
 
