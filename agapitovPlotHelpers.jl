@@ -99,6 +99,33 @@ function extract_elfin_p2t_ratio(datestring, tstart, tend, indices_to_remove=[])
     return elfin_p2t, elfin_p2t_error
 end
 
+function obtain_diffusion_results(lo_or_hi, dawn_dusk_nite, wnX)
+    if lo_or_hi == "LO"
+        L_shell = "4.50"
+    elseif lo_or_hi == "HI"
+        L_shell = "6.50"
+    else
+        println("lo_or_hi should either be LO or HI")
+    end
+
+    if dawn_dusk_nite ∉ ["DAWN", "DUSK", "NITE"]
+        println("dawn_dusk_nite should either be DAWN, DUSK, or NITE")
+    end
+
+    if wnX ∉ [1,2,3]
+        println("wnX should either be 1, 2 or 3")
+    end
+    prefix = "diffusion_code_results/Chorus_Daa_PrecRatio"
+    name = "$(prefix)_L$(L_shell)_$(lo_or_hi)_$(dawn_dusk_nite)_WN$wnX.txt"
+    data =  CSV.File(name; header=true, delim=',', types=Float64) |> DataFrame
+    E = data.E
+    Daa = data."<Daa>"
+    prec_ratio = data.Prec_Ratio
+    
+    @info "Loaded diffusion code results from $name"
+    return E, Daa, prec_ratio
+end
+
 function obtain_elfin_ratio(elfin_prec, elfin_trap)
     return elfin_prec[2]./elfin_trap[2]
 end
@@ -108,6 +135,16 @@ function normalize_to_elfin(elfin_ratio, sim_ratio)
     # mean[63 and 97] keV is 80.61 keV
     # sim has 83 keV at index 6
     return mean(elfin_ratio[1:2]) / sim_ratio[6]
+end
+
+function normalize_to(normalization_energy, energy_1, energy_2, ratio_1, ratio_2)
+    # given the energy to normalize at in keV
+    # it will find the closest indexes in both energy 1 and energy 2
+    # it will then return the normalization to get you from ratio 2 to ratio 1
+    index_1 = findfirst(x->x>normalization_energy, energy_1)
+    index_2 = findfirst(x->x>normalization_energy, energy_2)
+    @info "normalizing @ E1: $(energy_1[index_1]) keV and E2: $(energy_2[index_2]) keV"
+    return ratio_1[index_1] / ratio_2[index_2]
 end
 
 function make_elfin_error_bars(elfin_data, elfin_error)

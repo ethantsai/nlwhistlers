@@ -67,7 +67,7 @@ const Re   = 6370e3;        # Earth radius, f64
 const c    = 3e8;           # speedo lite, f64
 const Beq  = 3.e-5;         # B field at equator (T), f64
 
-const saveDecimation = 40; # really only need first and last point
+const saveDecimation = 40000; # really only need first and last point
 @info "Done."
 
 
