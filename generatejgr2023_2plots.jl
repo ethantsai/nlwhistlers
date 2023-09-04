@@ -134,6 +134,23 @@ nite_plot_hil = plot!(dpi = 500,size=(800,450), margin=20px, bottom_margin=12px)
 savefig(nite_plot_hil, "images/oblique_comparison_5m.png")
 savefig(nite_plot_hil, "images/oblique_comparison_5m.pdf")
 
+# try to get results to match at higher Energies
+# f3 = f1*a + f2*(1-a), w/ a<1; f1 is wna3, f2 is wna2
+f3(a) = @. norm_4*sim_ratio_sm_4*a + norm_3*sim_ratio_sm_3*(1-a)
+nite_plot_hil = plot(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 1),
+            xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10)
+L, MLT, Kp, scenario, colour, label = test_cases[3,:]
+nite_plot_hil = plot!(E_bins, norm_3*sim_ratio_sm_3, label="$label Model: L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
+L, MLT, Kp, scenario, colour, label = test_cases[4,:]
+for i in 0.1:0.1:0.9
+    nite_plot_hil = plot!(E_bins, f3(i), label="")
+end
+nite_plot_hil = plot!(E_bins, norm_4*sim_ratio_sm_4, label="$label Model: L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
+nite_plot_hil = plot!(energy, hl_nite_md, fillrange=hl_nite_hi, fillalpha = 0.2, color = c4, label=false)
+nite_plot_hil = plot!(energy, hl_nite_md, fillrange=hl_nite_lo, fillalpha = 0.2, color = c4, label=false)
+nite_plot_hil = plot!(energy, hl_nite_md, label = "ELFIN Night: L>5, 18<MLT<4 ", color = bipride_pink, linewidth=2, markershape=:circle);
+nite_plot_hil = plot!(legendfontsize=12, tickfontsize=12, legend=:bottomleft)
+nite_plot_hil = plot!(dpi = 500,size=(800,450), margin=20px, bottom_margin=12px)
 
 
 save_dir = "results_ducting/"
@@ -245,16 +262,16 @@ const ELo = 500;
 const EHi = 500;
 const Esteps = 1;
 const PALo = 3;
-const PAHi = 15;
-const PAsteps = 13; 
+const PAHi = 3;
+const PAsteps = 1; 
 const factor = 1; 
 # num particles in highest energy bin = factor * num particles in lowest energy bin
 ICrange = [ELo, EHi, Esteps, PALo, PAHi, PAsteps];
 
 wave_model_array, wave_model_coeff_array, wave_normalizer, wave_shifter_array = setup_wave_model(test_cases)
 
-sol_15 = run_model(13, ICrange, 6.5, 1, 0.15, wave_model_coeff_array[1], wave_shifter_array[1],40);
-sol_45 = run_model(13, ICrange, 6.5, 1, 0.45, wave_model_coeff_array[1], wave_shifter_array[1],40);
+sol_15 = run_model(500, ICrange, 6.5, 1, 0.15, wave_model_coeff_array[1], wave_shifter_array[1],40);
+sol_45 = run_model(500, ICrange, 6.5, 1, 0.45, wave_model_coeff_array[1], wave_shifter_array[1],40);
 
 rm_15 = sol2rm(sol_15, test_cases[1,4]);
 rm_45 = sol2rm(sol_45, test_cases[2,4]);
@@ -270,3 +287,82 @@ bigplot = plot(p1,p3,p2,p4,
         xtickfontsize=14, ytickfontsize=14, xguidefontsize=16, yguidefontsize=16, legendfontsize=10, titlefontsize=16)
 
 savefig(bigplot, "images/freq_traj_comparison.png")
+
+
+
+
+# let's add frequency dependence on Latitude
+function omega_m(lambda)
+    if lambda < 20
+        return 0.41 - 0.0125*lambda
+    else
+        return 0.2
+    end
+end
+function omega_m_2(lambda)
+    if lambda < 16.8
+        return 0.41 - 0.0125*lambda
+    else
+        return 0.2
+    end
+end
+function omega_m_3(lambda)
+    if lambda < 20
+        return 0.41 - 0.0125*lambda
+    else
+        return 0.16
+    end
+end
+function omega_m_4(lambda)
+    if lambda < 10
+        return 0.41 - 0.025*lambda
+    else
+        return 0.16
+    end
+end
+
+plot(omega_m, 0, 90, ylim = (0.1,0.5), label=["agapitov+2018 model"], ylabel = "omega_m = f_m/f_ce", xlabel = "latitude (deg)")
+plot([omega_m_2,omega_m_3,omega_m_4], 0, 90, ylim = (0.1,0.5), label=["omega_m_1" "omega_m_2" "omega_m_3"], ylabel = "omega_m = f_m/f_ce", xlabel = "latitude (deg)")
+
+# now to import the actual runs
+
+test_cases = [6.5 23.0 3  "HI_NITE_MODEL_omega_mod_1" c5 "omega_mod_1";
+              6.5 23.0 3  "HI_NITE_MODEL_omega_mod_2" c6 "omega_mod_2";
+              6.5 23.0 3  "HI_NITE_MODEL_omega_mod_3" c6 "omega_mod_3";
+              6.5 23.0 3  "HI_NITE_MODEL_15" c0 "omega_m = 0.15";
+              6.5 23.0 3  "HI_NITE_MODEL_45" c8 "omega_m = 0.45";
+              ]
+
+
+energy = stats_1.en
+hl_nite_lo = stats_1."L>5_night"
+hl_nite_md = stats_2."L>5_night"
+hl_nite_hi = stats_3."L>5_night"
+
+omega_m_comparison_plot = plot(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 1),
+            xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10)
+
+@time @load "result_matrix_freqs/HI_NITE_MODEL_35.jld2" rm
+@info "loaded $scenario.jld2"
+sim_ratio = prec_to_trap_ratio(rm)
+sim_ratio_sm = smooth(sim_ratio[1], 8, 5)
+norm_35 = normalize_to_elfin(hl_nite_md, sim_ratio_sm)
+
+for i in 1:length(test_cases[:,1])
+    L, MLT, Kp, scenario, colour, label = test_cases[i,:]
+    @time @load "result_matrix_freqs/"*scenario*".jld2" rm
+    @info "loaded $scenario.jld2"
+    sim_ratio = prec_to_trap_ratio(rm)
+    sim_ratio_sm = smooth(sim_ratio[1], 8, 5)
+    norm = normalize_to_elfin(hl_nite_md, sim_ratio_sm)
+    omega_m_comparison_plot = plot!(E_bins, norm_3*sim_ratio_sm, label="$label Model: L=$L, MLT=$MLT, omega_pe=6.5", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
+end
+
+omega_m_comparison_plot = plot!(energy, hl_nite_md, fillrange=hl_nite_hi, fillalpha = 0.2, color = c4, label=false)
+omega_m_comparison_plot = plot!(energy, hl_nite_md, fillrange=hl_nite_lo, fillalpha = 0.2, color = c4, label=false)
+omega_m_comparison_plot = plot!(energy, hl_nite_md, label = "ELFIN Night: L>5, 18<MLT<4 ", color = bipride_pink, linewidth=2, markershape=:circle);
+omega_m_comparison_plot = plot!(legendfontsize=12, tickfontsize=12, legend=:bottomleft)
+omega_m_comparison_plot = plot!(dpi = 500,size=(1000,600), margin=20px, bottom_margin=12px)
+
+savefig(omega_m_comparison_plot, "images/freq_model_comparison.png")
+savefig(omega_m_comparison_plot, "images/freq_model_comparison.pdf")
