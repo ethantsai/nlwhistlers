@@ -1,5 +1,5 @@
 @info "Hello! It's sim time!"
-include("helperFunctions.jl")
+include("jgr_2022_work/helperFunctions.jl")
 outputFileBaseName, io = setupDirectories(directoryname)
 @info "Imported helperFunctions.jl"
 flush(io)

@@ -1,9 +1,9 @@
-include("plotHelpers.jl")
+include("jgr_2022_work/plotHelpers.jl")
 Egrid, PAgrid = logrange(10,1000,21), 6:4:90
 
 
 # Plots for 4/29/21
-@time @load "results/210429_lat_storage_cleaned.jld2" equatorial_fluxes_042921 themis_hilat_combined_042921 themis_midlat_042921 themis_lolat_042921
+@time @load "jgr_2022_work/results/210429_lat_storage_cleaned.jld2" equatorial_fluxes_042921 themis_hilat_combined_042921 themis_midlat_042921 themis_lolat_042921
 elfin_measurements_042921, elfin_error_042921 = extract_idl_csv("042921_time.csv", "042921_prec.csv",
                                                 "042921_precerror.csv", "042921_precerror_time.csv", "ebins.csv", # csvs containing ELFIN measurements
                                                 DateTime(2021,4,29,3,14,45),DateTime(2021,4,29,3,15,0)); # time to sample from ELFIN measurements                                                                
@@ -55,21 +55,21 @@ plot!(ylim =(1e3,1e8), xlim=(50,800), yscale=:log10, legend=(0.45,0.7))
 plot!(xlabel=L"\mathrm{Energy\ (keV)}", ylabel=L"\mathrm{Flux\ (1/cm^{2}/s/sr/MeV)}", title=L"\mathrm{Precipitating\ Flux\ Comparison\ of\ \delta\lambda_2\ on\ 4/29/21}",
 xtickfontsize=12, ytickfontsize=12, xguidefontsize=16, yguidefontsize=16, legendfontsize=10, titlefontsize=16);
 plot1 = plot!(dpi = 500,size=(800,450), margin=3mm, bottom_margin=4mm)
-savefig(plot1, "images/042921_flux_lat_comparison.pdf")
-savefig(plot1, "images/042921_flux_lat_comparison.png")
+savefig(plot1, "jgr_2022_work/images/042921_flux_lat_comparison.pdf")
+savefig(plot1, "jgr_2022_work/images/042921_flux_lat_comparison.png")
 
 
 
 
 
-include("plotHelpers.jl")
+include("jgr_2022_work/plotHelpers.jl")
 Egrid, PAgrid = logrange(10,1000,21), 6:4:90
 
 # Plots for 9/22/20
-@time @load "results/200922_pkt_a3_storage.jld2" mms_med_a3_092220;
-@time @load "results/200922_pkt_storage.jld2" mms_med_a5_092220;
-@time @load "results/200922_pkt_a7_storage.jld2" mms_med_a7_092220;
-@load "results/200922_lat_storage.jld2" equatorial_fluxes_092220;
+@time @load "jgr_2022_work/results/200922_pkt_a3_storage.jld2" mms_med_a3_092220;
+@time @load "jgr_2022_work/results/200922_pkt_storage.jld2" mms_med_a5_092220;
+@time @load "jgr_2022_work/results/200922_pkt_a7_storage.jld2" mms_med_a7_092220;
+@load "jgr_2022_work/results/200922_lat_storage.jld2" equatorial_fluxes_092220;
 @time elfin_measurements_092220, elfin_error_092220 = extract_idl_csv("092220_time.csv", "092220_prec.csv",
                                                 "092220_precerror.csv", "092220_precerror_time.csv", "ebins.csv", # csvs containing ELFIN measurements
                                                 DateTime(2020,9,22,9,16,38), DateTime(2020,9,22,9,16,45)) # time to sample from ELFIN measurements
@@ -118,16 +118,16 @@ plot!(ylim =(1e1,1e10), xlim=(50,800), yscale=:log10, legend=:topright)
 plot!(xlabel=L"\mathrm{Energy\ (keV)}", ylabel=L"\mathrm{Flux\ (1/cm^{2}/s/sr/MeV)}", title=L"\mathrm{Precipitating\ Flux\ Comparison\ of\ Wave\ Modulation\ Depth\ on\ 9/22/20}",
 xtickfontsize=12, ytickfontsize=12, xguidefontsize=16, yguidefontsize=16, legendfontsize=10, titlefontsize=16);
 plot2 = plot!(dpi = 500,size=(800,450), margin=3mm, bottom_margin=4mm, right_margin=8mm)
-savefig(plot2, "images/092220_a_flux_comparison.pdf")
-savefig(plot2, "images/092220_a_flux_comparison.png")
+savefig(plot2, "jgr_2022_work/images/092220_a_flux_comparison.pdf")
+savefig(plot2, "jgr_2022_work/images/092220_a_flux_comparison.png")
 
 
-include("plotHelpers.jl")
+include("jgr_2022_work/plotHelpers.jl")
 Egrid, PAgrid = logrange(10,1000,21), 6:4:90
 
 # Plots for 9/22/20
-@time @load "results/200922_pkt_a3_storage.jld2" mms_med_a3_092220;
-@load "results/200922_lat_storage.jld2" equatorial_fluxes_092220 mms_lowerlat_092220 mms_lolat_092220 mms_midlat_092220 mms_hilat_092220;
+@time @load "jgr_2022_work/results/200922_pkt_a3_storage.jld2" mms_med_a3_092220;
+@load "jgr_2022_work/results/200922_lat_storage.jld2" equatorial_fluxes_092220 mms_lowerlat_092220 mms_lolat_092220 mms_midlat_092220 mms_hilat_092220;
 @time elfin_measurements_092220, elfin_error_092220 = extract_idl_csv("092220_time.csv", "092220_prec.csv",
                                                 "092220_precerror.csv", "092220_precerror_time.csv", "ebins.csv", # csvs containing ELFIN measurements
                                                 DateTime(2020,9,22,9,16,38), DateTime(2020,9,22,9,16,45)) # time to sample from ELFIN measurements
@@ -176,8 +176,8 @@ plot!(ylim =(1e1,1e10), xlim=(50,800), yscale=:log10, legend=:topright)
 plot!(xlabel=L"\mathrm{Energy\ (keV)}", ylabel=L"\mathrm{Flux\ (1/cm^{2}/s/sr/MeV)}", title=L"\mathrm{Precipitating\ Flux\ Comparison\ of\ \delta\lambda_2\ on\ 9/22/20}",
 xtickfontsize=12, ytickfontsize=12, xguidefontsize=16, yguidefontsize=16, legendfontsize=10, titlefontsize=16);
 plot3 = plot!(dpi = 500,size=(800,450), margin=3mm, bottom_margin=4mm)
-savefig(plot3, "images/092220_dl2_flux_comparison.pdf")
-savefig(plot3, "images/092220_dl2_flux_comparison.png")
+savefig(plot3, "jgr_2022_work/images/092220_dl2_flux_comparison.pdf")
+savefig(plot3, "jgr_2022_work/images/092220_dl2_flux_comparison.png")
 
 
 
@@ -185,11 +185,11 @@ savefig(plot3, "images/092220_dl2_flux_comparison.png")
 
 
 
-include("plotHelpers.jl")
+include("jgr_2022_work/plotHelpers.jl")
 Egrid, PAgrid = logrange(10,1000,21), 6:4:90
 
 # Plots packet comparison on 9/22/20 w/ a=5
-@time @load "results/200922_pkt_storage.jld2" equatorial_fluxes_092220 mms_short_a5_092220 mms_med_a5_092220 mms_long_a5_092220;
+@time @load "jgr_2022_work/results/200922_pkt_storage.jld2" equatorial_fluxes_092220 mms_short_a5_092220 mms_med_a5_092220 mms_long_a5_092220;
 @time elfin_measurements_092220, elfin_error_092220 = extract_idl_csv("092220_time.csv", "092220_prec.csv",
                                                 "092220_precerror.csv", "092220_precerror_time.csv", "ebins.csv", # csvs containing ELFIN measurements
                                                 DateTime(2020,9,22,9,16,38), DateTime(2020,9,22,9,16,45)) # time to sample from ELFIN measurements
@@ -232,16 +232,16 @@ plot!(ylim =(1e1,1e10), xlim=(50,800), yscale=:log10, legend=:topright)
 plot!(xlabel=L"\mathrm{Energy\ (keV)}", ylabel=L"\mathrm{Flux\ (1/cm^{2}/s/sr/MeV)}", title=L"\mathrm{Precipitating\ Flux\ Comparison\ of\ \delta\phi\ on\ 9/22/20}",
 xtickfontsize=12, ytickfontsize=12, xguidefontsize=16, yguidefontsize=16, legendfontsize=10, titlefontsize=16);
 plot4 = plot!(dpi = 500,size=(800,450), margin=3mm, bottom_margin=4mm)
-savefig(plot4, "images/092220_flux_pkt_a5_comparison.pdf")
-savefig(plot4, "images/092220_flux_pkt_a5_comparison.png")
+savefig(plot4, "jgr_2022_work/images/092220_flux_pkt_a5_comparison.pdf")
+savefig(plot4, "jgr_2022_work/images/092220_flux_pkt_a5_comparison.png")
 
 
 
-include("plotHelpers.jl")
+include("jgr_2022_work/plotHelpers.jl")
 Egrid, PAgrid = logrange(10,1000,21), 6:4:90
 
 # Plots packet comparison on 9/22/20 w/ a=3
-@time @load "results/200922_pkt_a3_storage.jld2" equatorial_fluxes_092220 mms_short_a3_092220 mms_med_a3_092220 mms_long_a3_092220;
+@time @load "jgr_2022_work/results/200922_pkt_a3_storage.jld2" equatorial_fluxes_092220 mms_short_a3_092220 mms_med_a3_092220 mms_long_a3_092220;
 @time elfin_measurements_092220, elfin_error_092220 = extract_idl_csv("092220_time.csv", "092220_prec.csv",
                                                 "092220_precerror.csv", "092220_precerror_time.csv", "ebins.csv", # csvs containing ELFIN measurements
                                                 DateTime(2020,9,22,9,16,38), DateTime(2020,9,22,9,16,45)) # time to sample from ELFIN measurements
@@ -284,14 +284,14 @@ plot!(ylim =(1e1,1e10), xlim=(50,800), yscale=:log10, legend=:topright)
 plot!(xlabel=L"\mathrm{Energy\ (keV)}", ylabel=L"\mathrm{Flux\ (1/cm^{2}/s/sr/MeV)}", title=L"\mathrm{Precipitating\ Flux\ Comparison\ of\ \delta\phi\ on\ 9/22/20}",
 xtickfontsize=12, ytickfontsize=12, xguidefontsize=16, yguidefontsize=16, legendfontsize=10, titlefontsize=16);
 plot5 = plot!(dpi = 500,size=(800,450), margin=3mm, bottom_margin=4mm)
-savefig(plot5, "images/092220_flux_pkt_a3_comparison.pdf")
-savefig(plot5, "images/092220_flux_pkt_a3_comparison.png")
+savefig(plot5, "jgr_2022_work/images/092220_flux_pkt_a3_comparison.pdf")
+savefig(plot5, "jgr_2022_work/images/092220_flux_pkt_a3_comparison.png")
 
-include("plotHelpers.jl")
+include("jgr_2022_work/plotHelpers.jl")
 Egrid, PAgrid = logrange(10,1000,21), 6:4:90
 
 # Plots packet comparison on 9/22/20 w/ a=7
-@time @load "results/200922_pkt_a7_storage.jld2" equatorial_fluxes_092220 mms_short_a7_092220 mms_med_a7_092220 mms_long_a7_092220;
+@time @load "jgr_2022_work/results/200922_pkt_a7_storage.jld2" equatorial_fluxes_092220 mms_short_a7_092220 mms_med_a7_092220 mms_long_a7_092220;
 @time elfin_measurements_092220, elfin_error_092220 = extract_idl_csv("092220_time.csv", "092220_prec.csv",
                                                 "092220_precerror.csv", "092220_precerror_time.csv", "ebins.csv", # csvs containing ELFIN measurements
                                                 DateTime(2020,9,22,9,16,38), DateTime(2020,9,22,9,16,45)) # time to sample from ELFIN measurements
@@ -334,15 +334,15 @@ plot!(ylim =(1e1,1e10), xlim=(50,800), yscale=:log10, legend=:topright)
 plot!(xlabel=L"\mathrm{Energy\ (keV)}", ylabel=L"\mathrm{Flux\ (1/cm^{2}/s/sr/MeV)}", title=L"\mathrm{Precipitating\ Flux\ Comparison\ of\ \delta\phi\ on\ 9/22/20}",
 xtickfontsize=12, ytickfontsize=12, xguidefontsize=16, yguidefontsize=16, legendfontsize=10, titlefontsize=16);
 plot6 = plot!(dpi = 500,size=(800,450), margin=3mm, bottom_margin=4mm)
-savefig(plot6, "images/092220_flux_pkt_a7_comparison.pdf")
-savefig(plot6, "images/092220_flux_pkt_a7_comparison.png")
+savefig(plot6, "jgr_2022_work/images/092220_flux_pkt_a7_comparison.pdf")
+savefig(plot6, "jgr_2022_work/images/092220_flux_pkt_a7_comparison.png")
 
 
 
-include("plotHelpers.jl")
+include("jgr_2022_work/plotHelpers.jl")
 # Plots packet comparison on 9/22/20 w/ a=3 and short packets dphi=3 
-@time @load "results/200922_short_a3_hires_compare_storage.jld2" equatorial_fluxes_092220 mms_short_a3_hires_092220 mms_short_a3_092220;
-@time @load "results/200922_long_a7_hires_compare_storage.jld2" equatorial_fluxes_092220 mms_long_a7_hires_092220 mms_long_a7_092220;
+@time @load "jgr_2022_work/results/200922_short_a3_hires_compare_storage.jld2" equatorial_fluxes_092220 mms_short_a3_hires_092220 mms_short_a3_092220;
+@time @load "jgr_2022_work/results/200922_long_a7_hires_compare_storage.jld2" equatorial_fluxes_092220 mms_long_a7_hires_092220 mms_long_a7_092220;
 @time elfin_measurements_092220, elfin_error_092220 = extract_idl_csv("092220_time.csv", "092220_prec.csv",
                                                 "092220_precerror.csv", "092220_precerror_time.csv", "ebins.csv", # csvs containing ELFIN measurements
                                                 DateTime(2020,9,22,9,16,38), DateTime(2020,9,22,9,16,45)) # time to sample from ELFIN measurements
@@ -397,8 +397,8 @@ plot!(ylim =(1e1,1e10), xlim=(50,800), yscale=:log10, legend=:topright)
 plot!(xlabel=L"\mathrm{Energy\ (keV)}", ylabel=L"\mathrm{Flux\ (1/cm^{2}/s/sr/MeV)}", title=L"\mathrm{Precipitating\ Flux\ Comparison\ of\ \delta\phi\ on\ 9/22/20}",
 xtickfontsize=12, ytickfontsize=12, xguidefontsize=16, yguidefontsize=16, legendfontsize=10, titlefontsize=16);
 plot7 = plot!(dpi = 500,size=(800,450), margin=3mm, bottom_margin=4mm)
-savefig(plot7, "images/092220_hires_comparison.pdf")
-savefig(plot7, "images/092220_hires_comparison.png")
+savefig(plot7, "jgr_2022_work/images/092220_hires_comparison.pdf")
+savefig(plot7, "jgr_2022_work/images/092220_hires_comparison.png")
 
 
 
@@ -408,38 +408,38 @@ savefig(plot7, "images/092220_hires_comparison.png")
 
 
 
-include("plotHelpers.jl")
+include("jgr_2022_work/plotHelpers.jl")
 Egrid, PAgrid = logrange(10,1000,21), 6:4:90
 
 # plot PA and Energy trajectories for different dLambda
-@time @load "results/demo_themis_dlambda_20.jld2" demo_E_6_20
-@time @load "results/demo_themis_dlambda_30.jld2" demo_E_6_30
-@time @load "results/demo_themis_dlambda_40.jld2" demo_E_6_40
+@time @load "jgr_2022_work/results/demo_themis_dlambda_20.jld2" demo_E_6_20
+@time @load "jgr_2022_work/results/demo_themis_dlambda_30.jld2" demo_E_6_30
+@time @load "jgr_2022_work/results/demo_themis_dlambda_40.jld2" demo_E_6_40
 L=5.2
 twenty = trajectoryChecking(demo_E_6_20, [4,19,23,29,34,48], L"\delta \lambda_2 = "*"20"*L"^\circ")
 thirty = trajectoryChecking(demo_E_6_30, [2,18,21,29,34,50], L"\delta \lambda_2 = "*"30"*L"^\circ")
 forty = trajectoryChecking(demo_E_6_40, [1,19,21,27,34,49], L"\delta \lambda_2 = "*"40"*L"^\circ")
 biglambdaplot = plot(twenty,thirty,forty, dpi = 96, layout = (1,3),
         left_margin = 10mm, top_margin = 2mm, bottom_margin=10mm,size=(1500,500))
-savefig(biglambdaplot, "images/dlambda_trajectories.pdf")
-savefig(biglambdaplot, "images/dlambda_trajectories.png")
+savefig(biglambdaplot, "jgr_2022_work/images/dlambda_trajectories.pdf")
+savefig(biglambdaplot, "jgr_2022_work/images/dlambda_trajectories.png")
 
 
 
 # plot PA and Energy for different dPhi
-@time @load "results/demo_mms_dPhi_3.jld2" demo_mms_dPhi_3
-@time @load "results/demo_mms_dPhi_30.jld2" demo_mms_dPhi_30
-@time @load "results/demo_mms_dPhi_300.jld2" demo_mms_dPhi_300
+@time @load "jgr_2022_work/results/demo_mms_dPhi_3.jld2" demo_mms_dPhi_3
+@time @load "jgr_2022_work/results/demo_mms_dPhi_30.jld2" demo_mms_dPhi_30
+@time @load "jgr_2022_work/results/demo_mms_dPhi_300.jld2" demo_mms_dPhi_300
 L=6
 short = trajectoryChecking(demo_mms_dPhi_3, [1,4,5,6,7,9], L"\delta \phi = "*"3")
 med = trajectoryChecking(demo_mms_dPhi_30, [1,4,5,6,7,9], L"\delta \phi = "*"30")
 long = trajectoryChecking(demo_mms_dPhi_300, [1,4,5,6,7,9], L"\delta \phi = "*"300")
 bigphiplot = plot(short,med,long, dpi = 96, layout = (1,3),
         left_margin = 10mm, top_margin = 2mm, bottom_margin=10mm,size=(1500,500))
-savefig(bigphiplot, "images/dphi_trajectories.pdf")
-savefig(bigphiplot, "images/dphi_trajectories.png")
+savefig(bigphiplot, "jgr_2022_work/images/dphi_trajectories.pdf")
+savefig(bigphiplot, "jgr_2022_work/images/dphi_trajectories.png")
 
 
 hugeplot = plot(twenty,short,thirty,med,forty,long, dpi = 96, layout = (3,2), size=(1000,2000))
-savefig(hugeplot, "images/trajectories.pdf")
-savefig(hugeplot, "images/trajectories.png")
+savefig(hugeplot, "jgr_2022_work/images/trajectories.pdf")
+savefig(hugeplot, "jgr_2022_work/images/trajectories.png")

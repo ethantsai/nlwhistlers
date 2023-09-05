@@ -23,7 +23,7 @@ const c    = 3e8;           # speedo lite, f64
 const Beq  = 3.e-5;         # B field at equator (T), f64
 
 # Parsing the conf file
-conffile = "setup.conf";
+conffile = "jgr_2022_work/setup.conf";
 conf = ConfParse(conffile)
 parse_conf!(conf)
 const basename = retrieve(conf, "basename");

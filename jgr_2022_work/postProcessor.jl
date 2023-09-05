@@ -1,108 +1,108 @@
-include("plotHelpers.jl")
+include("jgr_2022_work/plotHelpers.jl")
 Egrid, PAgrid = logrange(10,1000,21), 6:4:90
 
-# mms_long_a7_hires = load_resultant_matrix("mms_long_a7_hires", "results/jld2_200922_mms_midlat_long_a7_hi", "200922_mms_long_a7_hi_193200", "setupasrun.conf", 322);
-# mms_short_a3_hires = load_resultant_matrix("mms_short_a3_hires", "results/jld2_200922_mms_midlat_short_a3_hi", "200922_mms_short_a3_hi_193200", "setupasrun.conf", 322);
+# mms_long_a7_hires = load_resultant_matrix("mms_long_a7_hires", "jgr_2022_work/results/jld2_200922_mms_midlat_long_a7_hi", "200922_mms_long_a7_hi_193200", "setupasrun.conf", 322);
+# mms_short_a3_hires = load_resultant_matrix("mms_short_a3_hires", "jgr_2022_work/results/jld2_200922_mms_midlat_short_a3_hi", "200922_mms_short_a3_hi_193200", "setupasrun.conf", 322);
 
-# mms_short_a3 = load_resultant_matrix("mms_short_a3", "results/jld2_200922_mms_midlat_short_a3", "200922_mms_short_a3_96600", "setupasrun.conf", 161);
-# mms_med_a3 = load_resultant_matrix("mms_med_a3", "results/jld2_200922_mms_midlat_med_a3", "200922_mms_med_a3_96600", "setupasrun.conf", 161);
-# mms_long_a3 = load_resultant_matrix("mms_long_a3", "results/jld2_200922_mms_midlat_long_a3", "200922_mms_long_a3_96600", "setupasrun.conf", 161);
+# mms_short_a3 = load_resultant_matrix("mms_short_a3", "jgr_2022_work/results/jld2_200922_mms_midlat_short_a3", "200922_mms_short_a3_96600", "setupasrun.conf", 161);
+# mms_med_a3 = load_resultant_matrix("mms_med_a3", "jgr_2022_work/results/jld2_200922_mms_midlat_med_a3", "200922_mms_med_a3_96600", "setupasrun.conf", 161);
+# mms_long_a3 = load_resultant_matrix("mms_long_a3", "jgr_2022_work/results/jld2_200922_mms_midlat_long_a3", "200922_mms_long_a3_96600", "setupasrun.conf", 161);
 
-# mms_short_a5 = load_resultant_matrix("mms_short_a5", "results/jld2_200922_mms_midlat_short_a5", "200922_mms_3pkt_96600", "setupasrun.conf", 161);
-# mms_med_a5 = load_resultant_matrix("mms_med_a5", "results/jld2_200922_mms_midlat_med_a5", "200922_mms_30pkt_96600", "setupasrun.conf", 161);
-# mms_long_a5 = load_resultant_matrix("mms_long_a5", "results/jld2_200922_mms_midlat_long_a5", "200922_mms_300pkt_96600", "setupasrun.conf", 161);
+# mms_short_a5 = load_resultant_matrix("mms_short_a5", "jgr_2022_work/results/jld2_200922_mms_midlat_short_a5", "200922_mms_3pkt_96600", "setupasrun.conf", 161);
+# mms_med_a5 = load_resultant_matrix("mms_med_a5", "jgr_2022_work/results/jld2_200922_mms_midlat_med_a5", "200922_mms_30pkt_96600", "setupasrun.conf", 161);
+# mms_long_a5 = load_resultant_matrix("mms_long_a5", "jgr_2022_work/results/jld2_200922_mms_midlat_long_a5", "200922_mms_300pkt_96600", "setupasrun.conf", 161);
 
-# mms_short_a7 = load_resultant_matrix("mms_short_a7", "results/jld2_200922_mms_midlat_short_a7", "200922_mms_short_a7_96600", "setupasrun.conf", 161);
-# mms_med_a7 = load_resultant_matrix("mms_med_a7", "results/jld2_200922_mms_midlat_med_a7", "200922_mms_med_a7_96600", "setupasrun.conf", 161);
-# mms_long_a7 = load_resultant_matrix("mms_long_a7", "results/jld2_200922_mms_midlat_long_a7", "200922_mms_long_a7_96600", "setupasrun.conf", 161);
+# mms_short_a7 = load_resultant_matrix("mms_short_a7", "jgr_2022_work/results/jld2_200922_mms_midlat_short_a7", "200922_mms_short_a7_96600", "setupasrun.conf", 161);
+# mms_med_a7 = load_resultant_matrix("mms_med_a7", "jgr_2022_work/results/jld2_200922_mms_midlat_med_a7", "200922_mms_med_a7_96600", "setupasrun.conf", 161);
+# mms_long_a7 = load_resultant_matrix("mms_long_a7", "jgr_2022_work/results/jld2_200922_mms_midlat_long_a7", "200922_mms_long_a7_96600", "setupasrun.conf", 161);
 
-# demo_mms_dPhi_3 = load_resultant_matrix("demo_mms_dPhi_3_10", "results/demonstration", "demo_mms_dPhi_3_10", "setupasrun.conf", 1);
-# demo_mms_dPhi_30 = load_resultant_matrix("demo_mms_dPhi_30_10", "results/demonstration", "demo_mms_dPhi_30_10", "setupasrun.conf", 1);
-# demo_mms_dPhi_300 = load_resultant_matrix("demo_mms_dPhi_300_10", "results/demonstration", "demo_mms_dPhi_300_10", "setupasrun.conf", 1);
+# demo_mms_dPhi_3 = load_resultant_matrix("demo_mms_dPhi_3_10", "jgr_2022_work/results/demonstration", "demo_mms_dPhi_3_10", "setupasrun.conf", 1);
+# demo_mms_dPhi_30 = load_resultant_matrix("demo_mms_dPhi_30_10", "jgr_2022_work/results/demonstration", "demo_mms_dPhi_30_10", "setupasrun.conf", 1);
+# demo_mms_dPhi_300 = load_resultant_matrix("demo_mms_dPhi_300_10", "jgr_2022_work/results/demonstration", "demo_mms_dPhi_300_10", "setupasrun.conf", 1);
 
-# demo_E_6_20 = load_resultant_matrix("demo_E_6_20_50", "results/demonstration", "demo_E_6_20_50", "setupasrun.conf", 1);
-# demo_E_6_30 = load_resultant_matrix("demo_E_6_30_50", "results/demonstration", "demo_E_6_30_50", "setupasrun.conf", 1);
-# demo_E_6_40 = load_resultant_matrix("demo_E_6_40_50", "results/demonstration", "demo_E_6_40_50", "setupasrun.conf", 1);
+# demo_E_6_20 = load_resultant_matrix("demo_E_6_20_50", "jgr_2022_work/results/demonstration", "demo_E_6_20_50", "setupasrun.conf", 1);
+# demo_E_6_30 = load_resultant_matrix("demo_E_6_30_50", "jgr_2022_work/results/demonstration", "demo_E_6_30_50", "setupasrun.conf", 1);
+# demo_E_6_40 = load_resultant_matrix("demo_E_6_40_50", "jgr_2022_work/results/demonstration", "demo_E_6_40_50", "setupasrun.conf", 1);
 
-# themis_lolat = load_resultant_matrix("210429_themis_lolat", "results/themis_lolat_m1pro", "210429_themis_lolat_96600", "setupasrun.conf", 161);
-# themis_midlat = load_resultant_matrix("210429_themis_midlat", "results/themis_midlat_m1pro", "210429_themis_midlat_96600", "setupasrun.conf", 161);
-# themis_hilat = load_resultant_matrix("210429_themis_hilat", "results/themis_hilat_m1pro", "210429_themis_hilat_96600", "setupasrun.conf", 161);
-# themis_hilat_hienergy = load_resultant_matrix("210429_themis_hilat", "results/themis_hilat_hienergy_m1pro/", "210429_themis_hilat_hienergy_96600", "setupasrun.conf", 161);
+# themis_lolat = load_resultant_matrix("210429_themis_lolat", "jgr_2022_work/results/themis_lolat_m1pro", "210429_themis_lolat_96600", "setupasrun.conf", 161);
+# themis_midlat = load_resultant_matrix("210429_themis_midlat", "jgr_2022_work/results/themis_midlat_m1pro", "210429_themis_midlat_96600", "setupasrun.conf", 161);
+# themis_hilat = load_resultant_matrix("210429_themis_hilat", "jgr_2022_work/results/themis_hilat_m1pro", "210429_themis_hilat_96600", "setupasrun.conf", 161);
+# themis_hilat_hienergy = load_resultant_matrix("210429_themis_hilat", "jgr_2022_work/results/themis_hilat_hienergy_m1pro/", "210429_themis_hilat_hienergy_96600", "setupasrun.conf", 161);
 
-# themis_1pkt = load_resultant_matrix("210429_themis_1pkt", "results/210429_themis_1pkt2", "210429_themis_1pkt2_96600", "setupasrun.conf", 161);
-# themis_30pkt = load_resultant_matrix("210429_themis_30pkt", "results/210429_themis_30pkt2", "210429_themis_30pkt2_96600", "setupasrun.conf", 161);
-# themis_100pkt = load_resultant_matrix("210429_themis_100pkt", "results/210429_themis_100pkt2", "210429_themis_100pkt2_96600", "setupasrun.conf", 161);
+# themis_1pkt = load_resultant_matrix("210429_themis_1pkt", "jgr_2022_work/results/210429_themis_1pkt2", "210429_themis_1pkt2_96600", "setupasrun.conf", 161);
+# themis_30pkt = load_resultant_matrix("210429_themis_30pkt", "jgr_2022_work/results/210429_themis_30pkt2", "210429_themis_30pkt2_96600", "setupasrun.conf", 161);
+# themis_100pkt = load_resultant_matrix("210429_themis_100pkt", "jgr_2022_work/results/210429_themis_100pkt2", "210429_themis_100pkt2_96600", "setupasrun.conf", 161);
 
-# mms_lowerlat = load_resultant_matrix("200922_mms_lowerlat", "results/mms_lowerlat_m1pro", "200922_mms_lowerlat_96600", "setupasrun.conf", 161);
-# mms_lolat = load_resultant_matrix("200922_mms_lolat", "results/mms_lolat_m1pro", "200922_mms_lolat_96600", "setupasrun.conf", 161);
-# mms_midlat = load_resultant_matrix("200922_mms_midlat", "results/mms_midlat_m1pro", "200922_mms_midlat_96600", "setupasrun.conf", 161);
-# mms_hilat = load_resultant_matrix("200922_mms_hilat", "results/mms_hilat_m1pro", "200922_mms_hilat_96600", "setupasrun.conf", 161);
+# mms_lowerlat = load_resultant_matrix("200922_mms_lowerlat", "jgr_2022_work/results/mms_lowerlat_m1pro", "200922_mms_lowerlat_96600", "setupasrun.conf", 161);
+# mms_lolat = load_resultant_matrix("200922_mms_lolat", "jgr_2022_work/results/mms_lolat_m1pro", "200922_mms_lolat_96600", "setupasrun.conf", 161);
+# mms_midlat = load_resultant_matrix("200922_mms_midlat", "jgr_2022_work/results/mms_midlat_m1pro", "200922_mms_midlat_96600", "setupasrun.conf", 161);
+# mms_hilat = load_resultant_matrix("200922_mms_hilat", "jgr_2022_work/results/mms_hilat_m1pro", "200922_mms_hilat_96600", "setupasrun.conf", 161);
 
-# @time @save "results/demo_mms_dPhi_3.jld2" demo_mms_dPhi_3
-# @time @save "results/demo_mms_dPhi_30.jld2" demo_mms_dPhi_30
-# @time @save "results/demo_mms_dPhi_300.jld2" demo_mms_dPhi_300
+# @time @save "jgr_2022_work/results/demo_mms_dPhi_3.jld2" demo_mms_dPhi_3
+# @time @save "jgr_2022_work/results/demo_mms_dPhi_30.jld2" demo_mms_dPhi_30
+# @time @save "jgr_2022_work/results/demo_mms_dPhi_300.jld2" demo_mms_dPhi_300
 
-# @time @save "results/demo_E_6_20.jld2" demo_E_6_20
-# @time @save "results/demo_E_6_30.jld2" demo_E_6_30
-# @time @save "results/demo_E_6_40.jld2" demo_E_6_40
+# @time @save "jgr_2022_work/results/demo_E_6_20.jld2" demo_E_6_20
+# @time @save "jgr_2022_work/results/demo_E_6_30.jld2" demo_E_6_30
+# @time @save "jgr_2022_work/results/demo_E_6_40.jld2" demo_E_6_40
 
-# @time @save "results/210429_themis_lolat.jld2" themis_lolat 
-# @time @save "results/210429_themis_midlat.jld2" themis_midlat 
-# @time @save "results/210429_themis_hilat.jld2" themis_hilat 
-# @time @save "results/210429_themis_hilat_hienergy.jld2" themis_hilat_hienergy
+# @time @save "jgr_2022_work/results/210429_themis_lolat.jld2" themis_lolat 
+# @time @save "jgr_2022_work/results/210429_themis_midlat.jld2" themis_midlat 
+# @time @save "jgr_2022_work/results/210429_themis_hilat.jld2" themis_hilat 
+# @time @save "jgr_2022_work/results/210429_themis_hilat_hienergy.jld2" themis_hilat_hienergy
 
-# @time @save "results/210429_themis_1pkt.jld2" themis_1pkt 
-# @time @save "results/210429_themis_30pkt.jld2" themis_30pkt 
-# @time @save "results/210429_themis_100pkt.jld2" themis_100pkt
+# @time @save "jgr_2022_work/results/210429_themis_1pkt.jld2" themis_1pkt 
+# @time @save "jgr_2022_work/results/210429_themis_30pkt.jld2" themis_30pkt 
+# @time @save "jgr_2022_work/results/210429_themis_100pkt.jld2" themis_100pkt
 
-# @time @save "results/200922_mms_lowerlat.jld2" mms_lowerlat;
-# @time @save "results/200922_mms_lolat.jld2" mms_lolat
-# @time @save "results/200922_mms_midlat.jld2" mms_midlat;
-# @time @save "results/200922_mms_hilat.jld2" mms_hilat;
+# @time @save "jgr_2022_work/results/200922_mms_lowerlat.jld2" mms_lowerlat;
+# @time @save "jgr_2022_work/results/200922_mms_lolat.jld2" mms_lolat
+# @time @save "jgr_2022_work/results/200922_mms_midlat.jld2" mms_midlat;
+# @time @save "jgr_2022_work/results/200922_mms_hilat.jld2" mms_hilat;
 
-# @time @save "results/200922_mms_short_a3.jld2" mms_short_a3;
-# @time @save "results/200922_mms_med_a3.jld2" mms_med_a3;
-# @time @save "results/200922_mms_long_a3.jld2" mms_long_a3;
+# @time @save "jgr_2022_work/results/200922_mms_short_a3.jld2" mms_short_a3;
+# @time @save "jgr_2022_work/results/200922_mms_med_a3.jld2" mms_med_a3;
+# @time @save "jgr_2022_work/results/200922_mms_long_a3.jld2" mms_long_a3;
 
-# @time @save "results/200922_mms_short.jld2" mms_short;
-# @time @save "results/200922_mms_med.jld2" mms_med;
-# @time @save "results/200922_mms_long.jld2" mms_long;
+# @time @save "jgr_2022_work/results/200922_mms_short.jld2" mms_short;
+# @time @save "jgr_2022_work/results/200922_mms_med.jld2" mms_med;
+# @time @save "jgr_2022_work/results/200922_mms_long.jld2" mms_long;
 
-# @time @save "results/200922_mms_short_a7.jld2" mms_short_a7;
-# @time @save "results/200922_mms_med_a7.jld2" mms_med_a7;
-# @time @save "results/200922_mms_long_a7.jld2" mms_long_a7;
+# @time @save "jgr_2022_work/results/200922_mms_short_a7.jld2" mms_short_a7;
+# @time @save "jgr_2022_work/results/200922_mms_med_a7.jld2" mms_med_a7;
+# @time @save "jgr_2022_work/results/200922_mms_long_a7.jld2" mms_long_a7;
 
-# @time @save "results/200922_mms_short_a3_hires.jld2" mms_short_hires;
-# @time @save "results/200922_mms_long_a7_hires.jld2" mms_long_a7_hires;
+# @time @save "jgr_2022_work/results/200922_mms_short_a3_hires.jld2" mms_short_hires;
+# @time @save "jgr_2022_work/results/200922_mms_long_a7_hires.jld2" mms_long_a7_hires;
 
-@time @load "results/210429_themis_hilat_hienergy.jld2" themis_hilat_hienergy;
-@time @load "results/210429_themis_hilat.jld2" themis_hilat;
-@time @load "results/210429_themis_midlat.jld2" themis_midlat; 
-@time @load "results/210429_themis_lolat.jld2" themis_lolat;
+@time @load "jgr_2022_work/results/210429_themis_hilat_hienergy.jld2" themis_hilat_hienergy;
+@time @load "jgr_2022_work/results/210429_themis_hilat.jld2" themis_hilat;
+@time @load "jgr_2022_work/results/210429_themis_midlat.jld2" themis_midlat; 
+@time @load "jgr_2022_work/results/210429_themis_lolat.jld2" themis_lolat;
 
-@time @load "results/210429_themis_1pkt.jld2" themis_1pkt 
-@time @load "results/210429_themis_30pkt.jld2" themis_30pkt 
-@time @load "results/210429_themis_100pkt.jld2" themis_100pkt
+@time @load "jgr_2022_work/results/210429_themis_1pkt.jld2" themis_1pkt 
+@time @load "jgr_2022_work/results/210429_themis_30pkt.jld2" themis_30pkt 
+@time @load "jgr_2022_work/results/210429_themis_100pkt.jld2" themis_100pkt
 
-@time @load "results/200922_mms_lowerlat.jld2" mms_lowerlat;
-@time @load "results/200922_mms_lolat.jld2" mms_lolat;
-@time @load "results/200922_mms_midlat.jld2" mms_midlat;
-@time @load "results/200922_mms_hilat.jld2" mms_hilat;
+@time @load "jgr_2022_work/results/200922_mms_lowerlat.jld2" mms_lowerlat;
+@time @load "jgr_2022_work/results/200922_mms_lolat.jld2" mms_lolat;
+@time @load "jgr_2022_work/results/200922_mms_midlat.jld2" mms_midlat;
+@time @load "jgr_2022_work/results/200922_mms_hilat.jld2" mms_hilat;
 
-@time @load "results/200922_mms_short_a3.jld2" mms_short_a3;
-@time @load "results/200922_mms_med_a3.jld2" mms_med_a3;
-@time @load "results/200922_mms_long_a3.jld2" mms_long_a3;
+@time @load "jgr_2022_work/results/200922_mms_short_a3.jld2" mms_short_a3;
+@time @load "jgr_2022_work/results/200922_mms_med_a3.jld2" mms_med_a3;
+@time @load "jgr_2022_work/results/200922_mms_long_a3.jld2" mms_long_a3;
 
-@time @load "results/200922_mms_short.jld2" mms_short;
-@time @load "results/200922_mms_med.jld2" mms_med;
-@time @load "results/200922_mms_long.jld2" mms_long;
+@time @load "jgr_2022_work/results/200922_mms_short.jld2" mms_short;
+@time @load "jgr_2022_work/results/200922_mms_med.jld2" mms_med;
+@time @load "jgr_2022_work/results/200922_mms_long.jld2" mms_long;
 
-@time @load "results/200922_mms_short_a7.jld2" mms_short_a7;
-@time @load "results/200922_mms_med_a7.jld2" mms_med_a7;
-@time @load "results/200922_mms_long_a7.jld2" mms_long_a7;
+@time @load "jgr_2022_work/results/200922_mms_short_a7.jld2" mms_short_a7;
+@time @load "jgr_2022_work/results/200922_mms_med_a7.jld2" mms_med_a7;
+@time @load "jgr_2022_work/results/200922_mms_long_a7.jld2" mms_long_a7;
 
 @info "Loaded result matrices."
-include("plotHelpers.jl")
+include("jgr_2022_work/plotHelpers.jl")
 Egrid, PAgrid = logrange(10,1000,21), 6:4:90
 
 
@@ -119,8 +119,8 @@ Egrid, PAgrid = logrange(10,1000,21), 6:4:90
 @time elfin_measurements_042921, elfin_error_042921 = extract_idl_csv("042921_time.csv", "042921_prec.csv",
                                                 "042921_precerror.csv", "ebins.csv", # csvs containing ELFIN measurements
                                                 DateTime(2021,4,29,3,14,45),DateTime(2021,4,29,3,15,0)) # time to sample from ELFIN measurements
-@time @save "results/210429_lat_storage_cleaned.jld2" equatorial_fluxes_042921 themis_hilat_combined_042921 themis_midlat_042921 themis_lolat_042921;
-@time @save "results/210429_pkt_storage.jld2" equatorial_fluxes_042921 themis_1pkt_042921 themis_30pkt_042921 themis_100pkt_042921;
+@time @save "jgr_2022_work/results/210429_lat_storage_cleaned.jld2" equatorial_fluxes_042921 themis_hilat_combined_042921 themis_midlat_042921 themis_lolat_042921;
+@time @save "jgr_2022_work/results/210429_pkt_storage.jld2" equatorial_fluxes_042921 themis_1pkt_042921 themis_30pkt_042921 themis_100pkt_042921;
 
 
 @time equatorial_fluxes_092220 = calc_equatorial_fluxes(mms_midlat, f0_092220);
@@ -128,53 +128,53 @@ Egrid, PAgrid = logrange(10,1000,21), 6:4:90
 @time mms_lolat_092220  = export_results("092220_mms_lolat",  calc_prec_flux(mms_lolat, 10,f0_092220,0.06,10));
 @time mms_midlat_092220 = export_results("092220_mms_midlat", calc_prec_flux(mms_midlat,10,f0_092220,0.02,10));
 @time mms_hilat_092220  = export_results("092220_mms_hilat",  calc_prec_flux(mms_hilat, 10,f0_092220,0.02,10));
-@time @save "results/200922_lat_storage.jld2" equatorial_fluxes_092220 mms_lowerlat_092220 mms_lolat_092220 mms_midlat_092220 mms_hilat_092220;
+@time @save "jgr_2022_work/results/200922_lat_storage.jld2" equatorial_fluxes_092220 mms_lowerlat_092220 mms_lolat_092220 mms_midlat_092220 mms_hilat_092220;
 
 @time equatorial_fluxes_092220 = calc_equatorial_fluxes(mms_med, f0_092220);
 @time mms_short_a5_092220  = export_results("092220_mms_short",  calc_prec_flux(mms_short, 10,f0_092220,0.06,25));
 @time mms_med_a5_092220 = export_results("092220_mms_med", calc_prec_flux(mms_med, 10,f0_092220,0.06,25));
 @time mms_long_a5_092220  = export_results("092220_mms_long",  calc_prec_flux(mms_long, 10,f0_092220,0.06,25));
-@time @save "results/200922_pkt_storage.jld2" equatorial_fluxes_092220 mms_short_a5_092220 mms_med_a5_092220 mms_long_a5_092220;
+@time @save "jgr_2022_work/results/200922_pkt_storage.jld2" equatorial_fluxes_092220 mms_short_a5_092220 mms_med_a5_092220 mms_long_a5_092220;
 
 @time equatorial_fluxes_092220 = calc_equatorial_fluxes(mms_med_a3, f0_092220);
 @time mms_short_a3_092220 = export_results("092220_mms_short_a3",  calc_prec_flux(mms_short_a3, 10,f0_092220,0.06,25));
 @time mms_med_a3_092220 = export_results("092220_mms_med_a3", calc_prec_flux(mms_med_a3, 10,f0_092220,0.06,25));
 @time mms_long_a3_092220  = export_results("092220_mms_long_a3",  calc_prec_flux(mms_long_a3, 10,f0_092220,0.06,25));
-@time @save "results/200922_pkt_a3_storage.jld2" equatorial_fluxes_092220 mms_short_a3_092220 mms_med_a3_092220 mms_long_a3_092220;
+@time @save "jgr_2022_work/results/200922_pkt_a3_storage.jld2" equatorial_fluxes_092220 mms_short_a3_092220 mms_med_a3_092220 mms_long_a3_092220;
 
 @time equatorial_fluxes_092220 = calc_equatorial_fluxes(mms_short_a7, f0_092220);
 @time mms_short_a7_092220  = export_results("092220_mms_short_a7",  calc_prec_flux(mms_short_a7, 10,f0_092220,0.06,25));
 @time mms_med_a7_092220 = export_results("092220_mms_med_a7", calc_prec_flux(mms_med_a7, 10,f0_092220,0.06,25));
 @time mms_long_a7_092220  = export_results("092220_mms_long_a7",  calc_prec_flux(mms_long_a7, 10,f0_092220,0.06,25));
-@time @save "results/200922_pkt_a7_storage.jld2" equatorial_fluxes_092220 mms_short_a7_092220 mms_med_a7_092220 mms_long_a7_092220;
+@time @save "jgr_2022_work/results/200922_pkt_a7_storage.jld2" equatorial_fluxes_092220 mms_short_a7_092220 mms_med_a7_092220 mms_long_a7_092220;
 
-@time @load "results/200922_mms_short_a3.jld2" mms_short_a3;
-@time @load "results/200922_mms_short_a3_hires.jld2" mms_short_hires;
+@time @load "jgr_2022_work/results/200922_mms_short_a3.jld2" mms_short_a3;
+@time @load "jgr_2022_work/results/200922_mms_short_a3_hires.jld2" mms_short_hires;
 Egrid, PAgrid = logrange(10,1000,41), 6:4:90
 @time equatorial_fluxes_092220 = calc_equatorial_fluxes(mms_short_hires, f0_092220);
 @time mms_short_a3_hires_092220 = export_results("092220_mms_short_a3_hires", calc_prec_flux(mms_short_hires, 10,f0_092220,0.06,25));
 Egrid, PAgrid = logrange(10,1000,21), 6:4:90
 @time mms_short_a3_092220  = export_results("092220_mms_short_a3",  calc_prec_flux(mms_short_a3, 10,f0_092220,0.06,25));
-@time @save "results/200922_short_a3_hires_compare_storage.jld2" equatorial_fluxes_092220 mms_short_a3_hires_092220 mms_short_a3_092220;
+@time @save "jgr_2022_work/results/200922_short_a3_hires_compare_storage.jld2" equatorial_fluxes_092220 mms_short_a3_hires_092220 mms_short_a3_092220;
 
-@time @load "results/200922_mms_long_a7.jld2" mms_long_a7
-@time @load "results/200922_mms_long_a7_hires.jld2" mms_long_a7_hires;
+@time @load "jgr_2022_work/results/200922_mms_long_a7.jld2" mms_long_a7
+@time @load "jgr_2022_work/results/200922_mms_long_a7_hires.jld2" mms_long_a7_hires;
 Egrid, PAgrid = logrange(10,1000,41), 6:4:90
 @time equatorial_fluxes_092220 = calc_equatorial_fluxes(mms_long_a7_hires, f0_092220);
 @time mms_long_a7_hires_092220 = export_results("092220_mms_short_a3_hires", calc_prec_flux(mms_long_a7_hires, 10,f0_092220,0.06,25));
 Egrid, PAgrid = logrange(10,1000,21), 6:4:90
 @time mms_long_a7_092220  = export_results("092220_mms_short_a3",  calc_prec_flux(mms_long_a7, 10,f0_092220,0.06,25));
-@time @save "results/200922_long_a7_hires_compare_storage.jld2" equatorial_fluxes_092220 mms_long_a7_hires_092220 mms_long_a7_092220;
+@time @save "jgr_2022_work/results/200922_long_a7_hires_compare_storage.jld2" equatorial_fluxes_092220 mms_long_a7_hires_092220 mms_long_a7_092220;
 
-@time @load "results/200922_mms_short_a3.jld2" mms_short_a3;
+@time @load "jgr_2022_work/results/200922_mms_short_a3.jld2" mms_short_a3;
 precipitating_initial_state_analyzer(mms_short_a3, 13,16)
-@time @load "results/200922_mms_med_a3.jld2" mms_med_a3;
+@time @load "jgr_2022_work/results/200922_mms_med_a3.jld2" mms_med_a3;
 precipitating_initial_state_analyzer(mms_med_a3, 13,16)
-@time @load "results/200922_mms_long_a3.jld2" mms_long_a3;
+@time @load "jgr_2022_work/results/200922_mms_long_a3.jld2" mms_long_a3;
 precipitating_initial_state_analyzer(mms_long_a3, 13,16)
 
 
-include("plotHelpers.jl")
+include("jgr_2022_work/plotHelpers.jl")
 Egrid, PAgrid = logrange(10,1000,21), 6:4:90
 mms_short_a3_precip_final, _, _ = precipitatingParticles(mms_short_a3, 100);
 mms_med_a3_precip_final, _, _ = precipitatingParticles(mms_med_a3, 100);
@@ -367,5 +367,5 @@ anim = @animate for i in eachindex(tVec)
     
     # annotate!(20, 0.1*maxFraction, text("t = $(round(tVec[indexArray[i]]*Re*L/(c),digits=4)) s"), :left)
 end every animDec
-savename = string("results/","trajectories")
+savename = string("jgr_2022_work/results/","trajectories")
 gif(anim, savename, fps = (length(tVec)/animDec)/(animScale*endTime*Re*L/(c)))
