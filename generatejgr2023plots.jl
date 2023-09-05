@@ -482,9 +482,9 @@ bw_compare = plot!(title = "B_w profile comparison", xlabel = "Latitude (degrees
 stats_1_csv_name = "stats_1_norm+.csv"
 stats_2_csv_name = "stats_2_norm+.csv"
 stats_3_csv_name = "stats_3_norm+.csv"
-stats_1 =  CSV.File("stats_csvs/$stats_1_csv_name"; header=true, delim=' ', types=Float64) |> DataFrame
-stats_2 =  CSV.File("stats_csvs/$stats_2_csv_name"; header=true, delim=' ', types=Float64) |> DataFrame
-stats_3 =  CSV.File("stats_csvs/$stats_3_csv_name"; header=true, delim=' ', types=Float64) |> DataFrame
+stats_1 =  CSV.File("external_data/stats_csvs/$stats_1_csv_name"; header=true, delim=' ', types=Float64) |> DataFrame
+stats_2 =  CSV.File("external_data/stats_csvs/$stats_2_csv_name"; header=true, delim=' ', types=Float64) |> DataFrame
+stats_3 =  CSV.File("external_data/stats_csvs/$stats_3_csv_name"; header=true, delim=' ', types=Float64) |> DataFrame
 
 
 # low L shell plot

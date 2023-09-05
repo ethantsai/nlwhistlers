@@ -867,9 +867,9 @@ function extract_idl_csv(
     ebin_name::String,
     start::DateTime, stop::DateTime)
 
-    time_csv_name = "idl_csvs/"*time_name
-    data_csv_name = "idl_csvs/"*data_name
-    ebins_csv_name = "idl_csvs/"*ebin_name
+    time_csv_name = "external_data/idl_csvs/"*time_name
+    data_csv_name = "external_data/idl_csvs/"*data_name
+    ebins_csv_name = "external_data/idl_csvs/"*ebin_name
 
     times_df =  CSV.File(time_csv_name; header=false, delim=',', types=Float64) |> DataFrame
     time = unix2datetime.(times_df.Column1)
@@ -909,11 +909,11 @@ function extract_idl_csv(
     ebin_name::String,
     start::DateTime, stop::DateTime)
 
-    time_csv_name = "idl_csvs/"*time_name
-    data_csv_name = "idl_csvs/"*data_name
-    ebins_csv_name = "idl_csvs/"*ebin_name
-    error_csv_name = "idl_csvs/"*error_name
-    errortime_name = "idl_csvs/"*error_time_name
+    time_csv_name = "external_data/idl_csvs/"*time_name
+    data_csv_name = "external_data/idl_csvs/"*data_name
+    ebins_csv_name = "external_data/idl_csvs/"*ebin_name
+    error_csv_name = "external_data/idl_csvs/"*error_name
+    errortime_name = "external_data/idl_csvs/"*error_time_name
 
     times_df =  CSV.File(time_csv_name; header=false, delim=',', types=Float64) |> DataFrame
     time = unix2datetime.(times_df.Column1)
@@ -969,6 +969,3 @@ end
 
 # Useful helpers
 logrange(x1, x2, n::Int64) = [10^y for y in range(log10(x1), log10(x2), length=n)]
-
-# df = DataFrame([allPrecip], :auto)
-# CSV.write("for_james.csv",df)

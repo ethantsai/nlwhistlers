@@ -48,10 +48,10 @@ function extract_idl_ratio(
     start::DateTime, stop::DateTime,
     indices_to_remove=[])
 
-    time_csv_name = "idl_csvs/"*time_name
-    data_csv_name = "idl_csvs/"*data_name
-    ebins_csv_name = "idl_csvs/"*ebin_name
-    error_csv_name = "idl_csvs/"*error_name
+    time_csv_name = "external_data/idl_csvs/"*time_name
+    data_csv_name = "external_data/idl_csvs/"*data_name
+    ebins_csv_name = "external_data/idl_csvs/"*ebin_name
+    error_csv_name = "external_data/idl_csvs/"*error_name
 
     times_df =  CSV.File(time_csv_name; header=false, delim=',', types=Float64) |> DataFrame
     time = unix2datetime.(times_df.Column1)
@@ -115,7 +115,7 @@ function obtain_diffusion_results(lo_or_hi, dawn_dusk_nite, wnX)
     if wnX ∉ [1,2,3]
         println("wnX should either be 1, 2 or 3")
     end
-    prefix = "diffusion_code_results/Chorus_Daa_PrecRatio"
+    prefix = "external_data/diffusion_code_results/Chorus_Daa_PrecRatio"
     name = "$(prefix)_L$(L_shell)_$(lo_or_hi)_$(dawn_dusk_nite)_WN$wnX.txt"
     data =  CSV.File(name; header=true, delim=',', types=Float64) |> DataFrame
     E = data.E
