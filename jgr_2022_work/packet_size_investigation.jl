@@ -65,9 +65,9 @@ legend=false,xlabel="Time (ms)", ylabel="PA (deg)",
 xlim = [0,0.5], ylim = [0,15])
 bigplot = plot(p1,p2,p3, dpi = 300, layout = (3,1))
 
-one = load_resultant_matrix("test1", "results/jld2_211124_11", "PA_TEST_1_100", "setupasrun.conf", 1);
-thi = load_resultant_matrix("test30", "results/jld2_211124_09", "PA_TEST_30_100", "setupasrun.conf", 1);
-hun = load_resultant_matrix("test100", "results/jld2_211124_11", "PA_TEST_100_100", "setupasrun.conf", 1);
+one = load_resultant_matrix("test1", "jgr_2022_work/results/jld2_211124_11", "PA_TEST_1_100", "setupasrun.conf", 1);
+thi = load_resultant_matrix("test30", "jgr_2022_work/results/jld2_211124_09", "PA_TEST_30_100", "setupasrun.conf", 1);
+hun = load_resultant_matrix("test100", "jgr_2022_work/results/jld2_211124_11", "PA_TEST_100_100", "setupasrun.conf", 1);
 
 rm = hun
 ipa = PAmatrix[1,:]
@@ -81,7 +81,7 @@ scatter!(ipa, epa)
 
 
 
-directory="results/jld2_211124_22"
+directory="jgr_2022_work/results/jld2_211124_22"
 basename = "PA_TEST_100_n_100"
 allZ = Vector{Vector{Float64}}();
 allPZ = Vector{Vector{Float64}}();
@@ -130,7 +130,7 @@ xlim = [0,0.5], ylim = [0,15])
 p2 = plot((5.2*thi.allT*Re)./(c), thi.allPA, title = "Normal Packet (dPhi = 30)",
 legend=false,xlabel="Time (ms)", ylabel="PA (deg)",
 xlim = [0,0.5], ylim = [0,15])
-p3 = plot((allLambda, allPsi, title = "Long Packet (dPhi = 100)",
+p3 = plot(allLambda, allPsi, title = "Long Packet (dPhi = 100)",
 legend=false,xlabel="Time (ms)", ylabel="Psi (rad)",
 xlim = [-pi/4, pi/4], ylim = [-5,5])
 bigplot = plot(p1,p2,p3, dpi = 300, layout = (3,1))
