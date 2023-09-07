@@ -1,5 +1,26 @@
 [![DOI](https://zenodo.org/badge/367134831.svg)](https://zenodo.org/badge/latestdoi/367134831)
 
+
+# Code Organization
+
+- Tsai, E., et al., Relativistic electron precipitation driven by non-linear resonance with whistler-mode waves. Journal of Geophysical Research: Space Physics, 127 (2022), doi: https://doi.org/10.1029/2022JA030338
+    - Code for this paper is found in the `jgr_2022_work` directory
+    - There was only a cursory check for filepath correctness when code got reorganized and it has not been validated to run without errors, especially since it relies on old versions of Julia/old packages
+    - However, resulting images (some figures from paper and more) along with the resulting simulation data (stored in HDF5/JLD2 format) are saved in here too
+    - Code here was run by setting up parameters in the `setup.conf` file then running `julia runEnsemble.jl`
+- Tsai, E., et al., Investigating whistler-mode wave intensity along field lines using electron precipitation measurements, Journal of Geophysical Research Space Physics, 128 (2023), doi: https://doi.org/10.1029/2023JA031578
+    - Code for this paper is found in the `jgr_2023_1_work` directory
+    - There was only a cursory check for filepath correctness when code got reorganized and it has not been validated to run without errors
+    - The saved data is too large, but some of the plots beyond what is published are saved here too
+    - A lot of the fundamental code for this is used and incorporated in the `main` source code
+    - Code here was run by setting up parameters in the `agapitovHelpers.jl` file, then running `julia run_ducting_analysis.jl`
+- `external_data` hosts:
+    - Processed ELFIN measurements using SPEDAS V4.1. This code is not publicly available, but available upon request.
+    - Statistical output from ELFIN observations in `stats_csvs`.
+    - Diffusion code results from the UCLA Full Diffusion Code (Ma, Q. 2018, https://doi.org/10.1002/2017JA025114)
+- Current active work is being done in the `main` folder (WIP)
+    - Data here is output into a `data` directory in the root of the folder
+
 # Setup/Update Instructions
 
 ## Install and set up Julia for Windows
@@ -49,13 +70,6 @@ sudo ln -s /usr/lib/julia-X.X.X/bin/julia /usr/local/bin/julia
 ```
 add TickTock, ConfParser, Profile, Dates, Random, StaticArrays, Distributed, OrdinaryDiffEq, JLD2, Plots, PyPlot, InteractiveUtils, PlutoUI, LoopVectorization, BenchmarkTools, StatsPlots, DataFrames, CSV, LaTeXStrings, StatsBase, DirectConvolution
 ```
-
-## Run code
-
-  1. Modify the setup.conf to your liking. Make sure the basename is correct too.
-  
-  2. On any machine, you can just do `julia runEnsemble.jl` to run it.
-
 
 ## Profiling Code
 
