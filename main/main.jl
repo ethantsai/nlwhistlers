@@ -5,4 +5,4 @@
 include("constants.jl")
 include("sim_setup.jl")
 include("particle_tracing.jl")
-
+include("util.jl")

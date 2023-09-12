@@ -45,6 +45,7 @@ const PAsteps = 1300; # only used for flat particle distribution
 const factor = 40; #only used for skewed particle distribution
 # num particles in highest energy bin = factor * num particles in lowest energy bin
 ICrange = [ELo, EHi, Esteps, PALo, PAHi, PAsteps];
+E_bins = logrange(ELo,EHi, Int64(Esteps))
 
 const z0 = 0; # start at eq
 const λ0 = 0; # start at eq
