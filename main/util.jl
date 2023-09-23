@@ -1,4 +1,33 @@
+struct Resultant_Matrix
+    label::String
+    numParticles::Int64
+    endTime::Float64
+    allZ::Vector{Vector{Float64}}
+    allPZ::Vector{Vector{Float64}}
+    allQ::Vector{Vector{Float64}}
+    allZeta::Vector{Vector{Float64}}
+    allPhi::Vector{Vector{Float64}}
+    allT::Vector{Vector{Float64}}
+    allPA::Vector{Vector{Float64}}
+    allE::Vector{Vector{Float64}}
+    allLambda::Vector{Vector{Float64}}
+    allBw::Vector{Vector{Float64}}
+    allK::Vector{Vector{Float64}}
+    lostParticles::Matrix{Float64}
+    tVec::Vector{Float64}
+    Zmatrix::Matrix{Float64}
+    PZmatrix::Matrix{Float64}
+    Ematrix::Matrix{Float64}
+    PAmatrix::Matrix{Float64}
+end
 
+function sol2rm(sol, label)
+    @info "Extracting data..."
+    @time allT, allZ, allPZ, allQ, allZeta, allPhi, allE, allPA, allLambda, allBw, allK = extract(sol);
+    @info "Processing data..."
+    @time tVec, Zmatrix, PZmatrix, PAmatrix, Ematrix = postProcessor(allT, allZ, allPZ, allPA, allE);
+    return Resultant_Matrix(label, length(sol), tVec[end], allZ, allPZ, allQ, allZeta, allPhi, allT, allPA, allE, allLambda, allBw, allK, countLostParticles(allT, tVec[end]), tVec, Zmatrix, PZmatrix, Ematrix, PAmatrix)
+end
 
 logrange(x1, x2, n::Int64) = [10^y for y in range(log10(x1), log10(x2), length=n)]
 
