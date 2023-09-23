@@ -36,7 +36,7 @@ function eom_og!(dH,H,p,t::Float64)
     # helper variables
     b = sqrt(1+3*sinλ^2)/(cosλ^6);
     db = (3*(27*sinλ-5*sin(3*H[5])))/(cosλ^8*(4+12*sinλ^2));
-    γ = sqrt(1 + H[2]^2 + 2*H[4]*b);
+    γ = sqrt(1 + H[2]^2 + H[4]^2*b);
     H[8] = copysign(1, H[5]) * (p[3] * (cosλ^(-5/2)))/sqrt(b/p[4] - 1);
 
     # double sided wave, grows to max at dLambda1 deg, dissipates by dLambda2 deg
@@ -84,7 +84,7 @@ function eom_Bw!(dH,H,p,t::Float64)
     # helper variables
     b = sqrt(1+3*sinλ^2)/(cosλ^6);
     db = (3*(27*sinλ-5*sin(3*H[5])))/(cosλ^8*(4+12*sinλ^2));
-    γ = sqrt(1 + H[2]^2 + 2*H[4]*b);
+    γ = sqrt(1 + H[2]^2 + H[4]^2*b);
     H[8] = copysign(1, H[5]) * (p[3] * (cosλ^(-5/2)))/sqrt(b/p[4] - 1);
 
     # B_w
@@ -126,7 +126,7 @@ function eom_Bwωm!(dH,H,p,t::Float64)
     # helper variables
     b = sqrt(1+3*sinλ^2)/(cosλ^6);
     db = (3*(27*sinλ-5*sin(3*H[5])))/(cosλ^8*(4+12*sinλ^2));
-    γ = sqrt(1 + H[2]^2 + 2*H[4]*b);
+    γ = sqrt(1 + H[2]^2 + H[4]^2*b);
     H[8] = copysign(1, H[5]) * (p[3] * (cosλ^(-5/2)))/sqrt(b/p[4] - 1);
 
     # B_w
@@ -178,7 +178,7 @@ function eom_wna1!(dH,H,p,t::Float64)
     # helper variables
     b = sqrt(1+3*sinλ^2)/(cosλ^6);
     db = (3*(27*sinλ-5*sin(3*H[5])))/(cosλ^8*(4+12*sinλ^2));
-    γ = sqrt(1 + H[2]^2 + 2*H[4]*b);
+    γ = sqrt(1 + H[2]^2 + H[4]^2*b);
     
     # model 1: slightly oblique
   # θ_g = acos(2*p[4]/b)                           deg2rad(15) = 0.2617993877991494;
@@ -220,7 +220,7 @@ function eom_wna1!(dH,H,p,t::Float64)
     # helper variables
     b = sqrt(1+3*sinλ^2)/(cosλ^6);
     db = (3*(27*sinλ-5*sin(3*H[5])))/(cosλ^8*(4+12*sinλ^2));
-    γ = sqrt(1 + H[2]^2 + 2*H[4]*b);
+    γ = sqrt(1 + H[2]^2 + H[4]^2*b);
 
     # model 2: moderately oblique
   # θ_r = acos(p[4]/b)                           deg2rad(15) = 0.2617993877991494;
@@ -262,7 +262,7 @@ function eom_wna3!(dH,H,p,t::Float64)
     # helper variables
     b = sqrt(1+3*sinλ^2)/(cosλ^6);
     db = (3*(27*sinλ-5*sin(3*H[5])))/(cosλ^8*(4+12*sinλ^2));
-    γ = sqrt(1 + H[2]^2 + 2*H[4]*b);
+    γ = sqrt(1 + H[2]^2 + H[4]^2*b);
     
     # model 3: very oblique
   # θ_r = acos(p[4]/b);
@@ -291,7 +291,7 @@ end
 function palostcondition(H,t,integrator)
     # condition: if particle enters loss cone
     b = sqrt(1+3*sin(H[5])^2)/(cos(H[5])^6);
-    γ = sqrt(1 + H[2]^2 + 2*H[4]*b);
+    γ = sqrt(1 + H[2]^2 + H[4]^2*b);
     return (rad2deg(asin(sqrt( (2*H[4])/(γ^2 -1) )))) < (lossConeAngle/2)
 end
 
