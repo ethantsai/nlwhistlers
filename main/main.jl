@@ -2,7 +2,8 @@
 # and have an interactive repl for either running 
 # particle tracing code or doing data analysis
 
+include("util.jl")
 include("constants.jl")
 include("sim_setup.jl")
 include("particle_tracing.jl")
-include("util.jl")
+
