@@ -51,8 +51,8 @@ hl_nite_hi = stats_3."L>5_night"
 ###########################
 # Density Comparison Plot #
 ###########################
-test_cases = [6.5 23.0 3 "main/results/original/" "HI_NITE_MODEL_1m" red "FAW, TPS";
-              6.5 23.0 3 "main/results/plasma_density/" "HI_NITE_MODEL_omegape3" purple "FAW, TPS";
+test_cases = [6.5 23.0 3 "main/results/original/" "HI_NITE_MODEL_1m" red "WNA1";
+              6.5 23.0 3 "main/results/plasma_density/" "HI_NITE_MODEL_omegape3" purple "WNA1";
              ]
 
 L, MLT, Kp, dir, scenario, colour, label = test_cases[1,:]
@@ -74,14 +74,14 @@ density_comparison_plot = plot(xscale=:log10, yscale=:log10, xlim=(52,1000), yli
 
 density_comparison_plot = plot!(energy, hl_nite_md, fillrange=hl_nite_hi, fillalpha = 0.2, color = black, label=false)
 density_comparison_plot = plot!(energy, hl_nite_md, fillrange=hl_nite_lo, fillalpha = 0.2, color = black, label=false)
-density_comparison_plot = plot!(energy, hl_nite_md, label = "ELFIN Night: L>5, 18<MLT<4 ", color = black, linewidth=4, markershape=:circle);
+density_comparison_plot = plot!(energy, hl_nite_md, label = "ELFIN Night: L>5, 18<MLT<4 ", color = black, linewidth=5, markershape=:circle);
             
 L, MLT, Kp, dir, scenario, colour, label = test_cases[1,:]
 density_comparison_plot = plot!(sim_plot_E_bins, norm_1*sim_ratio_sm_1, label="$label: L=$L, MLT=$MLT, Ω_pe=6.5", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
 
 E, Daa_wna1, prec_ratio_wna1 = obtain_diffusion_results("HI", "NITE", 1, false)
 dc_norm = norm_2 * normalize_to(80, sim_plot_E_bins, E, sim_ratio_sm_2, prec_ratio_wna1)
-nite_plot_hil = plot!(E, dc_norm * prec_ratio_wna1, label = "FAW, FDC: L=6.5, Night",  color = orange, linewidth=4, linestyle=:dash)
+nite_plot_hil = plot!(E, dc_norm * prec_ratio_wna1, label = "FAW, FDC: L=6.5, Night",  color = red, linewidth=2, linestyle=:dash)
 
 L, MLT, Kp, dir, scenario, colour, label = test_cases[2,:]
 density_comparison_plot = plot!(sim_plot_E_bins, norm_2*sim_ratio_sm_2, label="$label: L=$L, MLT=$MLT, Ω_pe=3.0", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
@@ -97,10 +97,10 @@ end
 ###########################
 # Oblique Comparison Plot #
 ###########################
-test_cases = [6.5 23.0 3 "main/results/original/" "HI_NITE_MODEL_1m" red "Night, TPS";
-              6.5 23.0 3  "main/results/oblique/" "HI_NITE_WNA1_5m"  blue "WNA1, TPS";
-              6.5 23.0 3  "main/results/oblique/" "HI_NITE_WNA2_5m"  green "WNA2, TPS";
-              6.5 23.0 3  "main/results/oblique/" "HI_NITE_WNA3_5m"  purple "WNA3, TPS";
+test_cases = [6.5 23.0 3 "main/results/original/" "HI_NITE_MODEL_1m" red "WNA1, TPS";
+              6.5 23.0 3  "main/results/oblique/" "HI_NITE_WNA1_5m"  blue "WNA2, TPS";
+              6.5 23.0 3  "main/results/oblique/" "HI_NITE_WNA2_5m"  green "WNA3, TPS";
+              6.5 23.0 3  "main/results/oblique/" "HI_NITE_WNA3_5m"  purple "WNA4, TPS";
               ]
 
 L, MLT, Kp, dir, scenario, colour, label = test_cases[1,:]
@@ -145,20 +145,20 @@ oblique_comparison_plot = plot!(energy, hl_nite_md, fillrange=hl_nite_hi, fillal
 oblique_comparison_plot = plot!(energy, hl_nite_md, fillrange=hl_nite_lo, fillalpha = 0.2, color = black, label=false)
 oblique_comparison_plot = plot!(energy, hl_nite_md, label = "ELFIN Night: L>5, 18<MLT<4 ", color = black, linewidth=4, markershape=:circle);
 
-L, MLT, Kp, scenario, colour, label = test_cases[1,:]
-oblique_comparison_plot = plot!(sim_plot_E_bins, norm_1*sim_ratio_sm_1, label="$label: L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
+L, MLT, Kp, dir, scenario, colour, label = test_cases[1,:]
+oblique_comparison_plot = plot!(sim_plot_E_bins, norm_1*sim_ratio_sm_1, label="$label: L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=3, markersize = 3)
 
-L, MLT, Kp, scenario, colour, label = test_cases[2,:]
-oblique_comparison_plot = plot!(sim_plot_E_bins, norm_2*sim_ratio_sm_2, label="$label: $L=L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
-oblique_comparison_plot = plot!(E, dc_norm_1 * prec_ratio_wna1, label = "WNA1, FDC: L=6.5, Night",  color = colour, linewidth=4, linestyle=:dash)
+L, MLT, Kp, dir, scenario, colour, label = test_cases[2,:]
+oblique_comparison_plot = plot!(sim_plot_E_bins, norm_2*sim_ratio_sm_2, label="$label: L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=3, markersize = 3)
+oblique_comparison_plot = plot!(E, dc_norm_1 * prec_ratio_wna1, label = "WNA2, FDC: L=6.5, Night",  color = colour, linewidth=2, linestyle=:dash)
 
-L, MLT, Kp, scenario, colour, label = test_cases[3,:]
-oblique_comparison_plot = plot!(sim_plot_E_bins, norm_3*sim_ratio_sm_3, label="$label: $L=L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
-oblique_comparison_plot = plot!(E, dc_norm_2 * prec_ratio_wna2, label = "WNA2, FDC: L=6.5, Night",  color = colour, linewidth=4, linestyle=:dash)
+L, MLT, Kp, dir, scenario, colour, label = test_cases[3,:]
+oblique_comparison_plot = plot!(sim_plot_E_bins, norm_3*sim_ratio_sm_3, label="$label: L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=3, markersize = 3)
+oblique_comparison_plot = plot!(E, dc_norm_2 * prec_ratio_wna2, label = "WNA3, FDC: L=6.5, Night",  color = colour, linewidth=2, linestyle=:dash)
 
-L, MLT, Kp, scenario, colour, label = test_cases[4,:]
-oblique_comparison_plot = plot!(sim_plot_E_bins, norm_4*sim_ratio_sm_4, label="$label: $L=L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
-oblique_comparison_plot = plot!(E, dc_norm_3 * prec_ratio_wna3, label = "WNA3, FDC: L=6.5, Night",  color = colour, linewidth=4, linestyle=:dash)
+L, MLT, Kp, dir, scenario, colour, label = test_cases[4,:]
+oblique_comparison_plot = plot!(sim_plot_E_bins, norm_4*sim_ratio_sm_4, label="$label: L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=3, markersize = 3)
+oblique_comparison_plot = plot!(E, dc_norm_3 * prec_ratio_wna3, label = "WNA4, FDC: L=6.5, Night",  color = colour, linewidth=2, linestyle=:dash)
 
 oblique_comparison_plot = plot!(legendfontsize=12, tickfontsize=12, legend=:bottomleft)
 oblique_comparison_plot = plot!(dpi = 500,size=(800,450), margin=20px, bottom_margin=12px)
@@ -172,18 +172,10 @@ end
 ###########################
 # Frequency model for pub #
 ###########################
-test_cases = [6.5 23.0 3 "main/results/original/" "HI_NITE_MODEL_1m" yellow "ω_m = 0.35, TPS";
-              6.5 23.0 3 "main/results/frequency/" "HI_NITE_MODEL_15" red "ω_m = 0.15, TPS";
-              6.5 23.0 3 "main/results/frequency/" "HI_NITE_MODEL_45" orange "ω_m = 0.45, TPS";
-              6.5 23.0 3 "main/results/frequency/" "HI_NITE_MODEL_omega_mod_2" blue "ω_m(λ), TPS";
+test_cases = [6.5 23.0 3 "main/results/frequency/" "HI_NITE_MODEL_35" red "Model 1, ω_m/Ω_ce = 0.35";
+              6.5 23.0 3 "main/results/frequency/" "HI_NITE_MODEL_20" orange "Model 2, ω_m/Ω_ce = 0.20";
+              6.5 23.0 3 "main/results/frequency/" "HI_NITE_MODEL_omega_mod_2" blue "Model 3, ω_m(λ)";
               ]
-
-frequency_model_comparison_plot = plot(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 1),
-            xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10)
-
-frequency_model_for_pub_plot = plot!(energy, hl_nite_md, fillrange=hl_nite_hi, fillalpha = 0.2, color = black, label=false)
-frequency_model_for_pub_plot = plot!(energy, hl_nite_md, fillrange=hl_nite_lo, fillalpha = 0.2, color = black, label=false)
-frequency_model_for_pub_plot = plot!(energy, hl_nite_md, label = "ELFIN Night: L>5, 18<MLT<4 ", color = black, linewidth=4, markershape=:circle);
 
 L, MLT, Kp, dir, scenario, colour, label = test_cases[1,:]
 @time @load "$dir$scenario.jld2" rm
@@ -192,7 +184,14 @@ sim_ratio = prec_to_trap_ratio(rm)
 sim_ratio_sm = smooth(sim_ratio[1], 12, 6)
 norm_35 = normalize_to_elfin(hl_nite_md, sim_ratio_sm)
 
-for i in 2:length(test_cases[:,1])
+frequency_model_comparison_plot = plot(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 1),
+            xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10)
+
+frequency_model_for_pub_plot = plot!(energy, hl_nite_md, fillrange=hl_nite_hi, fillalpha = 0.2, color = black, label=false)
+frequency_model_for_pub_plot = plot!(energy, hl_nite_md, fillrange=hl_nite_lo, fillalpha = 0.2, color = black, label=false)
+frequency_model_for_pub_plot = plot!(energy, hl_nite_md, label = "ELFIN Night: L>5, 18<MLT<4 ", color = black, linewidth=5, markershape=:circle);
+
+for i in 1:length(test_cases[:,1])
     L, MLT, Kp, dir, scenario, colour, label = test_cases[i,:]
     @time @load "$dir$scenario.jld2" rm
     @info "loaded $scenario from $dir"
