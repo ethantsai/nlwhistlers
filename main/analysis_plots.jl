@@ -52,7 +52,7 @@ hl_nite_hi = stats_3."L>5_night"
 # Density Comparison Plot #
 ###########################
 test_cases = [6.5 23.0 3 "main/results/original/" "HI_NITE_MODEL_1m" red "FAW, TPS";
-              6.5 23.0 3 "main/results/plasma_density/" "HI_NITE_MODEL_omegam3" purple "FAW, TPS";
+              6.5 23.0 3 "main/results/plasma_density/" "HI_NITE_MODEL_omegape3" purple "FAW, TPS";
              ]
 
 L, MLT, Kp, dir, scenario, colour, label = test_cases[1,:]
