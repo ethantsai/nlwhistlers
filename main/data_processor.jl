@@ -127,7 +127,7 @@ function obtain_diffusion_results(lo_or_hi, dawn_dusk_nite, wnX, new=false)
     end
 
     prefix = "external_data/diffusion_code_results/Chorus_Daa_PrecRatio"
-    name = "$(prefix)_L$(L_shell)_$(lo_or_hi)_$(dawn_dusk_nite)_WN$wnX$new.txt"
+    name = "$(prefix)_L$(L_shell)_$(lo_or_hi)_$(dawn_dusk_nite)_WN$wnX$n.txt"
     data =  CSV.File(name; header=true, delim=',', types=Float64) |> DataFrame
     E = data.E
     Daa = data."<Daa>"
