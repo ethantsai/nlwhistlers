@@ -51,8 +51,8 @@ hl_nite_hi = stats_3."L>5_night"
 ###########################
 # Density Comparison Plot #
 ###########################
-test_cases = [6.5 23.0 3 "main/results/original/" "HI_NITE_MODEL_1m" c7 "FAW, TPS";
-              6.5 23.0 3 "main/results/plasma_density/" "HI_NITE_MODEL_omegam3" c8 "FAW, TPS";
+test_cases = [6.5 23.0 3 "main/results/original/" "HI_NITE_MODEL_1m" red "FAW, TPS";
+              6.5 23.0 3 "main/results/plasma_density/" "HI_NITE_MODEL_omegam3" purple "FAW, TPS";
              ]
 
 L, MLT, Kp, dir, scenario, colour, label = test_cases[1,:]
@@ -72,16 +72,16 @@ norm_2 = normalize_to_elfin(hl_nite_md, sim_ratio_sm_2)
 density_comparison_plot = plot(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 1),
             xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10)
 
-density_comparison_plot = plot!(energy, hl_nite_md, fillrange=hl_nite_hi, fillalpha = 0.2, color = c1, label=false)
-density_comparison_plot = plot!(energy, hl_nite_md, fillrange=hl_nite_lo, fillalpha = 0.2, color = c1, label=false)
-density_comparison_plot = plot!(energy, hl_nite_md, label = "ELFIN Night: L>5, 18<MLT<4 ", color = c1, linewidth=4, markershape=:circle);
+density_comparison_plot = plot!(energy, hl_nite_md, fillrange=hl_nite_hi, fillalpha = 0.2, color = black, label=false)
+density_comparison_plot = plot!(energy, hl_nite_md, fillrange=hl_nite_lo, fillalpha = 0.2, color = black, label=false)
+density_comparison_plot = plot!(energy, hl_nite_md, label = "ELFIN Night: L>5, 18<MLT<4 ", color = black, linewidth=4, markershape=:circle);
             
 L, MLT, Kp, dir, scenario, colour, label = test_cases[1,:]
 density_comparison_plot = plot!(sim_plot_E_bins, norm_1*sim_ratio_sm_1, label="$label: L=$L, MLT=$MLT, Ω_pe=6.5", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
 
 E, Daa_wna1, prec_ratio_wna1 = obtain_diffusion_results("HI", "NITE", 1, false)
 dc_norm = norm_2 * normalize_to(80, sim_plot_E_bins, E, sim_ratio_sm_2, prec_ratio_wna1)
-nite_plot_hil = plot!(E, dc_norm * prec_ratio_wna1, label = "FAW, FDC: L=6.5, Night",  color = c2, linewidth=4, linestyle=:dash)
+nite_plot_hil = plot!(E, dc_norm * prec_ratio_wna1, label = "FAW, FDC: L=6.5, Night",  color = orange, linewidth=4, linestyle=:dash)
 
 L, MLT, Kp, dir, scenario, colour, label = test_cases[2,:]
 density_comparison_plot = plot!(sim_plot_E_bins, norm_2*sim_ratio_sm_2, label="$label: L=$L, MLT=$MLT, Ω_pe=3.0", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
@@ -97,10 +97,10 @@ end
 ###########################
 # Oblique Comparison Plot #
 ###########################
-test_cases = [6.5 23.0 3 "main/results/original/" "HI_NITE_MODEL_1m" c7 "Night, TPS";
-              6.5 23.0 3  "main/results/oblique/" "HI_NITE_WNA1_5m"  c6 "WNA1, TPS";
-              6.5 23.0 3  "main/results/oblique/" "HI_NITE_WNA2_5m"  c4 "WNA2, TPS";
-              6.5 23.0 3  "main/results/oblique/" "HI_NITE_WNA3_5m"  c8 "WNA3, TPS";
+test_cases = [6.5 23.0 3 "main/results/original/" "HI_NITE_MODEL_1m" red "Night, TPS";
+              6.5 23.0 3  "main/results/oblique/" "HI_NITE_WNA1_5m"  blue "WNA1, TPS";
+              6.5 23.0 3  "main/results/oblique/" "HI_NITE_WNA2_5m"  green "WNA2, TPS";
+              6.5 23.0 3  "main/results/oblique/" "HI_NITE_WNA3_5m"  purple "WNA3, TPS";
               ]
 
 L, MLT, Kp, dir, scenario, colour, label = test_cases[1,:]
@@ -141,9 +141,9 @@ dc_norm_3 = norm_4 * normalize_to(80, sim_plot_E_bins, E, sim_ratio_sm_4, prec_r
 oblique_comparison_plot = plot(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 1),
             xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10)
 
-oblique_comparison_plot = plot!(energy, hl_nite_md, fillrange=hl_nite_hi, fillalpha = 0.2, color = c1, label=false)
-oblique_comparison_plot = plot!(energy, hl_nite_md, fillrange=hl_nite_lo, fillalpha = 0.2, color = c1, label=false)
-oblique_comparison_plot = plot!(energy, hl_nite_md, label = "ELFIN Night: L>5, 18<MLT<4 ", color = c1, linewidth=4, markershape=:circle);
+oblique_comparison_plot = plot!(energy, hl_nite_md, fillrange=hl_nite_hi, fillalpha = 0.2, color = black, label=false)
+oblique_comparison_plot = plot!(energy, hl_nite_md, fillrange=hl_nite_lo, fillalpha = 0.2, color = black, label=false)
+oblique_comparison_plot = plot!(energy, hl_nite_md, label = "ELFIN Night: L>5, 18<MLT<4 ", color = black, linewidth=4, markershape=:circle);
 
 L, MLT, Kp, scenario, colour, label = test_cases[1,:]
 oblique_comparison_plot = plot!(sim_plot_E_bins, norm_1*sim_ratio_sm_1, label="$label: L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
@@ -172,30 +172,32 @@ end
 ###########################
 # Frequency model for pub #
 ###########################
-test_cases = [6.5 23.0 3 "main/results/original/" "HI_NITE_MODEL_1m" c7 "Night, TPS";
-              6.5 23.0 3 "main/results/frequency/" "HI_NITE_MODEL_omega_mod_2" c5 "ω_mod_2";
-              6.5 23.0 3 "main/results/frequency/" "HI_NITE_MODEL_15" c3 "ω_m = 0.15";
-              6.5 23.0 3 "main/results/frequency/" "HI_NITE_MODEL_45" c4 "ω_m = 0.45";
+test_cases = [6.5 23.0 3 "main/results/original/" "HI_NITE_MODEL_1m" yellow "ω_m = 0.35, TPS";
+              6.5 23.0 3 "main/results/frequency/" "HI_NITE_MODEL_15" red "ω_m = 0.15, TPS";
+              6.5 23.0 3 "main/results/frequency/" "HI_NITE_MODEL_45" orange "ω_m = 0.45, TPS";
+              6.5 23.0 3 "main/results/frequency/" "HI_NITE_MODEL_omega_mod_2" blue "ω_m(λ), TPS";
               ]
 
 frequency_model_comparison_plot = plot(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 1),
             xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10)
 
-            frequency_model_for_pub_plot = plot!(energy, hl_nite_md, fillrange=hl_nite_hi, fillalpha = 0.2, color = c1, label=false)
-            frequency_model_for_pub_plot = plot!(energy, hl_nite_md, fillrange=hl_nite_lo, fillalpha = 0.2, color = c1, label=false)
-            frequency_model_for_pub_plot = plot!(energy, hl_nite_md, label = "ELFIN Night: L>5, 18<MLT<4 ", color = c1, linewidth=4, markershape=:circle);
+frequency_model_for_pub_plot = plot!(energy, hl_nite_md, fillrange=hl_nite_hi, fillalpha = 0.2, color = black, label=false)
+frequency_model_for_pub_plot = plot!(energy, hl_nite_md, fillrange=hl_nite_lo, fillalpha = 0.2, color = black, label=false)
+frequency_model_for_pub_plot = plot!(energy, hl_nite_md, label = "ELFIN Night: L>5, 18<MLT<4 ", color = black, linewidth=4, markershape=:circle);
 
-@time @load "main/results/frequency/HI_NITE_MODEL_35.jld2" rm
+L, MLT, Kp, dir, scenario, colour, label = test_cases[1,:]
+@time @load "$dir$scenario.jld2" rm
+@info "loaded $scenario from $dir"
 sim_ratio = prec_to_trap_ratio(rm)
-sim_ratio_sm = smooth(sim_ratio[1], 8, 5)
+sim_ratio_sm = smooth(sim_ratio[1], 12, 6)
 norm_35 = normalize_to_elfin(hl_nite_md, sim_ratio_sm)
 
-for i in 1:length(test_cases[:,1])
+for i in 2:length(test_cases[:,1])
     L, MLT, Kp, dir, scenario, colour, label = test_cases[i,:]
     @time @load "$dir$scenario.jld2" rm
     @info "loaded $scenario from $dir"
     sim_ratio = prec_to_trap_ratio(rm)
-    sim_ratio_sm = smooth(sim_ratio[1], 8, 5)
+    sim_ratio_sm = smooth(sim_ratio[1], 12, 6)
     norm = normalize_to_elfin(hl_nite_md, sim_ratio_sm)
     frequency_model_for_pub_plot = plot!(sim_plot_E_bins, norm_35*sim_ratio_sm, label="$label: L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
 end
@@ -212,13 +214,13 @@ end
 #############################
 # Frequency Comparison Plot #
 #############################
-test_cases = [6.5 23.0 3  "main/results/frequency/" "HI_NITE_MODEL_15" c2 "0.15";
-              6.5 23.0 3  "main/results/frequency/" "HI_NITE_MODEL_20" c3 "0.20";
-              6.5 23.0 3  "main/results/frequency/" "HI_NITE_MODEL_25" c4 "0.25";
-              6.5 23.0 3  "main/results/frequency/" "HI_NITE_MODEL_30" c5 "0.30";
-              6.5 23.0 3  "main/results/frequency/" "HI_NITE_MODEL_35" c6 "0.35";
-              6.5 23.0 3  "main/results/frequency/" "HI_NITE_MODEL_40" c7 "0.40";
-              6.5 23.0 3  "main/results/frequency/" "HI_NITE_MODEL_45" c8 "0.45";
+test_cases = [6.5 23.0 3  "main/results/frequency/" "HI_NITE_MODEL_15" orange "0.15";
+              6.5 23.0 3  "main/results/frequency/" "HI_NITE_MODEL_20" light_blue "0.20";
+              6.5 23.0 3  "main/results/frequency/" "HI_NITE_MODEL_25" green "0.25";
+              6.5 23.0 3  "main/results/frequency/" "HI_NITE_MODEL_30" yellow "0.30";
+              6.5 23.0 3  "main/results/frequency/" "HI_NITE_MODEL_35" blue "0.35";
+              6.5 23.0 3  "main/results/frequency/" "HI_NITE_MODEL_40" red "0.40";
+              6.5 23.0 3  "main/results/frequency/" "HI_NITE_MODEL_45" purple "0.45";
               ]
 
 frequency_comparison_plot = plot(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 1),
@@ -242,9 +244,9 @@ for i in 1:length(test_cases[:,1])
     frequency_comparison_plot = plot!(sim_plot_E_bins, norm_35*sim_ratio_sm, label="ω_m = $label, L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
 end
 
-frequency_comparison_plot = plot!(energy, hl_nite_md, fillrange=hl_nite_hi, fillalpha = 0.2, color = c1, label=false)
-frequency_comparison_plot = plot!(energy, hl_nite_md, fillrange=hl_nite_lo, fillalpha = 0.2, color = c1, label=false)
-frequency_comparison_plot = plot!(energy, hl_nite_md, label = "ELFIN Night: L>5, 18<MLT<4 ", color = c1, linewidth=2, markershape=:circle);
+frequency_comparison_plot = plot!(energy, hl_nite_md, fillrange=hl_nite_hi, fillalpha = 0.2, color = black, label=false)
+frequency_comparison_plot = plot!(energy, hl_nite_md, fillrange=hl_nite_lo, fillalpha = 0.2, color = black, label=false)
+frequency_comparison_plot = plot!(energy, hl_nite_md, label = "ELFIN Night: L>5, 18<MLT<4 ", color = black, linewidth=2, markershape=:circle);
 frequency_comparison_plot = plot!(legendfontsize=12, tickfontsize=12, legend=:bottomleft)
 frequency_comparison_plot = plot!(dpi = 500,size=(1000,600), margin=20px, bottom_margin=12px)
 
@@ -323,11 +325,11 @@ end
 ##############################
 # Frequency model comparison #
 ##############################
-test_cases = [6.5 23.0 3 "main/results/frequency/" "HI_NITE_MODEL_omega_mod_1" c2 "ω_mod_1";
-              6.5 23.0 3 "main/results/frequency/" "HI_NITE_MODEL_omega_mod_2" c5 "ω_mod_2";
-              6.5 23.0 3 "main/results/frequency/" "HI_NITE_MODEL_omega_mod_3" c7 "ω_mod_3";
-              6.5 23.0 3 "main/results/frequency/" "HI_NITE_MODEL_15" c3 "ω_m = 0.15";
-              6.5 23.0 3 "main/results/frequency/" "HI_NITE_MODEL_45" c4 "ω_m = 0.45";
+test_cases = [6.5 23.0 3 "main/results/frequency/" "HI_NITE_MODEL_omega_mod_1" orange "ω_mod_1";
+              6.5 23.0 3 "main/results/frequency/" "HI_NITE_MODEL_omega_mod_2" yellow "ω_mod_2";
+              6.5 23.0 3 "main/results/frequency/" "HI_NITE_MODEL_omega_mod_3" red "ω_mod_3";
+              6.5 23.0 3 "main/results/frequency/" "HI_NITE_MODEL_15" light_blue "ω_m = 0.15";
+              6.5 23.0 3 "main/results/frequency/" "HI_NITE_MODEL_45" green "ω_m = 0.45";
               ]
 
 frequency_model_comparison_plot = plot(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 1),
@@ -348,9 +350,9 @@ for i in 1:length(test_cases[:,1])
     frequency_model_comparison_plot = plot!(sim_plot_E_bins, norm_35*sim_ratio_sm, label="$label: L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
 end
 
-frequency_model_comparison_plot = plot!(energy, hl_nite_md, fillrange=hl_nite_hi, fillalpha = 0.2, color = c1, label=false)
-frequency_model_comparison_plot = plot!(energy, hl_nite_md, fillrange=hl_nite_lo, fillalpha = 0.2, color = c1, label=false)
-frequency_model_comparison_plot = plot!(energy, hl_nite_md, label = "ELFIN Night: L>5, 18<MLT<4 ", color = c1, linewidth=2, markershape=:circle);
+frequency_model_comparison_plot = plot!(energy, hl_nite_md, fillrange=hl_nite_hi, fillalpha = 0.2, color = black, label=false)
+frequency_model_comparison_plot = plot!(energy, hl_nite_md, fillrange=hl_nite_lo, fillalpha = 0.2, color = black, label=false)
+frequency_model_comparison_plot = plot!(energy, hl_nite_md, label = "ELFIN Night: L>5, 18<MLT<4 ", color = black, linewidth=2, markershape=:circle);
 frequency_model_comparison_plot = plot!(legendfontsize=12, tickfontsize=12, legend=:bottomleft)
 frequency_model_comparison_plot = plot!(dpi = 500,size=(1000,600), margin=20px, bottom_margin=12px)
 
@@ -373,8 +375,8 @@ end
 #         nite_plot_hil = plot!(sim_plot_E_bins, f3(i), label="")
 #     end
 #     nite_plot_hil = plot!(sim_plot_E_bins, norm_4*sim_ratio_sm_4, label="label Model: L=L, MLT=MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
-#     nite_plot_hil = plot!(energy, hl_nite_md, fillrange=hl_nite_hi, fillalpha = 0.2, color = c4, label=false)
-#     nite_plot_hil = plot!(energy, hl_nite_md, fillrange=hl_nite_lo, fillalpha = 0.2, color = c4, label=false)
+#     nite_plot_hil = plot!(energy, hl_nite_md, fillrange=hl_nite_hi, fillalpha = 0.2, color = green, label=false)
+#     nite_plot_hil = plot!(energy, hl_nite_md, fillrange=hl_nite_lo, fillalpha = 0.2, color = green, label=false)
 #     nite_plot_hil = plot!(energy, hl_nite_md, label = "ELFIN Night: L>5, 18<MLT<4 ", color = bipride_pink, linewidth=2, markershape=:circle);
 #     nite_plot_hil = plot!(legendfontsize=12, tickfontsize=12, legend=:bottomleft)
 #     nite_plot_hil = plot!(dpi = 500,size=(800,450), margin=20px, bottom_margin=12px)
@@ -384,8 +386,8 @@ end
 ### MLT comparison, FIGURE 4 in JGR2023 except now with diffusion code 
 
 # Dawn plot and generate normalizers
-test_cases = [4.5 8.0  3  "hr_LO_DAWN_MODEL" c5 "Dawn-Noon";
-              6.5 8.0  3  "hr_HI_DAWN_MODEL" c4 "Dawn-Noon";
+test_cases = [4.5 8.0  3  "hr_LO_DAWN_MODEL" yellow "Dawn-Noon";
+              6.5 8.0  3  "hr_HI_DAWN_MODEL" green "Dawn-Noon";
               ]
 
 dawn_plot_lol = plot(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 1),
@@ -406,9 +408,9 @@ E, Daa_wna3, prec_ratio_wna3 = obtain_diffusion_results("LO", "DAWN", 3)
 dc_norm = normalizer * normalize_to(80, E_bins, E, sim_ratio_sm, prec_ratio_wna1)
 
 dawn_plot_lol = plot!(sim_plot_E_bins, normalizer .* sim_ratio_sm, label="label Model: L=L, MLT=MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
-dawn_plot_lol = plot!(energy, b1*ll_dawn_md, fillrange=b1*ll_dawn_hi, fillalpha = 0.2, color = c5, label=false)
-dawn_plot_lol = plot!(energy, b1*ll_dawn_md, fillrange=b1*ll_dawn_lo, fillalpha = 0.2, color = c5, label=false)
-dawn_plot_lol = plot!(energy, b1*ll_dawn_md, label = "ELFIN Dawn-Noon: L<5, 4<MLT<13 ", color = c6, linewidth=2, markershape=:circle);
+dawn_plot_lol = plot!(energy, b1*ll_dawn_md, fillrange=b1*ll_dawn_hi, fillalpha = 0.2, color = yellow, label=false)
+dawn_plot_lol = plot!(energy, b1*ll_dawn_md, fillrange=b1*ll_dawn_lo, fillalpha = 0.2, color = yellow, label=false)
+dawn_plot_lol = plot!(energy, b1*ll_dawn_md, label = "ELFIN Dawn-Noon: L<5, 4<MLT<13 ", color = blue, linewidth=2, markershape=:circle);
 dawn_plot_lol = plot!(E, dc_norm * prec_ratio_wna1, label = "WNA1: Parallel Waves")
 dawn_plot_lol = plot!(E, dc_norm * prec_ratio_wna2, label = "WNA2: initially parallel -> resonance cone")
 dawn_plot_lol = plot!(E, dc_norm * prec_ratio_wna3, label = "WNA3: gendrin angle -> resonance cone")
@@ -434,8 +436,8 @@ E, Daa_wna3, prec_ratio_wna3 = obtain_diffusion_results("HI", "DAWN", 3)
 dc_norm = normalizer * normalize_to(80, E_bins, E, sim_ratio_sm, prec_ratio_wna1)
 
 dawn_plot_hil = plot!(sim_plot_E_bins, normalizer .* sim_ratio_sm, label="label Model: L=L, MLT=MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
-dawn_plot_hil = plot!(energy, b1*hl_dawn_md, fillrange=b1*hl_dawn_hi, fillalpha = 0.2, color = c4, label=false)
-dawn_plot_hil = plot!(energy, b1*hl_dawn_md, fillrange=b1*hl_dawn_lo, fillalpha = 0.2, color = c4, label=false)
+dawn_plot_hil = plot!(energy, b1*hl_dawn_md, fillrange=b1*hl_dawn_hi, fillalpha = 0.2, color = green, label=false)
+dawn_plot_hil = plot!(energy, b1*hl_dawn_md, fillrange=b1*hl_dawn_lo, fillalpha = 0.2, color = green, label=false)
 dawn_plot_hil = plot!(energy, b1*hl_dawn_md, label = "ELFIN Dawn-Noon: L>5, 4<MLT<13 ", color = bipride_pink, linewidth=2, markershape=:circle);
 dawn_plot_hil = plot!(E, dc_norm * prec_ratio_wna1, label = "WNA1: Parallel Waves")
 dawn_plot_hil = plot!(E, dc_norm * prec_ratio_wna2, label = "WNA2: initially parallel -> resonance cone")
@@ -446,8 +448,8 @@ savefig(dawn_plot_hil, "images/dawn_plot_hil.png")
 savefig(dawn_plot_hil, "images/dawn_plot_hil.pdf")
 
 # Dusk plot
-test_cases = [4.5 16.5 3  "hr_LO_DUSK_MODEL" c5 "Noon-Dusk";
-              6.5 16.5 3  "hr_HI_DUSK_MODEL" c4 "Noon-Dusk";
+test_cases = [4.5 16.5 3  "hr_LO_DUSK_MODEL" yellow "Noon-Dusk";
+              6.5 16.5 3  "hr_HI_DUSK_MODEL" green "Noon-Dusk";
               ]
 
 
@@ -468,9 +470,9 @@ E, Daa_wna3, prec_ratio_wna3 = obtain_diffusion_results("LO", "DUSK", 3)
 dc_norm = normalizer * normalize_to(80, E_bins, E, sim_ratio_sm, prec_ratio_wna1)
 
 dusk_plot_lol = plot!(sim_plot_E_bins, normalizer .* sim_ratio_sm, label="label Model: L=L, MLT=MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
-dusk_plot_lol = plot!(energy, b1*ll_dusk_md, fillrange=b1*ll_dusk_hi, fillalpha = 0.2, color = c5, label=false)
-dusk_plot_lol = plot!(energy, b1*ll_dusk_md, fillrange=b1*ll_dusk_lo, fillalpha = 0.2, color = c5, label=false)
-dusk_plot_lol = plot!(energy, b1*ll_dusk_md, label = "ELFIN Noon-Dusk: L<5, 13<MLT<18", color = c6, linewidth=2, markershape=:circle);
+dusk_plot_lol = plot!(energy, b1*ll_dusk_md, fillrange=b1*ll_dusk_hi, fillalpha = 0.2, color = yellow, label=false)
+dusk_plot_lol = plot!(energy, b1*ll_dusk_md, fillrange=b1*ll_dusk_lo, fillalpha = 0.2, color = yellow, label=false)
+dusk_plot_lol = plot!(energy, b1*ll_dusk_md, label = "ELFIN Noon-Dusk: L<5, 13<MLT<18", color = blue, linewidth=2, markershape=:circle);
 dusk_plot_lol = plot!(E, dc_norm * prec_ratio_wna1, label = "WNA1: Parallel Waves")
 dusk_plot_lol = plot!(E, dc_norm * prec_ratio_wna2, label = "WNA2: initially parallel -> resonance cone")
 dusk_plot_lol = plot!(E, dc_norm * prec_ratio_wna3, label = "WNA3: gendrin angle -> resonance cone")
@@ -496,8 +498,8 @@ E, Daa_wna3, prec_ratio_wna3 = obtain_diffusion_results("HI", "DUSK", 3)
 dc_norm = normalizer * normalize_to(80, E_bins, E, sim_ratio_sm, prec_ratio_wna1)
 
 dusk_plot_hil = plot!(sim_plot_E_bins, normalizer .* sim_ratio_sm, label="label Model: L=L, MLT=MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
-dusk_plot_hil = plot!(energy, b1*hl_dusk_md, fillrange=b1*hl_dusk_hi, fillalpha = 0.2, color = c4, label=false)
-dusk_plot_hil = plot!(energy, b1*hl_dusk_md, fillrange=b1*hl_dusk_lo, fillalpha = 0.2, color = c4, label=false)
+dusk_plot_hil = plot!(energy, b1*hl_dusk_md, fillrange=b1*hl_dusk_hi, fillalpha = 0.2, color = green, label=false)
+dusk_plot_hil = plot!(energy, b1*hl_dusk_md, fillrange=b1*hl_dusk_lo, fillalpha = 0.2, color = green, label=false)
 dusk_plot_hil = plot!(energy, b1*hl_dusk_md, label = "ELFIN Noon-Dusk: L>5, 13<MLT<18", color = bipride_pink, linewidth=2, markershape=:circle);
 dusk_plot_hil = plot!(E, dc_norm * prec_ratio_wna1, label = "WNA1: Parallel Waves")
 dusk_plot_hil = plot!(E, dc_norm * prec_ratio_wna2, label = "WNA2: initially parallel -> resonance cone")
@@ -508,8 +510,8 @@ savefig(dusk_plot_hil, "images/dusk_compare_hil.png")
 savefig(dusk_plot_hil, "images/dusk_compare_hil.pdf")
 
 # Night plot
-test_cases = [4.5 23.0 3  "hr_LO_NITE_MODEL" c5 "Night";
-              6.5 23.0 3  "HI_NITE_MODEL_1m" c4 "Night";
+test_cases = [4.5 23.0 3  "hr_LO_NITE_MODEL" yellow "Night";
+              6.5 23.0 3  "HI_NITE_MODEL_1m" green "Night";
               ]
 
 nite_plot_lol = plot(xscale=:log10, yscale=:log10, xlim=(52,1000), ylim=(1e-2, 1),
@@ -529,9 +531,9 @@ E, Daa_wna3, prec_ratio_wna3 = obtain_diffusion_results("LO", "NITE", 3)
 dc_norm = normalizer * normalize_to(80, E_bins, E, sim_ratio_sm, prec_ratio_wna1)
 
 nite_plot_lol = plot!(sim_plot_E_bins, normalizer .* sim_ratio_sm, label="label Model: L=L, MLT=MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
-nite_plot_lol = plot!(energy, b1*ll_nite_md, fillrange=b1*ll_nite_hi, fillalpha = 0.2, color = c5, label=false)
-nite_plot_lol = plot!(energy, b1*ll_nite_md, fillrange=b1*ll_nite_lo, fillalpha = 0.2, color = c5, label=false)
-nite_plot_lol = plot!(energy, b1*ll_nite_md, label = "ELFIN Night: L<5, 18<MLT<4 ", color = c6, linewidth=2, markershape=:circle);
+nite_plot_lol = plot!(energy, b1*ll_nite_md, fillrange=b1*ll_nite_hi, fillalpha = 0.2, color = yellow, label=false)
+nite_plot_lol = plot!(energy, b1*ll_nite_md, fillrange=b1*ll_nite_lo, fillalpha = 0.2, color = yellow, label=false)
+nite_plot_lol = plot!(energy, b1*ll_nite_md, label = "ELFIN Night: L<5, 18<MLT<4 ", color = blue, linewidth=2, markershape=:circle);
 nite_plot_lol = plot!(E, dc_norm * prec_ratio_wna1, label = "WNA1: Parallel Waves")
 nite_plot_lol = plot!(E, dc_norm * prec_ratio_wna2, label = "WNA2: initially parallel -> resonance cone")
 nite_plot_lol = plot!(E, dc_norm * prec_ratio_wna3, label = "WNA3: gendrin angle -> resonance cone")
@@ -557,8 +559,8 @@ E, Daa_wna3, prec_ratio_wna3 = obtain_diffusion_results("HI", "NITE", 3, true)
 dc_norm = normalizer * normalize_to(80, E_bins, E, sim_ratio_sm, prec_ratio_wna1)
 
 nite_plot_hil = plot!(sim_plot_E_bins, normalizer .* sim_ratio_sm, label="label Model: L=L, MLT=MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
-nite_plot_hil = plot!(energy, b1*hl_nite_md, fillrange=b1*hl_nite_hi, fillalpha = 0.2, color = c4, label=false)
-nite_plot_hil = plot!(energy, b1*hl_nite_md, fillrange=b1*hl_nite_lo, fillalpha = 0.2, color = c4, label=false)
+nite_plot_hil = plot!(energy, b1*hl_nite_md, fillrange=b1*hl_nite_hi, fillalpha = 0.2, color = green, label=false)
+nite_plot_hil = plot!(energy, b1*hl_nite_md, fillrange=b1*hl_nite_lo, fillalpha = 0.2, color = green, label=false)
 nite_plot_hil = plot!(energy, b1*hl_nite_md, label = "ELFIN Night: L>5, 18<MLT<4 ", color = bipride_pink, linewidth=2, markershape=:circle);
 nite_plot_hil = plot!(E, dc_norm * prec_ratio_wna1, label = "WNA1: Parallel Waves")
 nite_plot_hil = plot!(E, dc_norm * prec_ratio_wna2, label = "WNA2: initially parallel -> resonance cone")

@@ -61,12 +61,17 @@ function hexcolor(r::UInt8, g::UInt8, b::UInt8)
     return RGB(Int(r)/255,Int(g)/255,Int(b)/255)
 end
 
-# colorblind friendlier colors
-c1 = hexcolor(0x00,0x00,0x00); # black
-c2 = hexcolor(0xE6,0x9F,0x00); # orange
-c3 = hexcolor(0x56,0xB4,0xE9); # light blue
-c4 = hexcolor(0x00,0x9E,0x73); # green
-c5 = hexcolor(0xF0,0xE4,0x42); # yellow
-c6 = hexcolor(0x00,0x72,0xB2); # blue
-c7 = hexcolor(0xD5,0x5E,0x00); # red
-c8 = hexcolor(0xCC,0x79,0xA7); # purple
+# Ethan's colorblind friendlier color palette
+black = hexcolor(0x00,0x00,0x00); # black
+red = hexcolor(0xB3,0x00,0x07); # red
+reddish_orange = hexcolor(0xD5,0x5E,0x00); # reddish orange
+orange = hexcolor(0xE6,0x9F,0x00); # orange
+yellow = hexcolor(0xF0,0xE4,0x42); # yellow
+green = hexcolor(0x00,0x9E,0x73); # green
+blue = hexcolor(0x00,0x72,0xB2); # blue
+light_blue = hexcolor(0x56,0xB4,0xE9); # light blue
+purplish_pink = hexcolor(0xCC,0x79,0xA7); # purplish pink
+purple = hexcolor(0x91,0x64,0xc2); # purple
+
+# uncomment to view the color palette
+# [black, red, reddish_orange, orange, yellow, green, blue, light_blue, purplish_pink, purple]
