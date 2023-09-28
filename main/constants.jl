@@ -21,17 +21,7 @@ using DirectConvolution
 #######################
 ## Constants n stuff ##
 #######################
-@info "Loading constants..."
-save_dir = "results_ducting/"
-folder = "run28/"
-mkpath(save_dir*folder)
-
-test_cases = [6.5 23   3  "HI_NITE_MODEL_small"]
-
-omega_m_cases = [0.15, 0.45] # these are the different frequencies to test
-L_array = test_cases[:,1]
-
-const numParticles = 13;
+const numParticles = 1000000;
 const startTime = 0;
 const endTime = 15;
 tspan = (startTime, endTime); # integration time
@@ -44,8 +34,8 @@ const PAHi = 15;
 const PAsteps = 1300; # only used for flat particle distribution
 const factor = 40; #only used for skewed particle distribution
 # num particles in highest energy bin = factor * num particles in lowest energy bin
-ICrange = [ELo, EHi, Esteps, PALo, PAHi, PAsteps];
-E_bins = logrange(ELo,EHi, Int64(Esteps))
+const ICrange = [ELo, EHi, Esteps, PALo, PAHi, PAsteps];
+const E_bins = logrange(ELo,EHi, Int64(Esteps))
 
 const z0 = 0; # start at eq
 const λ0 = 0; # start at eq
@@ -60,7 +50,7 @@ const Re   = 6370e3;        # Earth radius, f64
 const c    = 3e8;           # speedo lite, f64
 const Beq  = 3.e-5;         # B field at equator (T), f64
 
-saveDecimation = 40000; # really only need first and last point
+const saveDecimation = 40000; # really only need first and last point
 @info "Done."
 
 

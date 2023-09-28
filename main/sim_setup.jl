@@ -1,5 +1,4 @@
 # functions for setting up the simulations
-
 function generateFlatParticleDistribution(numParticles::Int64, ICrange, L)
     ELo, EHi, Esteps, PALo, PAHi, PAsteps = ICrange
     @info "Generating a flat particle distribution with"
@@ -109,6 +108,18 @@ function generateSkewedParticleDistribution(numParticles::Int64, ICrange, L, fac
     return h0, f0, η, ε, Omegape, resolution;
 end
 
+function setup_single_wave_model(L, MLT, Kp)
+    # take L, MLT, and Kp from test cases
+    # return array of functions, normalizers, and coefficients
+    wave_model(lambda) = B_w(lambda, Kp, α_ij_matrix(L, MLT))
+    wave_model_normalizer = obtain_normalizer(wave_model)
+    wave_model_coeff = agapitov_coeffs(Kp, α_ij_matrix(L, MLT))
+    wave_model_shifter = 0
+    # threshold = 40; #degrees, when wave model should be invalidated
+    # wave_model_normalizer = obtain_normalizer(wave_model, threshold)
+    # wave_model_shifter = wave_model(threshold)
+    return wave_model, wave_model_coeff, wave_model_normalizer, wave_model_shifter
+end
 
 function setup_wave_model(test_cases)
     # take L, MLT, and Kp from test cases
@@ -144,6 +155,8 @@ The run_model arguments are described below:
 numParticles = number of particles to simulate in total
 ICrange = [ELo, EHi, Esteps, PALo, PAHi, PAsteps]
 L = what L shell to use
+MLT = what MLT to use for wave model
+Kp = what Kp to use for wave model
 omega_m = what wave frequency to use
 save_decimation = decimation factor for data saved, typically 
 use ~40000 when you care about only final vs initial values...
@@ -154,68 +167,37 @@ typically X>30 or so to get better statistics at higher energy bins, but
 if X=1, then will default to flat particle distribution
 
 Optional args:
-wave_model_coeffs = wave model coefficients used for agapitov model; if unused, will default to og
-wave_shifter = agapitov model shifter; if unused, will default to og
 model = either freq, wna1, wna2, or wna3; if unused, but previous 2 are specified, then will default to Bw
 =#
-function run_model(numParticles,
+function run_model(numParticles::Int64,
     ICrange,
-    L,
-    omega_m,
-    save_decimation,
-    particle_distribution,
-    wave_model_coeffs,
-    wave_shifter)
+    L::Float64,
+    MLT::Float64,
+    Kp::Float64,
+    omega_m::Float64,
+    save_decimation::Int64,
+    particle_distribution::Int64,
+    model::String
+    )
 
     if particle_distribution==1
         h0, f0, η, ε, Omegape, resolution = generateFlatParticleDistribution(numParticles, ICrange, L);
     elseif particle_distribution>1
         h0, f0, η, ε, Omegape, resolution = generateSkewedParticleDistribution(numParticles, ICrange, L, particle_distribution);
     else
-        @error "particle_distribution must be greater than 1"
+        @error "Particle_distribution must be greater than 1"
         return
     end
 
     @info "ω_m = $omega_m"
 
-    params = (η, ε, Omegape, omega_m, a, dPhi, wave_model_coeffs, wave_normalizer, wave_shifter);
-    prob = ODEProblem(eom_Bw!, ~, tspan, params);
-    prob_func = ((prob,i,repeat) -> remake(prob, u0 = h0[i,:], p = (η, ε, Omegape, omega_m, a, dPhi, wave_model_coeffs, wave_normalizer, wave_shifter)))
-    ensemble_prob = EnsembleProblem(prob::ODEProblem,prob_func=prob_func)
-    
-    sol = solve(ensemble_prob, Tsit5(), EnsembleThreads(), save_everystep=false;
-                            callback=CallbackSet(cb3), trajectories=numParticles,
-                            dtmax=resolution, maxiters=1e8,
-                            saveat = save_decimation*resolution, kwargshandle=KeywordArgSilent)
-    
-    @info "Done!"
+    wave_model, wave_model_coeff, wave_model_normalizer, wave_model_shifter = setup_single_wave_model(L, MLT, Kp)
+    @info "Generating wave model at L=$L, MLT=$MLT, and Kp=$Kp"
 
-    println()
-    return sol
-end
-function run_model(numParticles,
-    ICrange,
-    L,
-    omega_m,
-    save_decimation,
-    particle_distribution,
-    wave_model_coeffs,
-    wave_shifter,
-    model)
-
-    if particle_distribution==1
-        h0, f0, η, ε, Omegape, resolution = generateFlatParticleDistribution(numParticles, ICrange, L);
-    elseif particle_distribution>1
-        h0, f0, η, ε, Omegape, resolution = generateSkewedParticleDistribution(numParticles, ICrange, L, particle_distribution);
-    else
-        @error "particle_distribution must be greater than 1"
-        return
-    end
-
-    @info "ω_m = $omega_m"
-
-    params = (η, ε, Omegape, omega_m, a, dPhi, wave_model_coeffs, wave_normalizer, wave_shifter);
-    if model == "freq"
+    params = (η, ε, Omegape, omega_m, a, dPhi, wave_model_coeff, wave_model_normalizer, wave_model_shifter);
+    if model == "bw"
+        prob = ODEProblem(eom_Bw!, ~, tspan, params);
+    elseif model == "freq"
         prob = ODEProblem(eom_Bwωm!, ~, tspan, params);
     elseif model == "wna1"
         prob = ODEProblem(eom_wna1!, ~, tspan, params);
@@ -224,10 +206,10 @@ function run_model(numParticles,
     elseif model == "wna3"
         prob = ODEProblem(eom_wna3!, ~, tspan, params);
     else
-        @error "model needs to be either freq, wna1, wna2, or wna3"
+        @error "model needs to be either bw, freq, wna1, wna2, or wna3"
         return
     end
-    prob_func = ((prob,i,repeat) -> remake(prob, u0 = h0[i,:], p = (η, ε, Omegape, omega_m, a, dPhi, wave_model_coeffs, wave_normalizer, wave_shifter)))
+    prob_func = ((prob,i,repeat) -> remake(prob, u0 = h0[i,:], p = (η, ε, Omegape, omega_m, a, dPhi, wave_model_coeff, wave_model_normalizer, wave_model_shifter)))
     ensemble_prob = EnsembleProblem(prob::ODEProblem,prob_func=prob_func)
     
     sol = solve(ensemble_prob, Tsit5(), EnsembleThreads(), save_everystep=false;
