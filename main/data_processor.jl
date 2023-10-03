@@ -142,10 +142,9 @@ function obtain_elfin_ratio(elfin_prec, elfin_trap)
 end
 
 function normalize_to_elfin(elfin_ratio, sim_ratio)
-    # goal is to normalize to first two channels of ELFIN 
-    # mean[63 and 97] keV is 80.61 keV
-    # sim has 83 keV at index 6
-    return mean(elfin_ratio[1:2]) / sim_ratio[6]
+    # goal is to normalize to ELFIN's second channel 97.97 keV
+    # sim e_bins index 7 is 92.15, index 8 is 101.38, mean is 96.76
+    return mean(elfin_ratio[2]) / mean(sim_ratio[7:8])
 end
 
 function normalize_to(normalization_energy, energy_1, energy_2, ratio_1, ratio_2)
