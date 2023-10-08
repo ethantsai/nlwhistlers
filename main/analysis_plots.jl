@@ -15,11 +15,11 @@ sim_plot_E_bins = logrange(52,1000,32)
 save_density_plot = true
 save_oblique_comparison_plot = true
 save_frequency_model_compare_plot = true
-save_constant_frequency_plot = true
-save_trajectory_comparison = true
-visualize_frequency_models = true
-save_frequency_model_comparison = true
-save_tps_fdc_statistical_comparison_plot = true
+save_constant_frequency_plot = false
+save_trajectory_comparison = false
+visualize_frequency_models = false
+save_frequency_model_comparison = false
+save_tps_fdc_statistical_comparison_plot = false
 
 ## Import data
 # Import ELFIN statistics CSVs
@@ -598,7 +598,7 @@ savefig(nite_plot_hil, "main/images/nite_plot_hil.png")
 savefig(nite_plot_hil, "main/images/nite_plot_hil.pdf")
 
 if save_tps_fdc_statistical_comparison_plot
-    tps_fdc_statistical_comparison_plot = plot(dawn_plot_lol, dawn_plot_hil, dusk_plot_lol, dusk_plot_hil, nite_plot_lol, nite_plot_hil, layout=(3,2),size=(1200,1600),dpi=500)
+    tps_fdc_statistical_comparison_plot = plot(dawn_plot_lol, dawn_plot_hil, dusk_plot_lol, dusk_plot_hil, nite_plot_lol, nite_plot_hil, layout=(3,2),size=(1600,1200),dpi=500)
     savefig(tps_fdc_statistical_comparison_plot, "main/images/tps_fdc_statistical_comparison.png")
-    savefigtps_fdc_(statistical_comparison_plot, "main/images/tps_fdc_statistical_comparison.pdf")
+    savefig(tps_fdc_statistical_comparison_plot, "main/images/tps_fdc_statistical_comparison.pdf")
 end
