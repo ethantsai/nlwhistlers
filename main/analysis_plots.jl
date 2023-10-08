@@ -14,11 +14,12 @@ sim_plot_E_bins = logrange(52,1000,32)
 
 save_density_plot = true
 save_oblique_comparison_plot = true
-save_frequency_model_for_pub_plot = true
-save_frequency_plot = false
-save_trajectory_comparison = false
-visualize_frequency_models = false
-save_frequency_model_comparison = false
+save_frequency_model_compare_plot = true
+save_constant_frequency_plot = true
+save_trajectory_comparison = true
+visualize_frequency_models = true
+save_frequency_model_comparison = true
+save_tps_fdc_statistical_comparison_plot = true
 
 ## Import data
 # Import ELFIN statistics CSVs
@@ -59,14 +60,14 @@ L, MLT, Kp, dir, scenario, colour, label = test_cases[1,:]
 @time @load "$dir$scenario.jld2" rm
 @info "loaded $scenario from $dir"
 sim_ratio = prec_to_trap_ratio(rm)
-sim_ratio_sm_1 = smooth(sim_ratio[1], 12, 6)
+sim_ratio_sm_1 = smooth(sim_ratio[1], 11, 6)
 norm_1 = normalize_to_elfin(hl_nite_md, sim_ratio_sm_1)
 
 L, MLT, Kp, dir, scenario, colour, label = test_cases[2,:]
 @time @load "$dir$scenario.jld2" rm
 @info "loaded $scenario from $dir"
 sim_ratio = prec_to_trap_ratio(rm)
-sim_ratio_sm_2 = smooth(sim_ratio[1], 12, 6)
+sim_ratio_sm_2 = smooth(sim_ratio[1], 11, 6)
 norm_2 = normalize_to_elfin(hl_nite_md, sim_ratio_sm_2)
 
 density_comparison_plot = plot(xscale=:log10, yscale=:log10, xlim=(80,1000), ylim=(1e-2, 1),
@@ -107,35 +108,35 @@ L, MLT, Kp, dir, scenario, colour, label = test_cases[1,:]
 @time @load "$dir$scenario.jld2" rm
 @info "loaded $scenario from $dir"
 sim_ratio = prec_to_trap_ratio(rm)
-sim_ratio_sm_1 = smooth(sim_ratio[1], 12, 6)
+sim_ratio_sm_1 = smooth(sim_ratio[1], 11, 6)
 norm_1 = normalize_to_elfin(hl_nite_md, sim_ratio_sm_1)
 
 L, MLT, Kp, dir, scenario, colour, label = test_cases[2,:]
 @time @load "$dir$scenario.jld2" rm
 @info "loaded $scenario from $dir"
 sim_ratio = prec_to_trap_ratio(rm)
-sim_ratio_sm_2 = smooth(sim_ratio[1], 12, 6)
+sim_ratio_sm_2 = smooth(sim_ratio[1], 11, 6)
 norm_2 = normalize_to_elfin(hl_nite_md, sim_ratio_sm_2)
 
 L, MLT, Kp, dir, scenario, colour, label = test_cases[3,:]
 @time @load "$dir$scenario.jld2" rm
 @info "loaded $scenario from $dir"
 sim_ratio = prec_to_trap_ratio(rm)
-sim_ratio_sm_3 = smooth(sim_ratio[1], 12, 6)
+sim_ratio_sm_3 = smooth(sim_ratio[1], 11, 6)
 norm_3 = normalize_to_elfin(hl_nite_md, sim_ratio_sm_3)
 
 L, MLT, Kp, dir, scenario, colour, label = test_cases[4,:]
 @time @load "$dir$scenario.jld2" rm
 @info "loaded $scenario from $dir"
 sim_ratio = prec_to_trap_ratio(rm)
-sim_ratio_sm_4 = smooth(sim_ratio[1], 12, 6)
+sim_ratio_sm_4 = smooth(sim_ratio[1], 11, 6)
 norm_4 = normalize_to_elfin(hl_nite_md, sim_ratio_sm_4)
 
-E, Daa_wna1, prec_ratio_wna1 = obtain_diffusion_results("HI", "NITE", 1, true)
+E, Daa_wna1, prec_ratio_wna1 = obtain_diffusion_results("HI", "NITE", 1, false)
 dc_norm_1 = norm_2 * normalize_to(96, sim_plot_E_bins, E, sim_ratio_sm_2, prec_ratio_wna1)
-E, Daa_wna2, prec_ratio_wna2 = obtain_diffusion_results("HI", "NITE", 2, true)
+E, Daa_wna2, prec_ratio_wna2 = obtain_diffusion_results("HI", "NITE", 2, false)
 dc_norm_2 = norm_3 * normalize_to(96, sim_plot_E_bins, E, sim_ratio_sm_3, prec_ratio_wna2)
-E, Daa_wna3, prec_ratio_wna3 = obtain_diffusion_results("HI", "NITE", 3, true)
+E, Daa_wna3, prec_ratio_wna3 = obtain_diffusion_results("HI", "NITE", 3, false)
 dc_norm_3 = norm_4 * normalize_to(96, sim_plot_E_bins, E, sim_ratio_sm_4, prec_ratio_wna3)
 
 oblique_comparison_plot = plot(xscale=:log10, yscale=:log10, xlim=(80,1000), ylim=(1e-2, 1),
@@ -147,18 +148,18 @@ oblique_comparison_plot = plot!(energy, hl_nite_md, label = "ELFIN Night: L>5, 1
 
 L, MLT, Kp, dir, scenario, colour, label = test_cases[1,:]
 oblique_comparison_plot = plot!(sim_plot_E_bins, norm_1*sim_ratio_sm_1, label="$label: L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=3, markersize = 3)
+oblique_comparison_plot = plot!(E, dc_norm_1 * prec_ratio_wna1, label = "FAW, FDC: L=6.5, Night",  color = colour, linewidth=2, linestyle=:dash)
 
 L, MLT, Kp, dir, scenario, colour, label = test_cases[2,:]
 oblique_comparison_plot = plot!(sim_plot_E_bins, norm_2*sim_ratio_sm_2, label="$label: L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=3, markersize = 3)
-oblique_comparison_plot = plot!(E, dc_norm_1 * prec_ratio_wna1, label = "WNA1, FDC: L=6.5, Night",  color = colour, linewidth=2, linestyle=:dash)
+oblique_comparison_plot = plot!(E, dc_norm_2 * prec_ratio_wna2, label = "WNA1, FDC: L=6.5, Night",  color = colour, linewidth=2, linestyle=:dash)
 
 L, MLT, Kp, dir, scenario, colour, label = test_cases[3,:]
 oblique_comparison_plot = plot!(sim_plot_E_bins, norm_3*sim_ratio_sm_3, label="$label: L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=3, markersize = 3)
-oblique_comparison_plot = plot!(E, dc_norm_2 * prec_ratio_wna2, label = "WNA2, FDC: L=6.5, Night",  color = colour, linewidth=2, linestyle=:dash)
+oblique_comparison_plot = plot!(E, dc_norm_3 * prec_ratio_wna3, label = "WNA2, FDC: L=6.5, Night",  color = colour, linewidth=2, linestyle=:dash)
 
 L, MLT, Kp, dir, scenario, colour, label = test_cases[4,:]
 oblique_comparison_plot = plot!(sim_plot_E_bins, norm_4*sim_ratio_sm_4, label="$label: L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=3, markersize = 3)
-oblique_comparison_plot = plot!(E, dc_norm_3 * prec_ratio_wna3, label = "WNA3, FDC: L=6.5, Night",  color = colour, linewidth=2, linestyle=:dash)
 
 oblique_comparison_plot = plot!(legendfontsize=12, tickfontsize=12, legend=:bottomleft)
 oblique_comparison_plot = plot!(dpi = 500,size=(800,450), margin=20px, bottom_margin=12px)
@@ -169,89 +170,113 @@ if save_oblique_comparison_plot
 end
 
 
-###########################
-# Frequency model for pub #
-###########################
+##############################
+# Frequency model comparison #
+##############################
 test_cases = [6.5 23.0 3 "main/results/original/" "HI_NITE_MODEL_1m" red "Model 1, ω_m = 0.35";
               6.5 23.0 3 "main/results/frequency/" "HI_NITE_MODEL_20" orange "Model 2, ω_m = 0.20";
               6.5 23.0 3 "main/results/frequency/" "HI_NITE_MODEL_omega_mod_2" blue "Model 3, ω_m(λ)";
               ]
 
+
 L, MLT, Kp, dir, scenario, colour, label = test_cases[1,:]
 @time @load "$dir$scenario.jld2" rm
 @info "loaded $scenario from $dir"
-sim_ratio = prec_to_trap_ratio(rm)
-sim_ratio_sm = smooth(sim_ratio[1], 12, 6)
-norm_35 = normalize_to_elfin(hl_nite_md, sim_ratio_sm)
+sim_ratio_1 = prec_to_trap_ratio(rm)
+sim_ratio_sm_1 = smooth(sim_ratio_1[1], 11, 6)
+norm_1 = normalize_to_elfin(hl_nite_md, sim_ratio_sm_1)
 
+L, MLT, Kp, dir, scenario, colour, label = test_cases[2,:]
+@time @load "$dir$scenario.jld2" rm
+@info "loaded $scenario from $dir"
+sim_ratio_2 = prec_to_trap_ratio(rm)
+sim_ratio_sm_2 = smooth(sim_ratio_2[1], 11, 5)
+norm_2 = normalize_to_elfin(hl_nite_md, sim_ratio_sm_2)
+
+L, MLT, Kp, dir, scenario, colour, label = test_cases[3,:]
+@time @load "$dir$scenario.jld2" rm
+@info "loaded $scenario from $dir"
+sim_ratio_3 = prec_to_trap_ratio(rm)
+sim_ratio_sm_3 = smooth(sim_ratio_3[1], 11, 6)
+norm_3 = normalize_to_elfin(hl_nite_md, sim_ratio_sm_3)
+
+E, Daa_wna1, prec_ratio_wna1 = obtain_diffusion_results("HI", "NITE", 1, false)
+dc_norm_1 = norm_1 * normalize_to(97, sim_plot_E_bins, E, sim_ratio_sm_1, prec_ratio_wna1)
+E, Daa_wna2, prec_ratio_wna2 = obtain_diffusion_results("HI", "NITE", 1, true)
+dc_norm_2 = norm_3 * normalize_to(97, sim_plot_E_bins, E, sim_ratio_sm_3, prec_ratio_wna2)
+              
 frequency_model_comparison_plot = plot(xscale=:log10, yscale=:log10, xlim=(80,1000), ylim=(1e-2, 1),
             xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10)
 
-frequency_model_for_pub_plot = plot!(energy, hl_nite_md, fillrange=hl_nite_hi, fillalpha = 0.2, color = black, label=false)
-frequency_model_for_pub_plot = plot!(energy, hl_nite_md, fillrange=hl_nite_lo, fillalpha = 0.2, color = black, label=false)
-frequency_model_for_pub_plot = plot!(energy, hl_nite_md, label = "ELFIN Night: L>5, 18<MLT<4 ", color = black, linewidth=5, markershape=:circle);
+frequency_model_compare_plot = plot!(energy, hl_nite_md, fillrange=hl_nite_hi, fillalpha = 0.2, color = black, label=false)
+frequency_model_compare_plot = plot!(energy, hl_nite_md, fillrange=hl_nite_lo, fillalpha = 0.2, color = black, label=false)
+frequency_model_compare_plot = plot!(energy, hl_nite_md, label = "ELFIN Night: L>5, 18<MLT<4 ", color = black, linewidth=5, markershape=:circle);
 
-for i in 1:length(test_cases[:,1])
-    L, MLT, Kp, dir, scenario, colour, label = test_cases[i,:]
-    @time @load "$dir$scenario.jld2" rm
-    @info "loaded $scenario from $dir"
-    sim_ratio = prec_to_trap_ratio(rm)
-    sim_ratio_sm = smooth(sim_ratio[1], 12, 6)
-    norm = normalize_to_elfin(hl_nite_md, sim_ratio_sm)
-    frequency_model_for_pub_plot = plot!(sim_plot_E_bins, norm_35*sim_ratio_sm, label="$label: L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
-end
+L, MLT, Kp, dir, scenario, colour, label = test_cases[1,:]
+oblique_comparison_plot = plot!(sim_plot_E_bins, norm_1*sim_ratio_sm_1, label="$label, TPS, L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=3, markersize = 3)
+nite_plot_hil = plot!(E, dc_norm_1 * prec_ratio_wna1, label = "Model 1, FAW, Night, FDC",  color = colour, linewidth=2, linestyle=:dash)
 
-frequency_model_for_pub_plot = plot!(legendfontsize=12, tickfontsize=12, legend=:bottomleft)
-frequency_model_for_pub_plot = plot!(dpi = 500,size=(1000,600), margin=20px, bottom_margin=12px)
+L, MLT, Kp, dir, scenario, colour, label = test_cases[2,:]
+oblique_comparison_plot = plot!(sim_plot_E_bins, norm_2*sim_ratio_sm_2, label="$label, TPS, L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=3, markersize = 3)
 
-if save_frequency_model_for_pub_plot
-    savefig(frequency_model_for_pub_plot, "main/images/freq_model_pub_comparison.png")
-    savefig(frequency_model_for_pub_plot, "main/images/freq_model_pub_comparison.pdf")
+L, MLT, Kp, dir, scenario, colour, label = test_cases[3,:]
+oblique_comparison_plot = plot!(sim_plot_E_bins, norm_3*sim_ratio_sm_3, label="$label, TPS, L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=3, markersize = 3)
+nite_plot_hil = plot!(E, dc_norm_2 * prec_ratio_wna2, label = "Model 3, FAW, Night, FDC",  color = colour, linewidth=2, linestyle=:dash)
+
+frequency_model_compare_plot = plot!(legendfontsize=12, tickfontsize=12, legend=:bottomleft)
+frequency_model_compare_plot = plot!(dpi = 500,size=(1000,600), margin=20px, bottom_margin=12px)
+
+if save_frequency_model_compare_plot
+    savefig(frequency_model_compare_plot, "main/images/freq_model_comparison.png")
+    savefig(frequency_model_compare_plot, "main/images/freq_model_comparison.pdf")
 end
 
 
 #############################
 # Frequency Comparison Plot #
 #############################
-test_cases = [6.5 23.0 3  "main/results/frequency/" "HI_NITE_MODEL_15" orange "0.15";
-              6.5 23.0 3  "main/results/frequency/" "HI_NITE_MODEL_20" light_blue "0.20";
-              6.5 23.0 3  "main/results/frequency/" "HI_NITE_MODEL_25" green "0.25";
-              6.5 23.0 3  "main/results/frequency/" "HI_NITE_MODEL_30" yellow "0.30";
-              6.5 23.0 3  "main/results/frequency/" "HI_NITE_MODEL_35" blue "0.35";
-              6.5 23.0 3  "main/results/frequency/" "HI_NITE_MODEL_40" red "0.40";
-              6.5 23.0 3  "main/results/frequency/" "HI_NITE_MODEL_45" purple "0.45";
+test_cases = [6.5 23.0 3  "main/results/frequency/" "HI_NITE_MODEL_15" red "ω_m = 0.15";
+              6.5 23.0 3  "main/results/frequency/" "HI_NITE_MODEL_20" orange "ω_m = 0.20";
+              6.5 23.0 3  "main/results/frequency/" "HI_NITE_MODEL_25" yellow "ω_m = 0.25";
+              6.5 23.0 3  "main/results/frequency/" "HI_NITE_MODEL_30" green "ω_m = 0.30";
+              6.5 23.0 3  "main/results/frequency/" "HI_NITE_MODEL_35" blue "ω_m = 0.35";
+              6.5 23.0 3  "main/results/frequency/" "HI_NITE_MODEL_40" purplish_pink "ω_m = 0.40";
+              6.5 23.0 3  "main/results/frequency/" "HI_NITE_MODEL_45" purple "ω_m = 0.45";
               ]
 
-frequency_comparison_plot = plot(xscale=:log10, yscale=:log10, xlim=(80,1000), ylim=(1e-2, 1),
-            xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10)
 
 # I want to normalize to omega_m = 0.35 which is what I have been using in previous plots
 L, MLT, Kp, dir, scenario, colour, label = test_cases[5,:]
 @time @load "$dir$scenario.jld2" rm
 @info "loaded $scenario.jld2 from $dir"
 sim_ratio = prec_to_trap_ratio(rm)
-sim_ratio_sm = smooth(sim_ratio[1], 8, 5)
+sim_ratio_sm = smooth(sim_ratio[1], 11, 6)
 norm_35 = normalize_to_elfin(hl_nite_md, sim_ratio_sm)
+
+constant_frequency_comparison_plot = plot(xscale=:log10, yscale=:log10, xlim=(80,1000), ylim=(1e-2, 1),
+            xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10)
+
+
+constant_frequency_comparison_plot = plot!(energy, hl_nite_md, fillrange=hl_nite_hi, fillalpha = 0.2, color = black, label=false)
+constant_frequency_comparison_plot = plot!(energy, hl_nite_md, fillrange=hl_nite_lo, fillalpha = 0.2, color = black, label=false)
+constant_frequency_comparison_plot = plot!(energy, hl_nite_md, label = "ELFIN Night: L>5, 18<MLT<4 ", color = black, linewidth=2, markershape=:circle);
 
 for i in 1:length(test_cases[:,1])
     L, MLT, Kp, dir, scenario, colour, label = test_cases[i,:]
     @time @load "$dir$scenario.jld2" rm
     @info "loaded $scenario.jld2 from $dir"
     sim_ratio = prec_to_trap_ratio(rm)
-    sim_ratio_sm = smooth(sim_ratio[1], 8, 5)
+    sim_ratio_sm = smooth(sim_ratio[1], 11, 6)
     norm = normalize_to_elfin(hl_nite_md, sim_ratio_sm)
-    frequency_comparison_plot = plot!(sim_plot_E_bins, norm_35*sim_ratio_sm, label="ω_m = $label, L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
+    constant_frequency_comparison_plot = plot!(sim_plot_E_bins, norm_35*sim_ratio_sm, label="ω_m = $label, L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
 end
 
-frequency_comparison_plot = plot!(energy, hl_nite_md, fillrange=hl_nite_hi, fillalpha = 0.2, color = black, label=false)
-frequency_comparison_plot = plot!(energy, hl_nite_md, fillrange=hl_nite_lo, fillalpha = 0.2, color = black, label=false)
-frequency_comparison_plot = plot!(energy, hl_nite_md, label = "ELFIN Night: L>5, 18<MLT<4 ", color = black, linewidth=2, markershape=:circle);
-frequency_comparison_plot = plot!(legendfontsize=12, tickfontsize=12, legend=:bottomleft)
-frequency_comparison_plot = plot!(dpi = 500,size=(1000,600), margin=20px, bottom_margin=12px)
+constant_frequency_comparison_plot = plot!(legendfontsize=12, tickfontsize=12, legend=:bottomleft)
+constant_frequency_comparison_plot = plot!(dpi = 500,size=(1000,600), margin=20px, bottom_margin=12px)
 
-if save_frequency_plot
-    savefig(frequency_comparison_plot, "main/images/freq_comparison.png")
-    savefig(frequency_comparison_plot, "main/images/freq_comparison.pdf")
+if save_constant_frequency_plot
+    savefig(constant_frequency_comparison_plot, "main/images/const_freq_comparison.png")
+    savefig(constant_frequency_comparison_plot, "main/images/const_freq_comparison.pdf")
 end
 
 
@@ -385,18 +410,15 @@ end
 ### MLT comparison, FIGURE 4 in JGR2023 except now with diffusion code 
 
 # Dawn plot and generate normalizers
-test_cases = [4.5 8.0  3  "hr_LO_DAWN_MODEL" yellow "Dawn-Noon";
-              6.5 8.0  3  "hr_HI_DAWN_MODEL" green "Dawn-Noon";
+test_cases = [4.5 8.0  3 "main/results/original/" "LO_DAWN_MODEL_1m" purple "Dawn-Noon";
+              6.5 8.0  3 "main/results/original/" "HI_DAWN_MODEL_1m" purple "Dawn-Noon";
               ]
 
-dawn_plot_lol = plot(xscale=:log10, yscale=:log10, xlim=(80,1000), ylim=(1e-2, 1),
-            xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10)
-
-L, MLT, Kp, scenario, colour, label = test_cases[1,:]
-@time @load "result_matrix_stats/"*scenario*".jld2" rm
+L, MLT, Kp, dir, scenario, colour, label = test_cases[1,:]
+@time @load "$dir$scenario.jld2" rm
 @info "loaded $scenario from $dir"
 sim_ratio = prec_to_trap_ratio(rm)
-sim_ratio_sm = smooth(sim_ratio[1], 8, 5)
+sim_ratio_sm = smooth(sim_ratio[1], 11, 6)
 norm = normalize_to_elfin(ll_dawn_md, sim_ratio_sm)
 b1 = 1/(norm * maximum(sim_ratio_sm))
 normalizer = b1*norm
@@ -406,25 +428,26 @@ E, Daa_wna2, prec_ratio_wna2 = obtain_diffusion_results("LO", "DAWN", 2)
 E, Daa_wna3, prec_ratio_wna3 = obtain_diffusion_results("LO", "DAWN", 3)
 dc_norm = normalizer * normalize_to(96, E_bins, E, sim_ratio_sm, prec_ratio_wna1)
 
-dawn_plot_lol = plot!(sim_plot_E_bins, normalizer .* sim_ratio_sm, label="label Model: L=L, MLT=MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
-dawn_plot_lol = plot!(energy, b1*ll_dawn_md, fillrange=b1*ll_dawn_hi, fillalpha = 0.2, color = yellow, label=false)
-dawn_plot_lol = plot!(energy, b1*ll_dawn_md, fillrange=b1*ll_dawn_lo, fillalpha = 0.2, color = yellow, label=false)
-dawn_plot_lol = plot!(energy, b1*ll_dawn_md, label = "ELFIN Dawn-Noon: L<5, 4<MLT<13 ", color = blue, linewidth=2, markershape=:circle);
-dawn_plot_lol = plot!(E, dc_norm * prec_ratio_wna1, label = "WNA1: Parallel Waves")
-dawn_plot_lol = plot!(E, dc_norm * prec_ratio_wna2, label = "WNA2: initially parallel -> resonance cone")
-dawn_plot_lol = plot!(E, dc_norm * prec_ratio_wna3, label = "WNA3: gendrin angle -> resonance cone")
+dawn_plot_lol = plot(xscale=:log10, yscale=:log10, xlim=(80,1000), ylim=(1e-2, 1),
+            xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10)
+dawn_plot_lol = plot!(energy, b1*ll_dawn_md, fillrange=b1*ll_dawn_hi, fillalpha = 0.2, color = black, label=false)
+dawn_plot_lol = plot!(energy, b1*ll_dawn_md, fillrange=b1*ll_dawn_lo, fillalpha = 0.2, color = black, label=false)
+dawn_plot_lol = plot!(energy, b1*ll_dawn_md, label = "ELFIN Dawn-Noon: L<5, 4<MLT<13 ", color = black, linewidth=2, markershape=:circle);
+dawn_plot_lol = plot!(sim_plot_E_bins, normalizer .* sim_ratio_sm, label="$label Model: L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
+dawn_plot_lol = plot!(E, dc_norm * prec_ratio_wna1, label = "FAW: Parallel Waves", color = blue, linestyle=:dash, linewidth=2)
+dawn_plot_lol = plot!(E, dc_norm * prec_ratio_wna2, label = "WNA1: initially parallel -> resonance cone", color = green, linestyle=:dash, linewidth=2)
+dawn_plot_lol = plot!(E, dc_norm * prec_ratio_wna3, label = "WNA2: gendrin angle -> resonance cone", color = red, linestyle=:dash, linewidth=2)
 dawn_plot_lol = plot!(legendfontsize=12, tickfontsize=12, legend=:bottomleft)
 dawn_plot_lol = plot!(dpi = 500,size=(800,450), margin=20px, bottom_margin=12px)
-savefig(dawn_plot_lol, "images/dawn_plot_lol.png")
-savefig(dawn_plot_lol, "images/dawn_plot_lol.pdf")
+savefig(dawn_plot_lol, "main/images/dawn_plot_lol.png")
+savefig(dawn_plot_lol, "main/images/dawn_plot_lol.pdf")
 
-dawn_plot_hil = plot(xscale=:log10, yscale=:log10, xlim=(80,1000), ylim=(1e-2, 1),
-            xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10)
-L, MLT, Kp, scenario, colour, label = test_cases[2,:]
-@time @load "result_matrix_stats/"*scenario*".jld2" rm
+
+L, MLT, Kp, dir, scenario, colour, label = test_cases[2,:]
+@time @load "$dir$scenario.jld2" rm
 @info "loaded $scenario from $dir"
 sim_ratio = prec_to_trap_ratio(rm)
-sim_ratio_sm = smooth(sim_ratio[1], 8, 5)
+sim_ratio_sm = smooth(sim_ratio[1], 11, 6)
 norm = normalize_to_elfin(hl_dawn_md, sim_ratio_sm)
 b1 = 1/(norm * maximum(sim_ratio_sm))
 normalizer = b1*norm
@@ -434,31 +457,32 @@ E, Daa_wna2, prec_ratio_wna2 = obtain_diffusion_results("HI", "DAWN", 2)
 E, Daa_wna3, prec_ratio_wna3 = obtain_diffusion_results("HI", "DAWN", 3)
 dc_norm = normalizer * normalize_to(96, E_bins, E, sim_ratio_sm, prec_ratio_wna1)
 
-dawn_plot_hil = plot!(sim_plot_E_bins, normalizer .* sim_ratio_sm, label="label Model: L=L, MLT=MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
-dawn_plot_hil = plot!(energy, b1*hl_dawn_md, fillrange=b1*hl_dawn_hi, fillalpha = 0.2, color = green, label=false)
-dawn_plot_hil = plot!(energy, b1*hl_dawn_md, fillrange=b1*hl_dawn_lo, fillalpha = 0.2, color = green, label=false)
-dawn_plot_hil = plot!(energy, b1*hl_dawn_md, label = "ELFIN Dawn-Noon: L>5, 4<MLT<13 ", color = bipride_pink, linewidth=2, markershape=:circle);
-dawn_plot_hil = plot!(E, dc_norm * prec_ratio_wna1, label = "WNA1: Parallel Waves")
-dawn_plot_hil = plot!(E, dc_norm * prec_ratio_wna2, label = "WNA2: initially parallel -> resonance cone")
-dawn_plot_hil = plot!(E, dc_norm * prec_ratio_wna3, label = "WNA3: gendrin angle -> resonance cone")
+dawn_plot_hil = plot(xscale=:log10, yscale=:log10, xlim=(80,1000), ylim=(1e-2, 1),
+            xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10)
+dawn_plot_hil = plot!(energy, b1*hl_dawn_md, fillrange=b1*hl_dawn_hi, fillalpha = 0.2, color = black, label=false)
+dawn_plot_hil = plot!(energy, b1*hl_dawn_md, fillrange=b1*hl_dawn_lo, fillalpha = 0.2, color = black, label=false)
+dawn_plot_hil = plot!(energy, b1*hl_dawn_md, label = "ELFIN Dawn-Noon: L>5, 4<MLT<13 ", color = black, linewidth=2, markershape=:circle);
+dawn_plot_hil = plot!(sim_plot_E_bins, normalizer .* sim_ratio_sm, label="$label Model: L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
+dawn_plot_hil = plot!(E, dc_norm * prec_ratio_wna1, label = "WNA1: Parallel Waves", color = blue, linestyle=:dash, linewidth=2)
+dawn_plot_hil = plot!(E, dc_norm * prec_ratio_wna2, label = "WNA2: initially parallel -> resonance cone", color = green, linestyle=:dash, linewidth=2)
+dawn_plot_hil = plot!(E, dc_norm * prec_ratio_wna3, label = "WNA3: gendrin angle -> resonance cone", color = red, linestyle=:dash, linewidth=2)
 dawn_plot_hil = plot!(legendfontsize=12, tickfontsize=12, legend=:bottomleft)
 dawn_plot_hil = plot!(dpi = 500,size=(800,450), margin=20px, bottom_margin=12px)
-savefig(dawn_plot_hil, "images/dawn_plot_hil.png")
-savefig(dawn_plot_hil, "images/dawn_plot_hil.pdf")
+savefig(dawn_plot_hil, "main/images/dawn_plot_hil.png")
+savefig(dawn_plot_hil, "main/images/dawn_plot_hil.pdf")
 
 # Dusk plot
-test_cases = [4.5 16.5 3  "hr_LO_DUSK_MODEL" yellow "Noon-Dusk";
-              6.5 16.5 3  "hr_HI_DUSK_MODEL" green "Noon-Dusk";
+test_cases = [4.5 16.5 3 "main/results/original/" "LO_DUSK_MODEL_1m" purple "Noon-Dusk";
+              6.5 16.5 3 "main/results/original/" "HI_DUSK_MODEL_1m" purple "Noon-Dusk";
               ]
 
 
-dusk_plot_lol = plot(xscale=:log10, yscale=:log10, xlim=(80,1000), ylim=(1e-2, 1),
-            xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10)
-L, MLT, Kp, scenario, colour, label = test_cases[1,:]
-@time @load "result_matrix_stats/"*scenario*".jld2" rm
+
+L, MLT, Kp, dir, scenario, colour, label = test_cases[1,:]
+@time @load "$dir$scenario.jld2" rm
 @info "loaded $scenario from $dir"
 sim_ratio = prec_to_trap_ratio(rm)
-sim_ratio_sm = smooth(sim_ratio[1], 8, 5)
+sim_ratio_sm = smooth(sim_ratio[1], 11, 6)
 norm = normalize_to_elfin(ll_dusk_md, sim_ratio_sm)
 b1 = 1/(norm * maximum(sim_ratio_sm))
 normalizer = b1*norm
@@ -468,22 +492,23 @@ E, Daa_wna2, prec_ratio_wna2 = obtain_diffusion_results("LO", "DUSK", 2)
 E, Daa_wna3, prec_ratio_wna3 = obtain_diffusion_results("LO", "DUSK", 3)
 dc_norm = normalizer * normalize_to(96, E_bins, E, sim_ratio_sm, prec_ratio_wna1)
 
-dusk_plot_lol = plot!(sim_plot_E_bins, normalizer .* sim_ratio_sm, label="label Model: L=L, MLT=MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
-dusk_plot_lol = plot!(energy, b1*ll_dusk_md, fillrange=b1*ll_dusk_hi, fillalpha = 0.2, color = yellow, label=false)
-dusk_plot_lol = plot!(energy, b1*ll_dusk_md, fillrange=b1*ll_dusk_lo, fillalpha = 0.2, color = yellow, label=false)
-dusk_plot_lol = plot!(energy, b1*ll_dusk_md, label = "ELFIN Noon-Dusk: L<5, 13<MLT<18", color = blue, linewidth=2, markershape=:circle);
-dusk_plot_lol = plot!(E, dc_norm * prec_ratio_wna1, label = "WNA1: Parallel Waves")
-dusk_plot_lol = plot!(E, dc_norm * prec_ratio_wna2, label = "WNA2: initially parallel -> resonance cone")
-dusk_plot_lol = plot!(E, dc_norm * prec_ratio_wna3, label = "WNA3: gendrin angle -> resonance cone")
+dusk_plot_lol = plot(xscale=:log10, yscale=:log10, xlim=(80,1000), ylim=(1e-2, 1),
+            xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10)
+dusk_plot_lol = plot!(energy, b1*ll_dusk_md, fillrange=b1*ll_dusk_hi, fillalpha = 0.2, color = black, label=false)
+dusk_plot_lol = plot!(energy, b1*ll_dusk_md, fillrange=b1*ll_dusk_lo, fillalpha = 0.2, color = black, label=false)
+dusk_plot_lol = plot!(energy, b1*ll_dusk_md, label = "ELFIN Noon-Dusk: L<5, 13<MLT<18", color = black, linewidth=2, markershape=:circle);
+dusk_plot_lol = plot!(sim_plot_E_bins, normalizer .* sim_ratio_sm, label="$label Model: L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
+dusk_plot_lol = plot!(E, dc_norm * prec_ratio_wna1, label = "WNA1: Parallel Waves", color = blue, linestyle=:dash, linewidth=2)
+dusk_plot_lol = plot!(E, dc_norm * prec_ratio_wna2, label = "WNA2: initially parallel -> resonance cone", color = green, linestyle=:dash, linewidth=2)
+dusk_plot_lol = plot!(E, dc_norm * prec_ratio_wna3, label = "WNA3: gendrin angle -> resonance cone", color = red, linestyle=:dash, linewidth=2)
 dusk_plot_lol = plot!(legendfontsize=12, tickfontsize=12, legend=:bottomleft)
 dusk_plot_lol = plot!(dpi = 500,size=(800,450), margin=20px, bottom_margin=12px)
-savefig(dusk_plot_lol, "images/dusk_compare_lol.png")
-savefig(dusk_plot_lol, "images/dusk_compare_lol.pdf")
+savefig(dusk_plot_lol, "main/images/dusk_compare_lol.png")
+savefig(dusk_plot_lol, "main/images/dusk_compare_lol.pdf")
 
-dusk_plot_hil = plot(xscale=:log10, yscale=:log10, xlim=(80,1000), ylim=(1e-2, 1),
-            xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10)
-L, MLT, Kp, scenario, colour, label = test_cases[2,:]
-# @time @load "result_matrix_stats/"*scenario*".jld2" rm
+
+L, MLT, Kp, dir, scenario, colour, label = test_cases[2,:]
+# @time @load "$dir$scenario.jld2" rm
 @info "loaded $scenario from $dir"
 sim_ratio = prec_to_trap_ratio(rm)
 sim_ratio_sm = smooth(sim_ratio[1], 5, 5)
@@ -496,27 +521,27 @@ E, Daa_wna2, prec_ratio_wna2 = obtain_diffusion_results("HI", "DUSK", 2)
 E, Daa_wna3, prec_ratio_wna3 = obtain_diffusion_results("HI", "DUSK", 3)
 dc_norm = normalizer * normalize_to(96, E_bins, E, sim_ratio_sm, prec_ratio_wna1)
 
-dusk_plot_hil = plot!(sim_plot_E_bins, normalizer .* sim_ratio_sm, label="label Model: L=L, MLT=MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
-dusk_plot_hil = plot!(energy, b1*hl_dusk_md, fillrange=b1*hl_dusk_hi, fillalpha = 0.2, color = green, label=false)
-dusk_plot_hil = plot!(energy, b1*hl_dusk_md, fillrange=b1*hl_dusk_lo, fillalpha = 0.2, color = green, label=false)
-dusk_plot_hil = plot!(energy, b1*hl_dusk_md, label = "ELFIN Noon-Dusk: L>5, 13<MLT<18", color = bipride_pink, linewidth=2, markershape=:circle);
-dusk_plot_hil = plot!(E, dc_norm * prec_ratio_wna1, label = "WNA1: Parallel Waves")
-dusk_plot_hil = plot!(E, dc_norm * prec_ratio_wna2, label = "WNA2: initially parallel -> resonance cone")
-dusk_plot_hil = plot!(E, dc_norm * prec_ratio_wna3, label = "WNA3: gendrin angle -> resonance cone")
+dusk_plot_hil = plot(xscale=:log10, yscale=:log10, xlim=(80,1000), ylim=(1e-2, 1),
+            xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10)
+dusk_plot_hil = plot!(sim_plot_E_bins, normalizer .* sim_ratio_sm, label="$label Model: L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
+dusk_plot_hil = plot!(energy, b1*hl_dusk_md, fillrange=b1*hl_dusk_hi, fillalpha = 0.2, color = black, label=false)
+dusk_plot_hil = plot!(energy, b1*hl_dusk_md, fillrange=b1*hl_dusk_lo, fillalpha = 0.2, color = black, label=false)
+dusk_plot_hil = plot!(energy, b1*hl_dusk_md, label = "ELFIN Noon-Dusk: L>5, 13<MLT<18", color = black, linewidth=2, markershape=:circle);
+dusk_plot_hil = plot!(E, dc_norm * prec_ratio_wna1, label = "WNA1: Parallel Waves", color = blue, linestyle=:dash, linewidth=2)
+dusk_plot_hil = plot!(E, dc_norm * prec_ratio_wna2, label = "WNA2: initially parallel -> resonance cone", color = green, linestyle=:dash, linewidth=2)
+dusk_plot_hil = plot!(E, dc_norm * prec_ratio_wna3, label = "WNA3: gendrin angle -> resonance cone", color = red, linestyle=:dash, linewidth=2)
 dusk_plot_hil = plot!(legendfontsize=12, tickfontsize=12, legend=:bottomleft)
 dusk_plot_hil = plot!(dpi = 500,size=(800,450), margin=20px, bottom_margin=12px)
-savefig(dusk_plot_hil, "images/dusk_compare_hil.png")
-savefig(dusk_plot_hil, "images/dusk_compare_hil.pdf")
+savefig(dusk_plot_hil, "main/images/dusk_compare_hil.png")
+savefig(dusk_plot_hil, "main/images/dusk_compare_hil.pdf")
 
 # Night plot
-test_cases = [4.5 23.0 3  "hr_LO_NITE_MODEL" yellow "Night";
-              6.5 23.0 3  "HI_NITE_MODEL_1m" green "Night";
+test_cases = [4.5 23.0 3 "main/results/original/" "LO_NITE_MODEL_1m" purple "Night";
+              6.5 23.0 3 "main/results/original/" "HI_NITE_MODEL_1m" purple "Night";
               ]
 
-nite_plot_lol = plot(xscale=:log10, yscale=:log10, xlim=(80,1000), ylim=(1e-2, 1),
-            xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10)
-L, MLT, Kp, scenario, colour, label = test_cases[1,:]
-@time @load "result_matrix_stats/"*scenario*".jld2" rm
+L, MLT, Kp, dir, scenario, colour, label = test_cases[1,:]
+@time @load "$dir$scenario.jld2" rm
 @info "loaded $scenario from $dir"
 sim_ratio = prec_to_trap_ratio(rm)
 sim_ratio_sm = smooth(sim_ratio[1], 6, 5)
@@ -529,25 +554,26 @@ E, Daa_wna2, prec_ratio_wna2 = obtain_diffusion_results("LO", "NITE", 2)
 E, Daa_wna3, prec_ratio_wna3 = obtain_diffusion_results("LO", "NITE", 3)
 dc_norm = normalizer * normalize_to(96, E_bins, E, sim_ratio_sm, prec_ratio_wna1)
 
-nite_plot_lol = plot!(sim_plot_E_bins, normalizer .* sim_ratio_sm, label="label Model: L=L, MLT=MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
-nite_plot_lol = plot!(energy, b1*ll_nite_md, fillrange=b1*ll_nite_hi, fillalpha = 0.2, color = yellow, label=false)
-nite_plot_lol = plot!(energy, b1*ll_nite_md, fillrange=b1*ll_nite_lo, fillalpha = 0.2, color = yellow, label=false)
-nite_plot_lol = plot!(energy, b1*ll_nite_md, label = "ELFIN Night: L<5, 18<MLT<4 ", color = blue, linewidth=2, markershape=:circle);
-nite_plot_lol = plot!(E, dc_norm * prec_ratio_wna1, label = "WNA1: Parallel Waves")
-nite_plot_lol = plot!(E, dc_norm * prec_ratio_wna2, label = "WNA2: initially parallel -> resonance cone")
-nite_plot_lol = plot!(E, dc_norm * prec_ratio_wna3, label = "WNA3: gendrin angle -> resonance cone")
+nite_plot_lol = plot(xscale=:log10, yscale=:log10, xlim=(80,1000), ylim=(1e-2, 1),
+            xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10)
+nite_plot_lol = plot!(energy, b1*ll_nite_md, fillrange=b1*ll_nite_hi, fillalpha = 0.2, color = black, label=false)
+nite_plot_lol = plot!(energy, b1*ll_nite_md, fillrange=b1*ll_nite_lo, fillalpha = 0.2, color = black, label=false)
+nite_plot_lol = plot!(energy, b1*ll_nite_md, label = "ELFIN Night: L<5, 18<MLT<4 ", color = black, linewidth=2, markershape=:circle);
+nite_plot_lol = plot!(sim_plot_E_bins, normalizer .* sim_ratio_sm, label="$label Model: L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
+nite_plot_lol = plot!(E, dc_norm * prec_ratio_wna1, label = "WNA1: Parallel Waves", color = blue, linestyle=:dash, linewidth=2)
+nite_plot_lol = plot!(E, dc_norm * prec_ratio_wna2, label = "WNA2: initially parallel -> resonance cone", color = green, linestyle=:dash, linewidth=2)
+nite_plot_lol = plot!(E, dc_norm * prec_ratio_wna3, label = "WNA3: gendrin angle -> resonance cone", color = red, linestyle=:dash, linewidth=2)
 nite_plot_lol = plot!(legendfontsize=12, tickfontsize=12, legend=:bottomleft)
 nite_plot_lol = plot!(dpi = 500,size=(800,450), margin=20px, bottom_margin=12px)
-savefig(nite_plot_lol, "images/nite_plot_lol.png")
-savefig(nite_plot_lol, "images/nite_plot_lol.pdf")
+savefig(nite_plot_lol, "main/images/nite_plot_lol.png")
+savefig(nite_plot_lol, "main/images/nite_plot_lol.pdf")
 
-nite_plot_hil = plot(xscale=:log10, yscale=:log10, xlim=(80,1000), ylim=(1e-2, 1),
-            xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10)
-L, MLT, Kp, scenario, colour, label = test_cases[2,:]
-@time @load "result_matrix_stats/"*scenario*".jld2" rm
+
+L, MLT, Kp, dir, scenario, colour, label = test_cases[2,:]
+@time @load "$dir$scenario.jld2" rm
 @info "loaded $scenario from $dir"
 sim_ratio = prec_to_trap_ratio(rm)
-sim_ratio_sm = smooth(sim_ratio[1], 8, 5)
+sim_ratio_sm = smooth(sim_ratio[1], 11, 6)
 norm = normalize_to_elfin(hl_nite_md, sim_ratio_sm)
 b1 = 1/(norm * maximum(sim_ratio_sm))
 normalizer = b1*norm
@@ -557,36 +583,22 @@ E, Daa_wna2, prec_ratio_wna2 = obtain_diffusion_results("HI", "NITE", 2, true)
 E, Daa_wna3, prec_ratio_wna3 = obtain_diffusion_results("HI", "NITE", 3, true)
 dc_norm = normalizer * normalize_to(96, E_bins, E, sim_ratio_sm, prec_ratio_wna1)
 
-nite_plot_hil = plot!(sim_plot_E_bins, normalizer .* sim_ratio_sm, label="label Model: L=L, MLT=MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
-nite_plot_hil = plot!(energy, b1*hl_nite_md, fillrange=b1*hl_nite_hi, fillalpha = 0.2, color = green, label=false)
-nite_plot_hil = plot!(energy, b1*hl_nite_md, fillrange=b1*hl_nite_lo, fillalpha = 0.2, color = green, label=false)
-nite_plot_hil = plot!(energy, b1*hl_nite_md, label = "ELFIN Night: L>5, 18<MLT<4 ", color = bipride_pink, linewidth=2, markershape=:circle);
-nite_plot_hil = plot!(E, dc_norm * prec_ratio_wna1, label = "WNA1: Parallel Waves")
-nite_plot_hil = plot!(E, dc_norm * prec_ratio_wna2, label = "WNA2: initially parallel -> resonance cone")
-nite_plot_hil = plot!(E, dc_norm * prec_ratio_wna3, label = "WNA3: gendrin angle -> resonance cone")
+nite_plot_hil = plot(xscale=:log10, yscale=:log10, xlim=(80,1000), ylim=(1e-2, 1),
+            xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10)
+nite_plot_hil = plot!(energy, b1*hl_nite_md, fillrange=b1*hl_nite_hi, fillalpha = 0.2, color = black, label=false)
+nite_plot_hil = plot!(energy, b1*hl_nite_md, fillrange=b1*hl_nite_lo, fillalpha = 0.2, color = black, label=false)
+nite_plot_hil = plot!(energy, b1*hl_nite_md, label = "ELFIN Night: L>5, 18<MLT<4 ", color = black, linewidth=2, markershape=:circle);
+nite_plot_hil = plot!(sim_plot_E_bins, normalizer .* sim_ratio_sm, label="$label Model: L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
+nite_plot_hil = plot!(E, dc_norm * prec_ratio_wna1, label = "WNA1: Parallel Waves", color = blue, linestyle=:dash, linewidth=2)
+nite_plot_hil = plot!(E, dc_norm * prec_ratio_wna2, label = "WNA2: initially parallel -> resonance cone", color = green, linestyle=:dash, linewidth=2)
+nite_plot_hil = plot!(E, dc_norm * prec_ratio_wna3, label = "WNA3: gendrin angle -> resonance cone", color = red, linestyle=:dash, linewidth=2)
 nite_plot_hil = plot!(legendfontsize=12, tickfontsize=12, legend=:bottomleft)
 nite_plot_hil = plot!(dpi = 500,size=(800,450), margin=20px, bottom_margin=12px)
-savefig(nite_plot_hil, "images/nite_plot_hil.png")
-savefig(nite_plot_hil, "images/nite_plot_hil.pdf")
+savefig(nite_plot_hil, "main/images/nite_plot_hil.png")
+savefig(nite_plot_hil, "main/images/nite_plot_hil.pdf")
 
-statistical_comparison_plot = plot(dawn_plot_lol, dawn_plot_hil, dusk_plot_lol, dusk_plot_hil, nite_plot_lol, nite_plot_hil, layout=(3,2),size=(1200,1600),dpi=500)
-savefig(statistical_comparison_plot, "images/statistical_comparison.png")
-savefig(statistical_comparison_plot, "images/statistical_comparison.pdf")
-
-
-
-
-#=
-Figure 5
-Precipitating-to-trapped electron flux ratio j_prec/j_trap
-measured by ELFIN at L>5 on the night side (18-4 MLT) as a
-function of electron energy E (black). The corresponding
-ratio j_prec/j_trap obtained from test particle simulations
-is displayed for parallel lower-band chorus waves (WNA1
-model), using frequency Models 1 and 2 of constant frequency
-chorus waves (red and orange, respectively) and frequency
-Model 3 of realistic chorus waves of decreasing frequency
-toward higher latitudes (blue), with a normalization to
-observations at 90 keV, adopting a typical Ω_pe/Ω_ce=6.5
-at L=6.5 and 23 MLT.
-=#
+if save_tps_fdc_statistical_comparison_plot
+    tps_fdc_statistical_comparison_plot = plot(dawn_plot_lol, dawn_plot_hil, dusk_plot_lol, dusk_plot_hil, nite_plot_lol, nite_plot_hil, layout=(3,2),size=(1200,1600),dpi=500)
+    savefig(tps_fdc_statistical_comparison_plot, "main/images/tps_fdc_statistical_comparison.png")
+    savefigtps_fdc_(statistical_comparison_plot, "main/images/tps_fdc_statistical_comparison.pdf")
+end

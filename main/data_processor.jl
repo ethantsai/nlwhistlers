@@ -118,6 +118,9 @@ function obtain_diffusion_results(lo_or_hi, dawn_dusk_nite, wnX, new=false)
 
     if wnX ∉ [1,2,3]
         println("wnX should either be 1, 2 or 3")
+        #WN1 – parallel waves
+        #WN2 – initially parallel waves that reach the resonance cone angle at middle latitudes
+        #WN3 – initially oblique waves (Gendrin angle) reach the resonance cone angle at middle latitudes
     end
 
     if new
