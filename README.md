@@ -18,8 +18,9 @@
     - Processed ELFIN measurements using SPEDAS V4.1. This code is not publicly available, but available upon request.
     - Statistical output from ELFIN observations in `stats_csvs`.
     - Diffusion code results from the UCLA Full Diffusion Code (Ma, Q. 2018, https://doi.org/10.1002/2017JA025114)
-- Current active work is being done in the `main` folder (WIP)
+- Current active work is being done in the `main` folder
     - Data here is output into a `data` directory in the root of the folder
+    - Because simulation results are so large, they are not included in the repo. Please find and download them instead from here: https://ucla.box.com/s/stj0ilwbf3xk5nhk8qqp4ync3x71w1um. You can put this data inside of the results folder and run analysis plots on it.
 
 # Setup/Update Instructions
 
