@@ -103,10 +103,43 @@ function extract_elfin_p2t_ratio(datestring, tstart, tend, indices_to_remove=[])
     return elfin_p2t, elfin_p2t_error
 end
 
-function obtain_diffusion_results(lo_or_hi, dawn_dusk_nite, wnX, new=false)
-    if lo_or_hi == "LO"
+function obtain_diffusion_results(lo_or_hi, dawn_dusk_nite, wnX, freq_const_or_vary, FpeFceX)
+    #=
+    Chorus_Daa_Precip_[Frequency Model]_[fpe/fce ratio]_[L shell]_[MLT]_[Wave normal angle model]
+    
+    2 Frequency models
+    FreConst: constant wave frequency along field line
+    FreVary: decreasing wave frequency along field line
+             if(lat<20) omega_m = 0.4-0.2*lat/20
+             if(lat>=20) omega_m = 0.2
+        
+    4 fpe/fce ratios
+        FpeFceL: fpe/fce = L
+        FpeFce2: fpe/fce = 2
+        FpeFce3: fpe/fce = 3
+        FpeFce6.5: fpe/fce = 6.5
+
+    2 L shells:
+        L4.50_LO: L = 4.5
+        L6.50_HI: L = 6.5
+        
+    3 MLTs:
+        NITE: nightside
+        DAWN: dawnside
+        DUSK: duskside
+        
+    4 wave normal angle models: °
+        WN1: quasi-field aligned, theta_m = 0°, theta_w = 30°
+        WN2: theta_m = (1-exp(-abs(lat/10°)))*theta_res, 
+            theta_w = (theta_res-theta_m)/2
+        WN3: theta_m = theta_gendrin+(theta_res-theta_gendrin)*(1-exp(-abs(lat/10°))), 
+            theta_w = (theta_res-theta_m)/2
+        WN4: theta_m = theta_res*lat/(lat+15.0)
+            theta_w = (theta_res-theta_m)/2; if(theta_w > 10.0) theta_w=10.0
+    =#
+    if lo_or_hi ∈ ["lo", "Lo", "LO"]
         L_shell = "4.50"
-    elseif lo_or_hi == "HI"
+    elseif lo_or_hi ∈ ["hi", "Hi", "HI"]
         L_shell = "6.50"
     else
         println("lo_or_hi should either be LO or HI")
@@ -116,21 +149,22 @@ function obtain_diffusion_results(lo_or_hi, dawn_dusk_nite, wnX, new=false)
         println("dawn_dusk_nite should either be DAWN, DUSK, or NITE")
     end
 
-    if wnX ∉ [1,2,3]
-        println("wnX should either be 1, 2 or 3")
-        #WN1 – parallel waves
-        #WN2 – initially parallel waves that reach the resonance cone angle at middle latitudes
-        #WN3 – initially oblique waves (Gendrin angle) reach the resonance cone angle at middle latitudes
+    if wnX ∉ [1,2,3,4]
+        println("wnX should either be 1, 2, 3 or 4")
     end
 
-    if new
-        n = "_new"
-    else
-        n = ""
+    if freq_const_or_vary ∈ ["const", "Const", "CONST"]
+        freq_model = "Const"
+    elseif freq_const_or_vary ∈ ["vary", "Vary", "VARY"]
+        freq_model = "Vary"
     end
 
-    prefix = "external_data/diffusion_code_results/Chorus_Daa_PrecRatio"
-    name = "$(prefix)_L$(L_shell)_$(lo_or_hi)_$(dawn_dusk_nite)_WN$wnX$n.txt"
+    if FpeFceX ∉ ["L", 2, 3, 6.5]
+        println("FpeFceX should either be \"L\", 2, 3 or 6.5")
+    end
+    
+    prefix = "external_data/diffusion_code_results/Chorus_Daa_Precip_Fre"
+    name = "$(prefix)$(freq_model)_FpeFce$(FpeFceX)_L$(L_shell)_$(lo_or_hi)_$(dawn_dusk_nite)_WN$wnX.txt"
     data =  CSV.File(name; header=true, delim=',', types=Float64) |> DataFrame
     E = data.E
     Daa = data."<Daa>"
