@@ -137,11 +137,11 @@ sim_ratio = prec_to_trap_ratio(rm)
 sim_ratio_sm_4 = smooth(sim_ratio[1], 11, 6)
 norm_4 = normalize_to_elfin(hl_nite_md, sim_ratio_sm_4)
 
-E, Daa_wna1, prec_ratio_wna1 = obtain_diffusion_results("HI", "NITE", 1, const, "L")
+E, Daa_wna1, prec_ratio_wna1 = obtain_diffusion_results("HI", "NITE", 1, "const", "L")
 dc_norm_1 = norm_2 * normalize_to(96, sim_plot_E_bins, E, sim_ratio_sm_2, prec_ratio_wna1)
-E, Daa_wna2, prec_ratio_wna2 = obtain_diffusion_results("HI", "NITE", 2, const, "L")
+E, Daa_wna2, prec_ratio_wna2 = obtain_diffusion_results("HI", "NITE", 2, "const", "L")
 dc_norm_2 = norm_3 * normalize_to(96, sim_plot_E_bins, E, sim_ratio_sm_3, prec_ratio_wna2)
-E, Daa_wna3, prec_ratio_wna3 = obtain_diffusion_results("HI", "NITE", 4, const, "L")
+E, Daa_wna3, prec_ratio_wna3 = obtain_diffusion_results("HI", "NITE", 4, "const", 6.5)
 dc_norm_3 = norm_4 * normalize_to(96, sim_plot_E_bins, E, sim_ratio_sm_4, prec_ratio_wna3)
 
 oblique_comparison_plot = plot(xscale=:log10, yscale=:log10, xlim=(80,1000), ylim=(1e-2, 1),
@@ -205,13 +205,18 @@ sim_ratio_3 = prec_to_trap_ratio(rm)
 sim_ratio_sm_3 = smooth(sim_ratio_3[1], 11, 6)
 norm_3 = normalize_to_elfin(hl_nite_md, sim_ratio_sm_3)
 
-E, Daa_wna1, prec_ratio_wna1 = obtain_diffusion_results("HI", "NITE", 1, const, "L")
+E, Daa_wna1, prec_ratio_wna1 = obtain_diffusion_results("HI", "NITE", 1, "const", "L")
 dc_norm_1 = norm_1 * normalize_to(97, sim_plot_E_bins, E, sim_ratio_sm_1, prec_ratio_wna1)
-E, Daa_wna2, prec_ratio_wna2 = obtain_diffusion_results("HI", "NITE", 1, vary, "L")
+E, Daa_wna2, prec_ratio_wna2 = obtain_diffusion_results("HI", "NITE", 1, "vary", "L")
 dc_norm_2 = norm_3 * normalize_to(97, sim_plot_E_bins, E, sim_ratio_sm_3, prec_ratio_wna2)
-E, Daa_wna3, prec_ratio_wna3 = obtain_diffusion_results("HI", "NITE", 2, vary, "L")
+E, Daa_wna3, prec_ratio_wna3 = obtain_diffusion_results("HI", "NITE", 2, "vary", "L")
 dc_norm_3 = norm_3 * normalize_to(97, sim_plot_E_bins, E, sim_ratio_sm_3, prec_ratio_wna3)
-              
+E, Daa_wna4, prec_ratio_wna4 = obtain_diffusion_results("HI", "NITE", 2, "vary", "2")
+dc_norm_4 = norm_3 * normalize_to(97, sim_plot_E_bins, E, sim_ratio_sm_3, prec_ratio_wna4)
+E, Daa_wna5, prec_ratio_wna5 = obtain_diffusion_results("HI", "NITE", 2, "vary", "3")
+dc_norm_5 = norm_3 * normalize_to(97, sim_plot_E_bins, E, sim_ratio_sm_3, prec_ratio_wna5)
+
+
 frequency_model_comparison_plot = plot(xscale=:log10, yscale=:log10, xlim=(80,1000), ylim=(1e-2, 1),
             xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10)
 
@@ -228,9 +233,10 @@ frequency_model_compare_plot = plot!(E, dc_norm_1 * prec_ratio_wna1, label = "Mo
 
 L, MLT, Kp, dir, scenario, colour, label = test_cases[3,:]
 frequency_model_compare_plot = plot!(sim_plot_E_bins, norm_3*sim_ratio_sm_3, label="$label, TPS, L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=3, markersize = 3)
-frequency_model_compare_plot = plot!(E, dc_norm_2 * prec_ratio_wna2, label = "Model 3, FAW, Night, QLDC",  color = colour, linewidth=2, linestyle=:dash)
-
-frequency_model_compare_plot = plot!(E, dc_norm_3 * prec_ratio_wna3, label = "Model 3, WNA1, Night, QLDC",  color = green, linewidth=2, linestyle=:dash)
+frequency_model_compare_plot = plot!(E, dc_norm_2 * prec_ratio_wna2, label = "Model 3, FAW, Night, Ω_pe,eq = 6.5, QLDC",  color = colour, linewidth=2, linestyle=:dash)
+frequency_model_compare_plot = plot!(E, dc_norm_3 * prec_ratio_wna3, label = "Model 3, WNA1, Night, Ω_pe,eq = 6.5, QLDC",  color = green, linewidth=2, linestyle=:dash)
+# frequency_model_compare_plot = plot!(E, dc_norm_4 * prec_ratio_wna4, label = "Model 3, WNA1, Night, Ω_pe,eq = 2, QLDC",  color = purplish_pink, linewidth=2, linestyle=:dash)
+frequency_model_compare_plot = plot!(E, dc_norm_5 * prec_ratio_wna5, label = "Model 3, WNA1, Night, Ω_pe,eq = 3, QLDC",  color = purple, linewidth=2, linestyle=:dash)
 
 frequency_model_compare_plot = plot!(legendfontsize=12, tickfontsize=12, legend=:bottomleft)
 frequency_model_compare_plot = plot!(dpi = 500,size=(1000,600), margin=20px, bottom_margin=12px)
@@ -407,10 +413,12 @@ sim_ratio_1 = prec_to_trap_ratio(rm)
 sim_ratio_sm_1 = smooth(sim_ratio_1[1], 11, 6)
 norm_1 = normalize_to_elfin(hl_nite_md, sim_ratio_sm_1)
 
-E, Daa_wna2, prec_ratio_wna2 = obtain_diffusion_results("HI", "NITE", 1, vary, "L")
+E, Daa_wna2, prec_ratio_wna2 = obtain_diffusion_results("HI", "NITE", 1, "vary", "L")
 dc_norm_2 = norm_1 * normalize_to(97, sim_plot_E_bins, E, sim_ratio_sm_1, prec_ratio_wna2)
-E, Daa_wna3, prec_ratio_wna3 = obtain_diffusion_results("HI", "NITE", 2, vary, "L")
+E, Daa_wna3, prec_ratio_wna3 = obtain_diffusion_results("HI", "NITE", 2, "vary", "L")
 dc_norm_3 = norm_1 * normalize_to(97, sim_plot_E_bins, E, sim_ratio_sm_1, prec_ratio_wna3)
+E, Daa_wna4, prec_ratio_wna4 = obtain_diffusion_results("HI", "NITE", 2, "vary", "L")
+dc_norm_4 = norm_1 * normalize_to(97, sim_plot_E_bins, E, sim_ratio_sm_1, prec_ratio_wna4)
 # f3 = f1*a + f2*(1-a), w/ a<1; f1 is model3faw, f2 is model3wna1
 f3(a) = @. dc_norm_2*prec_ratio_wna2*a + dc_norm_3*prec_ratio_wna3*(1-a)
 
@@ -422,8 +430,9 @@ multi_line_plot = plot!(energy, hl_nite_md, label = "ELFIN Night: L>5, 18<MLT<4 
 for i in 0.1:0.2:0.9
     multi_line_plot = plot!(E, f3(i), label="", linestyle=:dash, linewidth = 1)
 end
-multi_line_plot = plot!(E, dc_norm_2 * prec_ratio_wna2, label = "Model 3, FAW, Night, QLDC",  color = blue, linewidth=2.5, linestyle=:dash)
-multi_line_plot = plot!(E, dc_norm_3 * prec_ratio_wna3, label = "Model 3, WNA1, Night, QLDC",  color = green, linewidth=2.5, linestyle=:dash)
+multi_line_plot = plot!(E, dc_norm_2 * prec_ratio_wna2, label = "Model 3, FAW, Night, Ω_pe,eq = 6.5, QLDC",  color = blue, linewidth=2.5, linestyle=:dash)
+multi_line_plot = plot!(E, dc_norm_3 * prec_ratio_wna3, label = "Model 3, WNA1, Night, Ω_pe,eq = 6.5, QLDC",  color = green, linewidth=2.5, linestyle=:dash)
+multi_line_plot = plot!(E, dc_norm_4 * prec_ratio_wna4, label = "Model 3, WNA1, Night, Ω_pe,eq = 3, QLDC",  color = purple, linewidth=2.5, linestyle=:dash)
 
 # multi_line_plot = plot!(sim_plot_E_bins, norm_4*sim_ratio_sm_4, label="label Model: L=L, MLT=MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
 multi_line_plot = plot!(legendfontsize=12, tickfontsize=12, legend=:bottomleft)
@@ -450,9 +459,9 @@ norm = normalize_to_elfin(ll_dawn_md, sim_ratio_sm)
 b1 = 1/(norm * maximum(sim_ratio_sm))
 normalizer = b1*norm
 
-E, Daa_wna1, prec_ratio_wna1 = obtain_diffusion_results("LO", "DAWN", 1)
-E, Daa_wna2, prec_ratio_wna2 = obtain_diffusion_results("LO", "DAWN", 2)
-E, Daa_wna3, prec_ratio_wna3 = obtain_diffusion_results("LO", "DAWN", 3)
+E, Daa_wna1, prec_ratio_wna1 = obtain_diffusion_results("LO", "DAWN", 1, "const", "L")
+E, Daa_wna2, prec_ratio_wna2 = obtain_diffusion_results("LO", "DAWN", 2, "const", "L")
+E, Daa_wna3, prec_ratio_wna3 = obtain_diffusion_results("LO", "DAWN", 4, "const", "L")
 dc_norm = normalizer * normalize_to(96, E_bins, E, sim_ratio_sm, prec_ratio_wna1)
 
 dawn_plot_lol = plot(xscale=:log10, yscale=:log10, xlim=(80,1000), ylim=(1e-2, 1),
@@ -479,9 +488,9 @@ norm = normalize_to_elfin(hl_dawn_md, sim_ratio_sm)
 b1 = 1/(norm * maximum(sim_ratio_sm))
 normalizer = b1*norm
 
-E, Daa_wna1, prec_ratio_wna1 = obtain_diffusion_results("HI", "DAWN", 1)
-E, Daa_wna2, prec_ratio_wna2 = obtain_diffusion_results("HI", "DAWN", 2)
-E, Daa_wna3, prec_ratio_wna3 = obtain_diffusion_results("HI", "DAWN", 3)
+E, Daa_wna1, prec_ratio_wna1 = obtain_diffusion_results("HI", "DAWN", 1, "const", "L")
+E, Daa_wna2, prec_ratio_wna2 = obtain_diffusion_results("HI", "DAWN", 2, "const", "L")
+E, Daa_wna3, prec_ratio_wna3 = obtain_diffusion_results("HI", "DAWN", 4, "const", "L")
 dc_norm = normalizer * normalize_to(96, E_bins, E, sim_ratio_sm, prec_ratio_wna1)
 
 dawn_plot_hil = plot(xscale=:log10, yscale=:log10, xlim=(80,1000), ylim=(1e-2, 1),
@@ -514,9 +523,9 @@ norm = normalize_to_elfin(ll_dusk_md, sim_ratio_sm)
 b1 = 1/(norm * maximum(sim_ratio_sm))
 normalizer = b1*norm
 
-E, Daa_wna1, prec_ratio_wna1 = obtain_diffusion_results("LO", "DUSK", 1)
-E, Daa_wna2, prec_ratio_wna2 = obtain_diffusion_results("LO", "DUSK", 2)
-E, Daa_wna3, prec_ratio_wna3 = obtain_diffusion_results("LO", "DUSK", 3)
+E, Daa_wna1, prec_ratio_wna1 = obtain_diffusion_results("LO", "DUSK", 1, "const", "L")
+E, Daa_wna2, prec_ratio_wna2 = obtain_diffusion_results("LO", "DUSK", 2, "const", "L")
+E, Daa_wna3, prec_ratio_wna3 = obtain_diffusion_results("LO", "DUSK", 4, "const", "L")
 dc_norm = normalizer * normalize_to(96, E_bins, E, sim_ratio_sm, prec_ratio_wna1)
 
 dusk_plot_lol = plot(xscale=:log10, yscale=:log10, xlim=(80,1000), ylim=(1e-2, 1),
@@ -543,9 +552,9 @@ norm = normalize_to_elfin(hl_dusk_md, sim_ratio_sm)
 b1 = 1/(norm * maximum(sim_ratio_sm))
 normalizer = b1*norm
 
-E, Daa_wna1, prec_ratio_wna1 = obtain_diffusion_results("HI", "DUSK", 1)
-E, Daa_wna2, prec_ratio_wna2 = obtain_diffusion_results("HI", "DUSK", 2)
-E, Daa_wna3, prec_ratio_wna3 = obtain_diffusion_results("HI", "DUSK", 3)
+E, Daa_wna1, prec_ratio_wna1 = obtain_diffusion_results("HI", "DUSK", 1, "const", "L")
+E, Daa_wna2, prec_ratio_wna2 = obtain_diffusion_results("HI", "DUSK", 2, "const", "L")
+E, Daa_wna3, prec_ratio_wna3 = obtain_diffusion_results("HI", "DUSK", 4, "const", "L")
 dc_norm = normalizer * normalize_to(96, E_bins, E, sim_ratio_sm, prec_ratio_wna1)
 
 dusk_plot_hil = plot(xscale=:log10, yscale=:log10, xlim=(80,1000), ylim=(1e-2, 1),
@@ -576,9 +585,9 @@ norm = normalize_to_elfin(ll_nite_md, sim_ratio_sm)
 b1 = 1/(norm * maximum(sim_ratio_sm))
 normalizer = b1*norm
 
-E, Daa_wna1, prec_ratio_wna1 = obtain_diffusion_results("LO", "NITE", 1)
-E, Daa_wna2, prec_ratio_wna2 = obtain_diffusion_results("LO", "NITE", 2)
-E, Daa_wna3, prec_ratio_wna3 = obtain_diffusion_results("LO", "NITE", 3)
+E, Daa_wna1, prec_ratio_wna1 = obtain_diffusion_results("LO", "NITE", 1, "const", "L")
+E, Daa_wna2, prec_ratio_wna2 = obtain_diffusion_results("LO", "NITE", 2, "const", "L")
+E, Daa_wna3, prec_ratio_wna3 = obtain_diffusion_results("LO", "NITE", 4, "const", "L")
 dc_norm = normalizer * normalize_to(96, E_bins, E, sim_ratio_sm, prec_ratio_wna1)
 
 nite_plot_lol = plot(xscale=:log10, yscale=:log10, xlim=(80,1000), ylim=(1e-2, 1),
@@ -605,9 +614,9 @@ norm = normalize_to_elfin(hl_nite_md, sim_ratio_sm)
 b1 = 1/(norm * maximum(sim_ratio_sm))
 normalizer = b1*norm
 
-E, Daa_wna1, prec_ratio_wna1 = obtain_diffusion_results("HI", "NITE", 1, true)
-E, Daa_wna2, prec_ratio_wna2 = obtain_diffusion_results("HI", "NITE", 2, true)
-E, Daa_wna3, prec_ratio_wna3 = obtain_diffusion_results("HI", "NITE", 3, true)
+E, Daa_wna1, prec_ratio_wna1 = obtain_diffusion_results("HI", "NITE", 1, "const", "L")
+E, Daa_wna2, prec_ratio_wna2 = obtain_diffusion_results("HI", "NITE", 2, "const", "L")
+E, Daa_wna3, prec_ratio_wna3 = obtain_diffusion_results("HI", "NITE", 4, "const", "L")
 dc_norm = normalizer * normalize_to(96, E_bins, E, sim_ratio_sm, prec_ratio_wna1)
 
 nite_plot_hil = plot(xscale=:log10, yscale=:log10, xlim=(80,1000), ylim=(1e-2, 1),
