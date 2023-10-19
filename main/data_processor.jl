@@ -165,12 +165,12 @@ function obtain_diffusion_results(lo_or_hi, dawn_dusk_nite, wnX, freq_const_or_v
     
     prefix = "external_data/diffusion_code_results/Chorus_Daa_Precip_Fre"
     name = "$(prefix)$(freq_model)_FpeFce$(FpeFceX)_L$(L_shell)_$(lo_or_hi)_$(dawn_dusk_nite)_WN$wnX.txt"
+    @info "Loading diffusion code results from $name"
     data =  CSV.File(name; header=true, delim=',', types=Float64) |> DataFrame
     E = data.E
     Daa = data."<Daa>"
     prec_ratio = data.Prec_Ratio
     
-    @info "Loaded diffusion code results from $name"
     return E, Daa, prec_ratio
 end
 
