@@ -82,18 +82,27 @@ L, MLT, Kp, dir, scenario, colour, label = test_cases[1,:]
 density_comparison_plot = plot!(sim_plot_E_bins, norm_1*sim_ratio_sm_1, label="$label: L=$L, MLT=$MLT, Ω_pe=6.5", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
 
 E, Daa_wna1, prec_ratio_wna1 = obtain_diffusion_results("HI", "NITE", 1, "const", "L")
-dc_norm = norm_1 * normalize_to(97, sim_plot_E_bins, E, sim_ratio_sm_1, prec_ratio_wna1)
-nite_plot_hil = plot!(E, dc_norm * prec_ratio_wna1, label = "FAW, QLDC, Ω_pe,eq = 6.5",  color = colour, linewidth=2, linestyle=:dash)
+dc_norm = normalize_to(97, energy, E, hl_nite_md, prec_ratio_wna1)
+density_comparison_plot = plot!(E, dc_norm * prec_ratio_wna1, label = "FAW, QLDC, Ω_pe,eq = 3, N≤20",  color = colour, linewidth=2, linestyle=:dash)
 
 L, MLT, Kp, dir, scenario, colour, label = test_cases[2,:]
 density_comparison_plot = plot!(sim_plot_E_bins, norm_2*sim_ratio_sm_2, label="$label: L=$L, MLT=$MLT, Ω_pe=3.0", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
 
 E, Daa_wna2, prec_ratio_wna2 = obtain_diffusion_results("HI", "NITE", 1, "const", "3")
-dc_norm = norm_2 * normalize_to(97, sim_plot_E_bins, E, sim_ratio_sm_2, prec_ratio_wna2)
-nite_plot_hil = plot!(E, dc_norm * prec_ratio_wna2, label = "FAW, QLDC, Ω_pe,eq = 3",  color = colour, linewidth=2, linestyle=:dash)
+dc_norm = normalize_to(97, energy, E, hl_nite_md, prec_ratio_wna2)
+density_comparison_plot = plot!(E, dc_norm * prec_ratio_wna2, label = "FAW, QLDC, Ω_pe,eq = 3",  color = colour, linewidth=2, linestyle=:dash)
+
+# E, Daa_wna3, prec_ratio_wna3 = obtain_diffusion_results("Chorus_Daa_Precip_FreConst_FpeFce3Eq_Max300pT_L4.50_LO_NITE_WN1_Neq1.txt")
+# dc_norm = normalize_to(97, energy, E, hl_nite_md, prec_ratio_wna3)
+# density_comparison_plot = plot!(E, dc_norm * prec_ratio_wna3, label = "Narrow band FAW, QLDC, Ω_pe,eq = 3, N=1",  color = green, linewidth=2, linestyle=:dash)
+
+E, Daa_wna4, prec_ratio_wna4 = obtain_diffusion_results("Chorus_Daa_Precip_FreConst_FpeFce3Eq_Max300pT_L4.50_LO_NITE_WN1_Nlt10.txt")
+dc_norm = normalize_to(97, energy, E, hl_nite_md, prec_ratio_wna4)
+density_comparison_plot = plot!(E, dc_norm * prec_ratio_wna4, label = "Narrow band FAW, QLDC, Ω_pe,eq = 3, N≤10",  color = blue, linewidth=2, linestyle=:dash)
+
 
 density_comparison_plot = plot!(legendfontsize=12, tickfontsize=12, legend=:bottomleft)
-density_comparison_plot = plot!(dpi = 500,size=(800,450), margin=20px, bottom_margin=12px)
+density_comparison_plot = plot!(dpi = 500,size=(1000,650), margin=20px, bottom_margin=12px)
 
 if save_density_plot
     savefig(density_comparison_plot, "main/images/density_comparison.png")

@@ -174,6 +174,18 @@ function obtain_diffusion_results(lo_or_hi, dawn_dusk_nite, wnX, freq_const_or_v
     return E, Daa, prec_ratio
 end
 
+
+function obtain_diffusion_results(name::String)
+    prefix = "external_data/diffusion_code_results/"
+    @info "Loading diffusion code results from $name"
+    data =  CSV.File(prefix*name; header=true, delim=',', types=Float64) |> DataFrame
+    E = data.E
+    Daa = data."<Daa>"
+    prec_ratio = data.Prec_Ratio
+    return E, Daa, prec_ratio
+end
+
+
 function obtain_elfin_ratio(elfin_prec, elfin_trap)
     return elfin_prec[2]./elfin_trap[2]
 end
