@@ -15,12 +15,13 @@ sim_plot_E_bins = logrange(52,1000,32)
 save_density_plot = true
 save_oblique_comparison_plot = true
 save_frequency_model_compare_plot = true
-save_constant_frequency_plot = false
+save_constant_frequency_plot = true
 save_trajectory_comparison = false
+save_qldc_comparison_plot = true
 visualize_frequency_models = false
 save_frequency_model_comparison = false
-save_multi_line_plot_comparison = false
-save_tps_QLDC_statistical_comparison_plot = false
+save_multi_line_plot_comparison = true
+save_tps_QLDC_statistical_comparison_plot = true
 
 ## Import data
 # Import ELFIN statistics CSVs
@@ -187,9 +188,10 @@ end
 ##############################
 # Frequency model comparison #
 ##############################
-test_cases = [6.5 23.0 3 "main/results/original/" "HI_NITE_MODEL_1m" red "Model 1, ω_m = 0.35";
+test_cases = [6.5 23.0 3 "main/results/original/" "HI_NITE_MODEL_1m" red "ω_m = const, ω_m = 0.35";
               6.5 23.0 3 "main/results/frequency/" "HI_NITE_MODEL_20" orange "Model 2, ω_m = 0.20";
-              6.5 23.0 3 "main/results/frequency/" "HI_NITE_MODEL_omega_mod_2" blue "Model 3, ω_m(λ)";
+              6.5 23.0 3 "main/results/frequency/" "HI_NITE_MODEL_omega_mod_2" blue "ω_m(λ), FAW";
+              6.5 23.0 3 "main/results/" "HI_NITE_EVERYTHING" light_blue "ω_m(λ), WNA1, Ω_pe = 3";
               ]
 
 
@@ -214,7 +216,14 @@ sim_ratio_3 = prec_to_trap_ratio(rm)
 sim_ratio_sm_3 = smooth(sim_ratio_3[1], 11, 6)
 norm_3 = normalize_to_elfin(hl_nite_md, sim_ratio_sm_3)
 
-E, Daa_wna1, prec_ratio_wna1 = obtain_diffusion_results("HI", "NITE", 1, "const", "L")
+L, MLT, Kp, dir, scenario, colour, label = test_cases[4,:]
+@time @load "$dir$scenario.jld2" rm
+@info "loaded $scenario from $dir"
+sim_ratio_4 = prec_to_trap_ratio(rm)
+sim_ratio_sm_4 = smooth(sim_ratio_4[1], 11, 6)
+norm_4 = normalize_to_elfin(hl_nite_md, sim_ratio_sm_4)
+
+E, Daa_wna1, prec_ratio_wna1 = obtain_diffusion_results("HI", "NITE", 1, "const", "L") #
 dc_norm_1 = norm_1 * normalize_to(97, sim_plot_E_bins, E, sim_ratio_sm_1, prec_ratio_wna1)
 E, Daa_wna2, prec_ratio_wna2 = obtain_diffusion_results("HI", "NITE", 1, "vary", "L")
 dc_norm_2 = norm_3 * normalize_to(97, sim_plot_E_bins, E, sim_ratio_sm_3, prec_ratio_wna2)
@@ -222,11 +231,13 @@ E, Daa_wna3, prec_ratio_wna3 = obtain_diffusion_results("HI", "NITE", 2, "vary",
 dc_norm_3 = norm_3 * normalize_to(97, sim_plot_E_bins, E, sim_ratio_sm_3, prec_ratio_wna3)
 E, Daa_wna4, prec_ratio_wna4 = obtain_diffusion_results("HI", "NITE", 2, "vary", "2")
 dc_norm_4 = norm_3 * normalize_to(97, sim_plot_E_bins, E, sim_ratio_sm_3, prec_ratio_wna4)
-E, Daa_wna5, prec_ratio_wna5 = obtain_diffusion_results("HI", "NITE", 2, "vary", "3")
+E, Daa_wna5, prec_ratio_wna5 = obtain_diffusion_results("HI", "NITE", 1, "vary", "3")
 dc_norm_5 = norm_3 * normalize_to(97, sim_plot_E_bins, E, sim_ratio_sm_3, prec_ratio_wna5)
+E, Daa_wna6, prec_ratio_wna6 = obtain_diffusion_results("HI", "NITE", 2, "vary", "3")
+dc_norm_6 = norm_3 * normalize_to(97, sim_plot_E_bins, E, sim_ratio_sm_3, prec_ratio_wna6)
 
 
-frequency_model_comparison_plot = plot(xscale=:log10, yscale=:log10, xlim=(80,1000), ylim=(1e-2, 1),
+frequency_model_compare_plot = plot(xscale=:log10, yscale=:log10, xlim=(80,1000), ylim=(1e-2, 1),
             xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10)
 
 frequency_model_compare_plot = plot!(energy, hl_nite_md, fillrange=hl_nite_hi, fillalpha = 0.2, color = black, label=false)
@@ -235,17 +246,21 @@ frequency_model_compare_plot = plot!(energy, hl_nite_md, label = "ELFIN Night: L
 
 L, MLT, Kp, dir, scenario, colour, label = test_cases[1,:]
 frequency_model_compare_plot = plot!(sim_plot_E_bins, norm_1*sim_ratio_sm_1, label="$label, TPS, L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=3, markersize = 3)
-frequency_model_compare_plot = plot!(E, dc_norm_1 * prec_ratio_wna1, label = "Model 1, FAW, Night, QLDC",  color = colour, linewidth=2, linestyle=:dash)
+frequency_model_compare_plot = plot!(E, dc_norm_1 * prec_ratio_wna1, label = "ω_m = const, FAW, Night, QLDC",  color = colour, linewidth=2, linestyle=:dash)
 
 # L, MLT, Kp, dir, scenario, colour, label = test_cases[2,:]
 # frequency_model_compare_plot = plot!(sim_plot_E_bins, norm_2*sim_ratio_sm_2, label="$label, TPS, L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=3, markersize = 3)
 
 L, MLT, Kp, dir, scenario, colour, label = test_cases[3,:]
 frequency_model_compare_plot = plot!(sim_plot_E_bins, norm_3*sim_ratio_sm_3, label="$label, TPS, L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=3, markersize = 3)
-frequency_model_compare_plot = plot!(E, dc_norm_2 * prec_ratio_wna2, label = "Model 3, FAW, Night, Ω_pe,eq = 6.5, QLDC",  color = colour, linewidth=2, linestyle=:dash)
-frequency_model_compare_plot = plot!(E, dc_norm_3 * prec_ratio_wna3, label = "Model 3, WNA1, Night, Ω_pe,eq = 6.5, QLDC",  color = green, linewidth=2, linestyle=:dash)
-# frequency_model_compare_plot = plot!(E, dc_norm_4 * prec_ratio_wna4, label = "Model 3, WNA1, Night, Ω_pe,eq = 2, QLDC",  color = purplish_pink, linewidth=2, linestyle=:dash)
-frequency_model_compare_plot = plot!(E, dc_norm_5 * prec_ratio_wna5, label = "Model 3, WNA1, Night, Ω_pe,eq = 3, QLDC",  color = purple, linewidth=2, linestyle=:dash)
+frequency_model_compare_plot = plot!(E, dc_norm_2 * prec_ratio_wna2, label = "ω_m(λ), FAW, Night, Ω_pe = 6.5, QLDC",  color = colour, linewidth=2, linestyle=:dash)
+frequency_model_compare_plot = plot!(E, dc_norm_3 * prec_ratio_wna3, label = "ω_m(λ), WNA1, Night, Ω_pe = 6.5, QLDC",  color = green, linewidth=2, linestyle=:dash)
+
+L, MLT, Kp, dir, scenario, colour, label = test_cases[4,:]
+frequency_model_compare_plot = plot!(sim_plot_E_bins, norm_4*sim_ratio_sm_4, label="$label, TPS, L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=3, markersize = 3)
+frequency_model_compare_plot = plot!(E, dc_norm_5 * prec_ratio_wna5, label = "ω_m(λ), FAW, Night, Ω_pe = 3, QLDC",  color = light_blue, linewidth=2, linestyle=:dash)
+# frequency_model_compare_plot = plot!(E, dc_norm_4 * prec_ratio_wna4, label = "ω_m(λ), WNA1, Night, Ω_pe = 2, QLDC",  color = purplish_pink, linewidth=2, linestyle=:dash)
+frequency_model_compare_plot = plot!(E, dc_norm_6 * prec_ratio_wna6, label = "ω_m(λ), WNA1, Night, Ω_pe = 3, QLDC",  color = purple, linewidth=2, linestyle=:dash)
 
 frequency_model_compare_plot = plot!(legendfontsize=12, tickfontsize=12, legend=:bottomleft)
 frequency_model_compare_plot = plot!(dpi = 500,size=(1000,600), margin=20px, bottom_margin=12px)
@@ -302,6 +317,53 @@ if save_constant_frequency_plot
     savefig(constant_frequency_comparison_plot, "main/images/const_freq_comparison.png")
     savefig(constant_frequency_comparison_plot, "main/images/const_freq_comparison.pdf")
 end
+
+
+###################
+# QLDC Comparison #
+###################
+E, Daa_wna1, prec_ratio_wna1 = obtain_diffusion_results("HI", "NITE", 1, "const", "L") #
+dc_norm_1 = normalize_to(97, energy, E, hl_nite_md, prec_ratio_wna1)
+E, Daa_wna2, prec_ratio_wna2 = obtain_diffusion_results("HI", "NITE", 1, "vary", "L")
+dc_norm_2 = normalize_to(97, energy, E, hl_nite_md, prec_ratio_wna2)
+E, Daa_wna3, prec_ratio_wna3 = obtain_diffusion_results("HI", "NITE", 2, "const", "L")
+dc_norm_3 = normalize_to(97, energy, E, hl_nite_md, prec_ratio_wna3)
+E, Daa_wna4, prec_ratio_wna4 = obtain_diffusion_results("HI", "NITE", 2, "vary", "L")
+dc_norm_4 = normalize_to(97, energy, E, hl_nite_md, prec_ratio_wna4)
+E, Daa_wna5, prec_ratio_wna5 = obtain_diffusion_results("HI", "NITE", 1, "const", "3")
+dc_norm_5 = normalize_to(97, energy, E, hl_nite_md, prec_ratio_wna5)
+E, Daa_wna6, prec_ratio_wna6 = obtain_diffusion_results("HI", "NITE", 1, "vary", "3")
+dc_norm_6 = normalize_to(97, energy, E, hl_nite_md, prec_ratio_wna6)
+# E, Daa_wna7, prec_ratio_wna7 = obtain_diffusion_results("HI", "NITE", 2, "const", "3")
+# dc_norm_7 = normalize_to(97, energy, E, hl_nite_md, prec_ratio_wna7)
+E, Daa_wna8, prec_ratio_wna8 = obtain_diffusion_results("HI", "NITE", 2, "vary", "3")
+dc_norm_8 = normalize_to(97, energy, E, hl_nite_md, prec_ratio_wna8)
+
+
+qldc_comparison_plot = plot(xscale=:log10, yscale=:log10, xlim=(80,1000), ylim=(1e-2, 1),
+            xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10)
+
+qldc_comparison_plot = plot!(energy, hl_nite_md, fillrange=hl_nite_hi, fillalpha = 0.2, color = black, label=false)
+qldc_comparison_plot = plot!(energy, hl_nite_md, fillrange=hl_nite_lo, fillalpha = 0.2, color = black, label=false)
+qldc_comparison_plot = plot!(energy, hl_nite_md, label = "ELFIN Night: L>5, 18<MLT<4 ", color = black, linewidth=5, markershape=:circle);
+
+qldc_comparison_plot = plot!(E, dc_norm_1 * prec_ratio_wna1, label = "FAW, ω_m = const, Ω_pe = 6.5, Night, QLDC",  color = red, linewidth=2, linestyle=:dash)
+qldc_comparison_plot = plot!(E, dc_norm_2 * prec_ratio_wna2, label = "FAW, ω_m = vary, Ω_pe = 6.5, Night, QLDC",  color = reddish_orange, linewidth=2, linestyle=:dash)
+qldc_comparison_plot = plot!(E, dc_norm_3 * prec_ratio_wna3, label = "WNA1, ω_m = const, Ω_pe = 6.5, Night, QLDC",  color = orange, linewidth=2, linestyle=:dash)
+qldc_comparison_plot = plot!(E, dc_norm_4 * prec_ratio_wna4, label = "WNA1, ω_m = vary, Ω_pe = 6.5, Night, QLDC",  color = yellow, linewidth=2, linestyle=:dash)
+qldc_comparison_plot = plot!(E, dc_norm_5 * prec_ratio_wna5, label = "FAW, ω_m = const, Ω_pe = 3.0, Night, QLDC",  color = green, linewidth=2, linestyle=:dash)
+qldc_comparison_plot = plot!(E, dc_norm_6 * prec_ratio_wna6, label = "FAW, ω_m = vary, Ω_pe = 3.0, Night, QLDC",  color = blue, linewidth=2, linestyle=:dash)
+# qldc_comparison_plot = plot!(E, dc_norm_7 * prec_ratio_wna7, label = "WNA1, ω_m = const, Ω_pe = 3.0, Night, QLDC",  color = purplish_pink, linewidth=2, linestyle=:dash)
+qldc_comparison_plot = plot!(E, dc_norm_8 * prec_ratio_wna8, label = "WNA1, ω_m = vary, Ω_pe = 3.0, Night, QLDC",  color = purple, linewidth=2, linestyle=:dash)
+
+qldc_comparison_plot = plot!(legendfontsize=12, tickfontsize=12, legend=:bottomleft)
+qldc_comparison_plot = plot!(dpi = 500,size=(1000,600), margin=20px, bottom_margin=12px)
+
+if save_qldc_comparison_plot
+    savefig(qldc_comparison_plot, "main/images/qldc_comparison_plot.png")
+    savefig(qldc_comparison_plot, "main/images/qldc_comparison_plot.pdf")
+end
+
 
 
 ####################################################
@@ -413,7 +475,7 @@ end
 # Multi line plot comparison #
 ##############################
 # this blends together model 3 with FAW and with WNA1
-test_cases = [6.5 23.0 3 "main/results/frequency/" "HI_NITE_MODEL_omega_mod_2" blue "Model 3, ω_m(λ)";
+test_cases = [6.5 23.0 3 "main/results/frequency/" "HI_NITE_MODEL_omega_mod_2" blue "ω_m(λ), ω_m(λ)";
               ]
 L, MLT, Kp, dir, scenario, colour, label = test_cases[1,:]
 @time @load "$dir$scenario.jld2" rm
@@ -439,9 +501,18 @@ multi_line_plot = plot!(energy, hl_nite_md, label = "ELFIN Night: L>5, 18<MLT<4 
 for i in 0.1:0.2:0.9
     multi_line_plot = plot!(E, f3(i), label="", linestyle=:dash, linewidth = 1)
 end
-multi_line_plot = plot!(E, dc_norm_2 * prec_ratio_wna2, label = "Model 3, FAW, Night, Ω_pe,eq = 6.5, QLDC",  color = blue, linewidth=2.5, linestyle=:dash)
-multi_line_plot = plot!(E, dc_norm_3 * prec_ratio_wna3, label = "Model 3, WNA1, Night, Ω_pe,eq = 6.5, QLDC",  color = green, linewidth=2.5, linestyle=:dash)
-multi_line_plot = plot!(E, dc_norm_4 * prec_ratio_wna4, label = "Model 3, WNA1, Night, Ω_pe,eq = 3, QLDC",  color = purple, linewidth=2.5, linestyle=:dash)
+multi_line_plot = plot!(E, dc_norm_2 * prec_ratio_wna2, label = "ω_m(λ), FAW, Night, Ω_pe = 6.5, QLDC",  color = blue, linewidth=2.5, linestyle=:dash)
+multi_line_plot = plot!(E, dc_norm_3 * prec_ratio_wna3, label = "ω_m(λ), WNA1, Night, Ω_pe = 6.5, QLDC",  color = green, linewidth=2.5, linestyle=:dash)
+multi_line_plot = plot!(E, dc_norm_4 * prec_ratio_wna4, label = "ω_m(λ), WNA1, Night, Ω_pe = 3, QLDC",  color = purple, linewidth=2.5, linestyle=:dash)
+
+
+
+f = dc_norm_2 * prec_ratio_wna2
+g = dc_norm_3 * prec_ratio_wna3
+h = dc_norm_4 * prec_ratio_wna4
+plot([hl_nite_md, elfin_interp_extrap])
+
+
 
 # multi_line_plot = plot!(sim_plot_E_bins, norm_4*sim_ratio_sm_4, label="label Model: L=L, MLT=MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
 multi_line_plot = plot!(legendfontsize=12, tickfontsize=12, legend=:bottomleft)
