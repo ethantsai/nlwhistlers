@@ -1,4 +1,4 @@
-using CSV, DataFrames
+using CSV, DataFrames, BasicInterpolators
 
 """
     prec_to_trap_ratio(rm)
@@ -190,20 +190,12 @@ function obtain_elfin_ratio(elfin_prec, elfin_trap)
     return elfin_prec[2]./elfin_trap[2]
 end
 
-function normalize_to_elfin(elfin_ratio, sim_ratio)
-    # goal is to normalize to ELFIN's second channel 97.97 keV
-    # sim e_bins index 7 is 92.15, index 8 is 101.38, mean is 96.76
-    return mean(elfin_ratio[2]) / mean(sim_ratio[7:8])
-end
-
 function normalize_to(normalization_energy, energy_1, energy_2, ratio_1, ratio_2)
     # given the energy to normalize at in keV
-    # it will find the closest indexes in both energy 1 and energy 2
-    # it will then return the normalization to get you from ratio 2 to ratio 1
-    index_1 = findfirst(x->x>normalization_energy, energy_1)
-    index_2 = findfirst(x->x>normalization_energy, energy_2)
-    @info "normalizing @ E1: $(energy_1[index_1]) keV and E2: $(energy_2[index_2]) keV"
-    return ratio_1[index_1] / ratio_2[index_2]
+    # it will interpolate both to that energy then return the ratio of 1 to 2
+    one = LinearInterpolator(energy_1, ratio_1)
+    two = LinearInterpolator(energy_2, ratio_2)
+    return one(normalization_energy) / two(normalization_energy)
 end
 
 function make_elfin_error_bars(elfin_data, elfin_error)
