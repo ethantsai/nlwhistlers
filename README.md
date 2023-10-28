@@ -62,27 +62,11 @@ sudo ln -s /usr/lib/julia-X.X.X/bin/julia /usr/local/bin/julia
 ```
 
   5. Ensure `bashrc` has the num_threads variable set correctly. I.e. `export JULIA_NUM_THREADS=16`
-  
-## Install packages
 
-  1. Open terminal/powershell, and run `Julia`. Verify it's the correct version. You can do so by typing in `VERSION` into Julia.
+## Packages
 
-  2. Install packages by hitting `]` and then entering:
-```
-add TickTock, ConfParser, Profile, Dates, Random, StaticArrays, Distributed, OrdinaryDiffEq, JLD2, Plots, PyPlot, InteractiveUtils, PlutoUI, LoopVectorization, BenchmarkTools, StatsPlots, DataFrames, CSV, LaTeXStrings, StatsBase, DirectConvolution
-```
+  1. Once Julia is set up, you should be able to enter the package manager via `]`.
+  2. Type `activate .` to activate the manifest.
+  3. Type `instantiate` to install all missing packages. When complete, you are ready to use the Julia code as long as you're in the proper virtual environment
 
-## Profiling Code
-
-Using Profile and PProf
-  - Library: ```using Profile, PProf```
-  - Syntax: `@profile [function]`
-  - View: `pprof(;webport=58599)`
-
-Make sure graphviz is installed. The arrows a -> b are a calls b and the numbers provide run time information, with second percentage being percent total run time and first percentage being how much itself takes (as compared to its subroutines).
-
-```
-ls|while read file; do mv "$file" "$(echo "$file"|sed -e 's/[() ]//g')";done
-```
-
-where stuff in square brackets is stuff you want to remove, and stuff between `//` is what you'll replace it with.
+To always activate the virtual environment of whatever project directory you're working in (i.e. if you'd like to run Julia directly from command line), you should add `export JULIA_PROJECT=@.` in the `bashrc` file.
