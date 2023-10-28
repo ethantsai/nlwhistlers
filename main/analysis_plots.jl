@@ -239,12 +239,8 @@ L, MLT, Kp, dir, scenario, colour, label = test_cases[2,:]
 @time @load "$dir$scenario.jld2" rm
 @info "loaded $scenario from $dir"
 sim_ratio_2 = prec_to_trap_ratio(rm)
+sim_ratio_sm_2 = smooth(sim_ratio_2[1], 11, 6)
 norm_2 = normalize_to(97, energy, sim_plot_E_bins, hl_nite_md, sim_ratio_sm_2)
-L, MLT, Kp, dir, scenario, colour, label = test_cases[3,:]
-@time @load "$dir$scenario.jld2" rm
-@info "loaded $scenario from $dir"
-sim_ratio_3 = prec_to_trap_ratio(rm)
-norm_3 = normalize_to(97, energy, sim_plot_E_bins, hl_nite_md, sim_ratio_sm_3)
 
 E, Daa_wna1, prec_ratio_wna1 = obtain_diffusion_results("HI", "NITE", 1, "const", "L")
 dc_norm_1 = normalize_to(97, energy, E, hl_nite_md, prec_ratio_wna1)
@@ -268,8 +264,6 @@ L, MLT, Kp, dir, scenario, colour, label = test_cases[2,:]
 frequency_model_compare_plot = plot!(sim_plot_E_bins, norm_2*sim_ratio_sm_2, label="$label, TPS, L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=3, markersize = 3)
 frequency_model_compare_plot = plot!(E, dc_norm_2 * prec_ratio_wna2, label = "ω_m(λ), FAW, Ω_pe = 6.5, QLDC",  color = blue, linewidth=2, linestyle=:dash)
 
-L, MLT, Kp, dir, scenario, colour, label = test_cases[3,:]
-frequency_model_compare_plot = plot!(sim_plot_E_bins, norm_3*sim_ratio_sm_3, label="$label, TPS, L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=3, markersize = 3)
 frequency_model_compare_plot = plot!(E, dc_norm_3 * prec_ratio_wna3, label = "ω_m(λ), WNA1, Ω_pe = 6.5, QLDC",  color = purple, linewidth=2, linestyle=:dash)
 
 frequency_model_compare_plot = plot!(legendfontsize=12, tickfontsize=12, legend=:bottomleft)
