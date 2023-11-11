@@ -113,10 +113,15 @@ function obtain_diffusion_results(lo_or_hi, dawn_dusk_nite, wnX, freq_const_or_v
              if(lat<20) omega_m = 0.4-0.2*lat/20
              if(lat>=20) omega_m = 0.2
         
-    4 fpe/fce ratios
+    a bunch of fpe/fce ratios
         FpeFceL: fpe/fce = L
         FpeFce2: fpe/fce = 2
         FpeFce3: fpe/fce = 3
+        FpeFce3.5: fpe/fce = 3.5
+        FpeFce4: fpe/fce = 4
+        FpeFce4.5: fpe/fce = 4.5
+        FpeFce5: fpe/fce = 5
+        FpeFce5.5: fpe/fce = 5.5
         FpeFce6.5: fpe/fce = 6.5
 
     2 L shells:
@@ -159,8 +164,8 @@ function obtain_diffusion_results(lo_or_hi, dawn_dusk_nite, wnX, freq_const_or_v
         freq_model = "Vary"
     end
 
-    if FpeFceX ∉ ["L", 2, 3, 6.5]
-        println("FpeFceX should either be \"L\", 2, 3 or 6.5")
+    if FpeFceX ∉ ["L", 2, 3, 3.5, 4, 4.5, 5, 5.5, 6.5]
+        println("FpeFceX should either be \"L\", 2, 3, 3.5, 4, 4.5, 5, 5.5, or 6.5")
     end
     
     prefix = "external_data/diffusion_code_results/Chorus_Daa_Precip_Fre"
