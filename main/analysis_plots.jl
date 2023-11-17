@@ -87,7 +87,7 @@ density_comparison_plot = plot!(sim_plot_E_bins, norm_1*sim_ratio_sm_1, label="$
 
 E, Daa_wna1, prec_ratio_wna1 = obtain_diffusion_results("HI", "NITE", 1, "const", "L")
 dc_norm = normalize_to(97, energy, E, hl_nite_md, prec_ratio_wna1)
-density_comparison_plot = plot!(E, dc_norm * prec_ratio_wna1, label = "FAW (θ≤30), Ω_pe = 3.0, QLDC: L=6.5, Night",  color = colour, linewidth=2, linestyle=:dash)
+density_comparison_plot = plot!(E, dc_norm * prec_ratio_wna1, label = "FAW (θ≤30), Ω_pe = 6.5, QLDC: L=6.5, Night",  color = colour, linewidth=2, linestyle=:dash)
 
 L, MLT, Kp, dir, scenario, colour, label = test_cases[2,:]
 density_comparison_plot = plot!(sim_plot_E_bins, norm_2*sim_ratio_sm_2, label="$label: L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
@@ -583,50 +583,43 @@ end
 #######################
 # Final Matching Plot #
 #######################
+# LOW L SHELL
 E, Daa_wna1, prec_ratio_wna1 = obtain_diffusion_results("LO", "NITE", 2, "vary", "2") #
 dc_norm_1 = normalize_to(97, energy, E, ll_nite_md, prec_ratio_wna1)
 E, Daa_wna2, prec_ratio_wna2 = obtain_diffusion_results("LO", "NITE", 2, "vary", "3") #
 dc_norm_2 = normalize_to(97, energy, E, ll_nite_md, prec_ratio_wna2)
 
-E, Daa_wna2, prec_ratio_wna2 = obtain_diffusion_results("HI", "NITE", 1, "vary", "3.5")
-dc_norm_2 = normalize_to(97, energy, E, hl_nite_md, prec_ratio_wna2)
-E, Daa_wna3, prec_ratio_wna3 = obtain_diffusion_results("HI", "NITE", 1, "vary", "4")
-dc_norm_3 = normalize_to(97, energy, E, hl_nite_md, prec_ratio_wna3)
-E, Daa_wna4, prec_ratio_wna4 = obtain_diffusion_results("HI", "NITE", 1, "vary", "4.5")
-dc_norm_4 = normalize_to(97, energy, E, hl_nite_md, prec_ratio_wna4)
-E, Daa_wna5, prec_ratio_wna5 = obtain_diffusion_results("HI", "NITE", 1, "vary", "5")
-dc_norm_5 = normalize_to(97, energy, E, hl_nite_md, prec_ratio_wna5)
-E, Daa_wna6, prec_ratio_wna6 = obtain_diffusion_results("HI", "NITE", 1, "vary", "5.5")
-dc_norm_6 = normalize_to(97, energy, E, hl_nite_md, prec_ratio_wna6)
-E, Daa_wna7, prec_ratio_wna7 = obtain_diffusion_results("HI", "NITE", 1, "vary", "L")
-dc_norm_7 = normalize_to(97, energy, E, hl_nite_md, prec_ratio_wna7)
-E, Daa_wna8, prec_ratio_wna8 = obtain_diffusion_results("Chorus_Daa_Precip_FreConst_FpeFce3Eq_Max300pT_L4.50_LO_NITE_WN1_Nlt10.txt")
-dc_norm_8 = normalize_to(97, energy, E, hl_nite_md, prec_ratio_wna8)
-
-
-matching_plot = plot(xscale=:log10, yscale=:log10, xlim=(80,1000), ylim=(1e-2, 1),
+lol_matching_plot = plot(xscale=:log10, yscale=:log10, xlim=(80,1000), ylim=(1e-2, 1),
             xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10, minorgrid=true);
 
-matching_plot = plot!(energy, hl_nite_md, fillrange=hl_nite_hi, fillalpha = 0.2, color = black, label=false)
-matching_plot = plot!(energy, hl_nite_md, fillrange=hl_nite_lo, fillalpha = 0.2, color = black, label=false)
-matching_plot = plot!(energy, hl_nite_md, label = "ELFIN Night: L>5, 18<MLT<4 ", color = black, linewidth=5, markershape=:circle);
+lol_matching_plot = plot!(energy, ll_nite_md, fillrange=ll_nite_hi, fillalpha = 0.2, color = black, label=false)
+lol_matching_plot = plot!(energy, ll_nite_md, fillrange=ll_nite_lo, fillalpha = 0.2, color = black, label=false)
+lol_matching_plot = plot!(energy, ll_nite_md, label = "ELFIN Night: L<5, 18<MLT<4", color = black, linewidth=5, markershape=:circle);
 
-matching_plot = plot!(energy, ll_nite_md, fillrange=ll_nite_hi, fillalpha = 0.2, color = black, label=false)
-matching_plot = plot!(energy, ll_nite_md, fillrange=ll_nite_lo, fillalpha = 0.2, color = black, label=false)
-matching_plot = plot!(energy, ll_nite_md, label = "ELFIN Night: L<5, 18<MLT<4", color = black, linewidth=5, markershape=:circle);
+lol_matching_plot = plot!(E, dc_norm_1 * prec_ratio_wna1, label = "WNA1, ω_m(λ), Ω_pe = 2.0, Night, QLDC",  color = blue, linewidth=2, linestyle=:dash)
+lol_matching_plot = plot!(E, dc_norm_2 * prec_ratio_wna2, label = "WNA1, ω_m(λ), Ω_pe = 3.0, Night, QLDC",  color = reddish_orange, linewidth=2, linestyle=:dash)
 
+lol_matching_plot = plot!(legendfontsize=12, tickfontsize=12, legend=:bottomleft)
+lol_matching_plot = plot!(dpi = 500,size=(1000,600), margin=20px, bottom_margin=12px)
 
-matching_plot = plot!(E, dc_norm_1 * prec_ratio_wna1, label = "WNA1, ω_m(λ), Ω_pe = 2.0, Night, QLDC",  color = blue, linewidth=2, linestyle=:dash)
-matching_plot = plot!(E, dc_norm_2 * prec_ratio_wna2, label = "WNA1, ω_m(λ), Ω_pe = 3.0, Night, QLDC",  color = reddish_orange, linewidth=2, linestyle=:dash)
-matching_plot = plot!(E, dc_norm_3 * prec_ratio_wna3, label = "WNA1, ω_m(λ), Ω_pe = 4.0, Night, QLDC",  color = orange, linewidth=2, linestyle=:dash)
-matching_plot = plot!(E, dc_norm_4 * prec_ratio_wna4, label = "WNA1, ω_m(λ), Ω_pe = 4.5, Night, QLDC",  color = yellow, linewidth=2, linestyle=:dash)
-matching_plot = plot!(E, dc_norm_5 * prec_ratio_wna5, label = "WNA1, ω_m(λ), Ω_pe = 5.0, Night, QLDC",  color = green, linewidth=2, linestyle=:dash)
-matching_plot = plot!(E, dc_norm_6 * prec_ratio_wna6, label = "WNA1, ω_m(λ), Ω_pe = 5.5, Night, QLDC",  color = blue, linewidth=2, linestyle=:dash)
-# matching_plot = plot!(E, dc_norm_7 * prec_ratio_wna7, label = "WNA1, ω_m(λ), Ω_pe = 6.5, Night, QLDC",  color = purplish_pink, linewidth=2, linestyle=:dash)
-# matching_plot = plot!(E, dc_norm_8 * prec_ratio_wna8, label = "WNA1, ω_m(λ), Ω_pe = 3.0, Night, QLDC",  color = purple, linewidth=2, linestyle=:dash)
+E, Daa_wna3, prec_ratio_wna3 = obtain_diffusion_results("HI", "NITE", 1, "vary", "4")
+dc_norm_3 = normalize_to(97, energy, E, hl_nite_md, prec_ratio_wna3)
+E, Daa_wna4, prec_ratio_wna4 = obtain_diffusion_results("HI", "NITE", 1, "vary", "5.5")
+dc_norm_4 = normalize_to(97, energy, E, hl_nite_md, prec_ratio_wna4)
 
-matching_plot = plot!(legendfontsize=12, tickfontsize=12, legend=:bottomleft)
-matching_plot = plot!(dpi = 500,size=(1000,600), margin=20px, bottom_margin=12px)
+hil_matching_plot = plot(xscale=:log10, yscale=:log10, xlim=(80,1000), ylim=(1e-2, 1),
+            xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10, minorgrid=true);
+
+hil_matching_plot = plot!(energy, hl_nite_md, fillrange=hl_nite_hi, fillalpha = 0.2, color = black, label=false)
+hil_matching_plot = plot!(energy, hl_nite_md, fillrange=hl_nite_lo, fillalpha = 0.2, color = black, label=false)
+hil_matching_plot = plot!(energy, hl_nite_md, label = "ELFIN Night: L>5, 18<MLT<4 ", color = black, linewidth=5, markershape=:circle);
+
+hil_matching_plot = plot!(E, dc_norm_3 * prec_ratio_wna3, label = "WNA1, ω_m(λ), Ω_pe = 6.5, Night, QLDC",  color = purple, linewidth=2, linestyle=:dash)
+hil_matching_plot = plot!(E, dc_norm_4 * prec_ratio_wna4, label = "WNA1, ω_m(λ), Ω_pe = 5.5, Night, QLDC",  color = green, linewidth=2, linestyle=:dash)
+
+hil_matching_plot = plot!(legendfontsize=12, tickfontsize=12, legend=:bottomleft)
+hil_matching_plot = plot!(dpi = 500,size=(1000,600), margin=20px, bottom_margin=12px)
+
 
 
 
@@ -825,3 +818,25 @@ if save_tps_QLDC_statistical_comparison_plot
     savefig(tps_QLDC_statistical_comparison_plot, "main/images/tps_QLDC_statistical_comparison.png")
     savefig(tps_QLDC_statistical_comparison_plot, "main/images/tps_QLDC_statistical_comparison.pdf")
 end
+
+
+#check didier's idea
+E, Daa_wna1, prec_ratio_wna1 = obtain_diffusion_results("HI", "NITE", 1, "vary", "5") #
+dc_norm_1 = normalize_to(97, energy, E, ll_nite_md, prec_ratio_wna1)
+E, Daa_wna2, prec_ratio_wna2 = obtain_diffusion_results("Chorus_Daa_Precip_FreVary2_FpeFce5.0_L6.50_HI_NITE_WN1.txt") #
+dc_norm_2 = normalize_to(97, energy, E, ll_nite_md, prec_ratio_wna2)
+
+didiers_plot = plot(xscale=:log10, yscale=:log10, xlim=(80,1000), ylim=(1e-2, 2),
+            xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10, minorgrid=true);
+
+didiers_plot = plot!(energy, hl_nite_md, fillrange=hl_nite_hi, fillalpha = 0.2, color = black, label=false)
+didiers_plot = plot!(energy, hl_nite_md, fillrange=hl_nite_lo, fillalpha = 0.2, color = black, label=false)
+didiers_plot = plot!(energy, hl_nite_md, label = "ELFIN Night: L>5, 18<MLT<4 ", color = black, linewidth=5, markershape=:circle);
+
+didiers_plot = plot!(E, prec_ratio_wna1, label = "WNA1, Original ω_m(λ), Ω_pe = 5.0, Night, QLDC",  color = blue, linewidth=2, linestyle=:dash)
+didiers_plot = plot!(E, prec_ratio_wna2, label = "WNA1, Didier's ω_m(λ), Ω_pe = 5.0, Night, QLDC",  color = reddish_orange, linewidth=2, linestyle=:dash)
+didiers_plot = plot!(E, prec_ratio_wna2./prec_ratio_wna1, label = "Ratio of Orange to Blue",  color = green, linewidth=2, linestyle=:dash)
+
+didiers_plot = plot!(legendfontsize=12, tickfontsize=12, legend=:bottomleft)
+didiers_plot = plot!(dpi = 500,size=(1000,600), margin=20px, bottom_margin=12px)
+# savefig(didiers_plot, "main/images/comparison_didier.png")
