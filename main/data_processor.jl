@@ -154,8 +154,8 @@ function obtain_diffusion_results(lo_or_hi, dawn_dusk_nite, wnX, freq_const_or_v
         println("dawn_dusk_nite should either be DAWN, DUSK, or NITE")
     end
 
-    if wnX ∉ [1,2,3,4]
-        println("wnX should either be 1, 2, 3 or 4")
+    if wnX ∉ [1,2,3,4,5]
+        println("wnX should either be 1, 2, 3, 4, or 5")
     end
 
     if freq_const_or_vary ∈ ["const", "Const", "CONST"]
@@ -164,8 +164,8 @@ function obtain_diffusion_results(lo_or_hi, dawn_dusk_nite, wnX, freq_const_or_v
         freq_model = "Vary"
     end
 
-    if FpeFceX ∉ ["L", 2, 3, 3.5, 4, 4.5, 5, 5.5, 6.5]
-        println("FpeFceX should either be \"L\", 2, 3, 3.5, 4, 4.5, 5, 5.5, or 6.5")
+    if FpeFceX ∉ ["L", 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5]
+        println("FpeFceX should either be \"L\", 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, or 6.5")
     end
     
     prefix = "external_data/diffusion_code_results/Chorus_Daa_Precip_Fre"
