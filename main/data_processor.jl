@@ -133,14 +133,21 @@ function obtain_diffusion_results(lo_or_hi, dawn_dusk_nite, wnX, freq_const_or_v
         DAWN: dawnside
         DUSK: duskside
         
-    4 wave normal angle models: °
-        WN1: quasi-field aligned, theta_m = 0°, theta_w = 30°
-        WN2: theta_m = (1-exp(-abs(lat/10°)))*theta_res, 
+    7 wave normal angle models: °
+        WN1 (Pape FAW): quasi-field aligned, theta_m = 0^o, theta_w = 5^o
+        WN2 (Not Used in Paper): theta_m = (1-exp(-abs(lat/10^o)))*theta_res, 
             theta_w = (theta_res-theta_m)/2
-        WN3: theta_m = theta_gendrin+(theta_res-theta_gendrin)*(1-exp(-abs(lat/10°))), 
+        WN3 (Not Used in Paper): theta_m = theta_gendrin+(theta_res-theta_gendrin)*(1-exp(-abs(lat/10^o))), 
             theta_w = (theta_res-theta_m)/2
-        WN4: theta_m = theta_res*lat/(lat+15.0)
-            theta_w = (theta_res-theta_m)/2; if(theta_w > 10.0) theta_w=10.0
+        WN4 (Paper WNA2): theta_m = theta_res*lat/(lat+15.0)
+            theta_w = (theta_res-theta_m)/2
+        WN5 (Paper WNA4): theta_m = max(theta_res - 5 deg, (thera_res+theta_gendrin)/2)
+            theta_w = (theta_res-theta_m)/2
+        WN6 (Paper WNA1): theta_m = theta_gendrin*lat/(lat+15.0)
+            theta_w = (theta_res-theta_m)/2
+        WN7 (Paper WNA3): theta_m = theta_res - 2.0
+            theta_w = (theta_res-theta_m)/2
+        All models: if(theta_w > 10.0) theta_w=10.0
     =#
     if lo_or_hi ∈ ["lo", "Lo", "LO"]
         L_shell = "4.50"
@@ -154,8 +161,8 @@ function obtain_diffusion_results(lo_or_hi, dawn_dusk_nite, wnX, freq_const_or_v
         println("dawn_dusk_nite should either be DAWN, DUSK, or NITE")
     end
 
-    if wnX ∉ [1,2,3,4,5]
-        println("wnX should either be 1, 2, 3, 4, or 5")
+    if wnX ∉ [1,2,3,4,5,6,7]
+        println("wnX should be between 1 and 7")
     end
 
     if freq_const_or_vary ∈ ["const", "Const", "CONST"]
