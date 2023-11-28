@@ -175,7 +175,7 @@ oblique_comparison_plot = plot!(E, dc_norm_2 * prec_ratio_wna2, label = "WNA1, Q
 
 L, MLT, Kp, dir, scenario, colour, label = test_cases[3,:]
 oblique_comparison_plot = plot!(sim_plot_E_bins, norm_3*sim_ratio_sm_3, label="$label: L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=3, markersize = 3)
-oblique_comparison_plot = plot!(E, dc_norm_3 * prec_ratio_wna3, label = "WNA2, QLDC: L=6.5, Night",  color = colour, linewidth=2, linestyle=:dash)
+oblique_comparison_plot = plot!(E, dc_norm_3 * prec_ratio_wna3, label = "WNA2, QLDC: L=6.5, Night",  color = colour, linewidth=2, linestyle=:dashdot)
 
 L, MLT, Kp, dir, scenario, colour, label = test_cases[4,:]
 oblique_comparison_plot = plot!(sim_plot_E_bins, norm_4*sim_ratio_sm_4, label="$label: L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=3, markersize = 3)
@@ -408,7 +408,7 @@ E, Daa_wna1, prec_ratio_wna1 = obtain_diffusion_results("HI", "NITE", 1, "const"
 dc_norm_1 = normalize_to(97, energy, E, hl_nite_md, prec_ratio_wna1)
 E, Daa_wna2, prec_ratio_wna2 = obtain_diffusion_results("HI", "NITE", 1, "vary", "L")
 dc_norm_2 = normalize_to(97, energy, E, hl_nite_md, prec_ratio_wna2)
-E, Daa_wna3, prec_ratio_wna3 = obtain_diffusion_results("HI", "NITE", 6, "const", "L")
+E, Daa_wna3, prec_ratio_wna3 = obtain_diffusion_results("HI", "NITE", 6, "const", "6.5")
 dc_norm_3 = normalize_to(97, energy, E, hl_nite_md, prec_ratio_wna3)
 E, Daa_wna4, prec_ratio_wna4 = obtain_diffusion_results("HI", "NITE", 6, "vary", "L")
 dc_norm_4 = normalize_to(97, energy, E, hl_nite_md, prec_ratio_wna4)
@@ -929,7 +929,7 @@ b1 = 1/(norm * maximum(sim_ratio_sm))
 normalizer = b1*norm
 
 E, Daa_wna1, prec_ratio_wna1 = obtain_diffusion_results("HI", "NITE", 1, "const", "L")
-E, Daa_wna2, prec_ratio_wna2 = obtain_diffusion_results("HI", "NITE", 6, "const", "L")
+E, Daa_wna2, prec_ratio_wna2 = obtain_diffusion_results("HI", "NITE", 6, "const", "6.5")
 E, Daa_wna3, prec_ratio_wna3 = obtain_diffusion_results("HI", "NITE", 4, "const", "L")
 dc_norm = normalizer * normalize_to(96, E_bins, E, sim_ratio_sm, prec_ratio_wna1)
 
