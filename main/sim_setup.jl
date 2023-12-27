@@ -177,7 +177,7 @@ function run_model(numParticles::Int64,
     omega_m::Float64,
     save_decimation::Int64,
     particle_distribution::Int64,
-    model::String
+    model::Any
     )
 
     if particle_distribution==1
@@ -194,22 +194,29 @@ function run_model(numParticles::Int64,
     wave_model, wave_model_coeff, wave_model_normalizer, wave_model_shifter = setup_single_wave_model(L, MLT, Kp)
     @info "Generating wave model at L=$L, MLT=$MLT, and Kp=$Kp"
 
-    params = (η, ε, Omegape, omega_m, a, dPhi, wave_model_coeff, wave_model_normalizer, wave_model_shifter);
-    if model == "bw"
+    if model[1] == "og"
+        params = (η, ε, Omegape, omega_m, model[2], model[3], model[4], model[5], model[6]);
+        prob = ODEProblem(eom_og!, ~, tspan, params);
+    elseif model == "bw"
+        params = (η, ε, Omegape, omega_m, a, dPhi, wave_model_coeff, wave_model_normalizer, wave_model_shifter);
         prob = ODEProblem(eom_Bw!, ~, tspan, params);
     elseif model == "freq"
+        params = (η, ε, Omegape, omega_m, a, dPhi, wave_model_coeff, wave_model_normalizer, wave_model_shifter);
         prob = ODEProblem(eom_Bwωm!, ~, tspan, params);
     elseif model == "wna1"
+        params = (η, ε, Omegape, omega_m, a, dPhi, wave_model_coeff, wave_model_normalizer, wave_model_shifter);
         prob = ODEProblem(eom_wna1!, ~, tspan, params);
     elseif model == "wna2"
+        params = (η, ε, Omegape, omega_m, a, dPhi, wave_model_coeff, wave_model_normalizer, wave_model_shifter);
         prob = ODEProblem(eom_wna1!, ~, tspan, params);
     elseif model == "wna3"
+        params = (η, ε, Omegape, omega_m, a, dPhi, wave_model_coeff, wave_model_normalizer, wave_model_shifter);
         prob = ODEProblem(eom_wna3!, ~, tspan, params);
     else
-        @error "model needs to be either bw, freq, wna1, wna2, or wna3"
+        @error "model needs to be either og, bw, freq, wna1, wna2, or wna3"
         return
     end
-    prob_func = ((prob,i,repeat) -> remake(prob, u0 = h0[i,:], p = (η, ε, Omegape, omega_m, a, dPhi, wave_model_coeff, wave_model_normalizer, wave_model_shifter)))
+    prob_func = ((prob,i,repeat) -> remake(prob, u0 = h0[i,:], p = params))
     ensemble_prob = EnsembleProblem(prob::ODEProblem,prob_func=prob_func)
     
     sol = solve(ensemble_prob, Tsit5(), EnsembleThreads(), save_everystep=false;
