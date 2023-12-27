@@ -74,25 +74,25 @@ agapitov_model(λ, Kp, L, MLT) = B_w(λ, Kp, α_ij_matrix(L, MLT)) * tanh(deg2ra
 # the function below recreates Agapitov+2018 fig. 5 or fig. 6 w/ the tanh mod
 function recreate_agapitov_plot(L)
     p = Vector{Plots.Plot{Plots.GRBackend}}()
-    x = 0.01:0.01:45
-    Kp = 5.5; MLT = 23;
-    push!(p, plot(x, agapitov_model.(x, Kp, L, MLT), yscale=:log10, ylim = (1,400), xlim = (0,45), title = "L = $L, MLT = $MLT, Kp = $Kp", legend=false))
-    Kp = 5.5; MLT = 6;
-    push!(p, plot(x, agapitov_model.(x, Kp, L, MLT), yscale=:log10, ylim = (1,400), xlim = (0,45), title = "L = $L, MLT = $MLT, Kp = $Kp", legend=false))
-    Kp = 5.5; MLT = 15;
-    push!(p, plot(x, agapitov_model.(x, Kp, L, MLT), yscale=:log10, ylim = (1,400), xlim = (0,45), title = "L = $L, MLT = $MLT, Kp = $Kp", legend=false))
-    Kp = 3.5; MLT = 23;
-    push!(p, plot(x, agapitov_model.(x, Kp, L, MLT), yscale=:log10, ylim = (1,400), xlim = (0,45), title = "L = $L, MLT = $MLT, Kp = $Kp", legend=false))
-    Kp = 3.5; MLT = 6;
-    push!(p, plot(x, agapitov_model.(x, Kp, L, MLT), yscale=:log10, ylim = (1,400), xlim = (0,45), title = "L = $L, MLT = $MLT, Kp = $Kp", legend=false))
-    Kp = 3.5; MLT = 15;
-    push!(p, plot(x, agapitov_model.(x, Kp, L, MLT), yscale=:log10, ylim = (1,400), xlim = (0,45), title = "L = $L, MLT = $MLT, Kp = $Kp", legend=false))
-    Kp = 0.5; MLT = 23;
-    push!(p, plot(x, agapitov_model.(x, Kp, L, MLT), yscale=:log10, ylim = (1,400), xlim = (0,45), title = "L = $L, MLT = $MLT, Kp = $Kp", legend=false))
-    Kp = 0.5; MLT = 6;
-    push!(p, plot(x, agapitov_model.(x, Kp, L, MLT), yscale=:log10, ylim = (1,400), xlim = (0,45), title = "L = $L, MLT = $MLT, Kp = $Kp", legend=false))
-    Kp = 0.5; MLT = 15;
-    push!(p, plot(x, agapitov_model.(x, Kp, L, MLT), yscale=:log10, ylim = (1,400), xlim = (0,45), title = "L = $L, MLT = $MLT, Kp = $Kp", legend=false))
+    x = 0.01:0.01:60
+    Kp = 5; MLT = 23;
+    push!(p, plot(x, agapitov_model.(x, Kp, L, MLT), yscale=:log10, ylim = (1,400), xlim = (0,60), lw=2, title = "L = $L, MLT = $MLT, Kp = $Kp", legend=false))
+    Kp = 5; MLT = 6;
+    push!(p, plot(x, agapitov_model.(x, Kp, L, MLT), yscale=:log10, ylim = (1,400), xlim = (0,60), lw=2, title = "L = $L, MLT = $MLT, Kp = $Kp", legend=false))
+    Kp = 5; MLT = 15;
+    push!(p, plot(x, agapitov_model.(x, Kp, L, MLT), yscale=:log10, ylim = (1,400), xlim = (0,60), lw=2, title = "L = $L, MLT = $MLT, Kp = $Kp", legend=false))
+    Kp = 3; MLT = 23;
+    push!(p, plot(x, agapitov_model.(x, Kp, L, MLT), yscale=:log10, ylim = (1,400), xlim = (0,60), lw=2, title = "L = $L, MLT = $MLT, Kp = $Kp", legend=false))
+    Kp = 3; MLT = 6;
+    push!(p, plot(x, agapitov_model.(x, Kp, L, MLT), yscale=:log10, ylim = (1,400), xlim = (0,60), lw=2, title = "L = $L, MLT = $MLT, Kp = $Kp", legend=false))
+    Kp = 3; MLT = 15;
+    push!(p, plot(x, agapitov_model.(x, Kp, L, MLT), yscale=:log10, ylim = (1,400), xlim = (0,60), lw=2, title = "L = $L, MLT = $MLT, Kp = $Kp", legend=false))
+    Kp = 1; MLT = 23;
+    push!(p, plot(x, agapitov_model.(x, Kp, L, MLT), yscale=:log10, ylim = (1,400), xlim = (0,60), lw=2, title = "L = $L, MLT = $MLT, Kp = $Kp", legend=false))
+    Kp = 1; MLT = 6;
+    push!(p, plot(x, agapitov_model.(x, Kp, L, MLT), yscale=:log10, ylim = (1,400), xlim = (0,60), lw=2, title = "L = $L, MLT = $MLT, Kp = $Kp", legend=false))
+    Kp = 1; MLT = 15;
+    push!(p, plot(x, agapitov_model.(x, Kp, L, MLT), yscale=:log10, ylim = (1,400), xlim = (0,60), lw=2, title = "L = $L, MLT = $MLT, Kp = $Kp", legend=false))
     return plot(p[1],p[2],p[3],p[4],p[5],p[6],p[7],p[8],p[9],
                 layout=(3,3), dpi = 96, size=(1500,1000),
                 ylabel = "Bw [pT]", xlabel = "λ [°]",
