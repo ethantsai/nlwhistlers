@@ -13,6 +13,7 @@ const PAsteps = 1300;
 sim_plot_E_bins = logrange(52,1000,32) 
 
 save_density_plot = true
+save_relative_density_comparison_plot = true
 save_oblique_comparison_plot = true
 save_frequency_model_compare_plot = true
 save_constant_frequency_plot = true
@@ -86,23 +87,23 @@ L, MLT, Kp, dir, scenario, colour, label = test_cases[1,:]
 density_comparison_plot = plot!(sim_plot_E_bins, norm_1*sim_ratio_sm_1, label="$label: L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
 
 E, Daa_wna1, prec_ratio_wna1 = obtain_diffusion_results("HI", "NITE", 1, "const", "6.5")
-dc_norm = normalize_to(97, energy, E, hl_nite_md, prec_ratio_wna1)
-density_comparison_plot = plot!(E, dc_norm * prec_ratio_wna1, label = "FAW (θ≤30), Ω_pe = 6.5, QLDC: L=6.5, Night",  color = colour, linewidth=2, linestyle=:dash)
+dc_norm_1 = normalize_to(97, energy, E, hl_nite_md, prec_ratio_wna1)
+density_comparison_plot = plot!(E, dc_norm_1 * prec_ratio_wna1, label = "FAW (θ≤30), Ω_pe = 6.5, QLDC: L=6.5, Night",  color = colour, linewidth=2, linestyle=:dash)
 
 L, MLT, Kp, dir, scenario, colour, label = test_cases[2,:]
 density_comparison_plot = plot!(sim_plot_E_bins, norm_2*sim_ratio_sm_2, label="$label: L=$L, MLT=$MLT", color = colour, marker = stroke(3,colour), linewidth=4, markersize = 3)
 
 E, Daa_wna2, prec_ratio_wna2 = obtain_diffusion_results("HI", "NITE", 1, "const", "3")
-dc_norm = normalize_to(97, energy, E, hl_nite_md, prec_ratio_wna2)
-density_comparison_plot = plot!(E, dc_norm * prec_ratio_wna2, label = "FAW (θ≤30), Ω_pe = 3.0, QLDC: L=6.5, Night",  color = blue, linewidth=2, linestyle=:dash)
+dc_norm_2 = normalize_to(97, energy, E, hl_nite_md, prec_ratio_wna2)
+density_comparison_plot = plot!(E, dc_norm_2 * prec_ratio_wna2, label = "FAW (θ≤30), Ω_pe = 3.0, QLDC: L=6.5, Night",  color = blue, linewidth=2, linestyle=:dash)
 
 # E, Daa_wna3, prec_ratio_wna3 = obtain_diffusion_results("Chorus_Daa_Precip_FreConst_FpeFce3Eq_Max300pT_L4.50_LO_NITE_WN1_Neq1.txt")
 # dc_norm = normalize_to(97, energy, E, hl_nite_md, prec_ratio_wna3)
 # density_comparison_plot = plot!(E, dc_norm * prec_ratio_wna3, label = "FAW (θ≤5), QLDC, Ω_pe,eq = 3, N=1",  color = green, linewidth=2, linestyle=:dash)
 
 E, Daa_wna4, prec_ratio_wna4 = obtain_diffusion_results("Chorus_Daa_Precip_FreConst_FpeFce3Eq_Max300pT_L4.50_LO_NITE_WN1_Nlt10.txt")
-dc_norm = normalize_to(97, energy, E, hl_nite_md, prec_ratio_wna4)
-density_comparison_plot = plot!(E, dc_norm * prec_ratio_wna4, label = "FAW (θ≤5), Ω_pe = 3.0, QLDC: L=6.5, Night",  color = purple, linewidth=2, linestyle=:dash)
+dc_norm_4 = normalize_to(97, energy, E, hl_nite_md, prec_ratio_wna4)
+density_comparison_plot = plot!(E, dc_norm_4 * prec_ratio_wna4, label = "FAW (θ≤5), Ω_pe = 3.0, QLDC: L=6.5, Night",  color = purple, linewidth=2, linestyle=:dash)
 
 density_comparison_plot = plot!(legendfontsize=12, tickfontsize=12, legend=:bottomleft)
 density_comparison_plot = plot!(dpi = 500,size=(1000,650), margin=20px, bottom_margin=12px)
@@ -111,6 +112,32 @@ if save_density_plot
     savefig(density_comparison_plot, "main/images/density_comparison.png")
     savefig(density_comparison_plot, "main/images/density_comparison.pdf")
 end
+
+
+x = dc_norm_1 * prec_ratio_wna1
+p = LinearInterpolator(E,x)
+relative_density_comparison_plot = plot(xscale=:log10, xlim=(80,1000), ylim=(0.0, 2.1),
+            xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10, minorgrid=true, legend=:bottomleft)
+relative_density_comparison_plot = plot!(energy, hl_nite_md ./ p.(energy), label = "ELFIN Night: L>5, 18<MLT<4", color = black, linewidth = 3, markershape=:circle)
+L, MLT, Kp, dir, scenario, colour, label = test_cases[1,:]
+relative_density_comparison_plot = plot!(E, dc_norm_1 * prec_ratio_wna1 ./ x, label = "FAW (θ≤30), Ω_pe = 6.5, QLDC: L=6.5, Night", color = colour, linewidth=2, linestyle=:dash)
+relative_density_comparison_plot = plot!(sim_plot_E_bins, norm_1 * sim_ratio_sm_1 ./ p.(sim_plot_E_bins), label="$label: L=$L, MLT=$MLT",  color = colour, linewidth=2)
+relative_density_comparison_plot = plot!(sim_plot_E_bins, norm_1 * sim_ratio_sm_1 ./ p.(sim_plot_E_bins), fillrange=p.(sim_plot_E_bins)./p.(sim_plot_E_bins), fillalpha = 0.05, label=false, color = colour, linealpha=0)
+
+relative_density_comparison_plot = plot!(E, dc_norm_2 * prec_ratio_wna2 ./ x, label = "FAW (θ≤30), Ω_pe = 3.0, QLDC: L=6.5, Night", color = blue, linewidth=2, linestyle=:dash)
+relative_density_comparison_plot = plot!(E, dc_norm_2 * prec_ratio_wna2 ./ x, fillrange=x./x, fillalpha = 0.05, label=false, color = blue, linealpha=0)
+
+L, MLT, Kp, dir, scenario, colour, label = test_cases[2,:]
+relative_density_comparison_plot = plot!(E, dc_norm_4 * prec_ratio_wna4 ./ x, label = "FAW (θ≤5), Ω_pe = 3.0, QLDC: L=6.5, Night", color = colour, linewidth=2, linestyle=:dash)
+relative_density_comparison_plot = plot!(E, dc_norm_4 * prec_ratio_wna4 ./ x, fillrange=x./x, fillalpha = 0.05, label=false, color = colour, linealpha=0)
+relative_density_comparison_plot = plot!(sim_plot_E_bins, norm_2*sim_ratio_sm_2 ./ p.(sim_plot_E_bins), label="$label: L=$L, MLT=$MLT", color = colour, linewidth=2)
+relative_density_comparison_plot = plot!(sim_plot_E_bins, norm_2*sim_ratio_sm_2 ./ p.(sim_plot_E_bins), fillrange=p.(sim_plot_E_bins)./p.(sim_plot_E_bins), fillalpha = 0.05, label=false, color = colour, linealpha=0)
+
+if save_relative_density_comparison_plot
+    savefig(relative_density_comparison_plot, "main/images/relative_density_comparison.png")
+    savefig(relative_density_comparison_plot, "main/images/relative_density_comparison.pdf")
+end
+
 
 ###########################
 # Oblique Comparison Plot #
@@ -1004,28 +1031,30 @@ include("particle_tracing.jl")
 include("sim_setup.jl")
 # run a sim w/ 500 particles with E=500 keV and PA=3 deg
 ICrange = [100, 100, 1, 5, 80, 6]; 
-sol_og = @time run_model(60, ICrange, 6.5, 23., 3., 0.35, 40, 1, ["og", 0, 300, 1., 40., 5]);
+sol_og = @time run_model(60, ICrange, 6.5, 23., 3., 0.35, 800, 1, ["og", 0, 300, 1., 40., 5]);
 rm_og = @time sol2rm(sol_og, "thesis");
 p1 = plot(21 .* rm_og.allT[indexrange], rm_og.allE[indexrange], legend=false, xlabel= "Time (ms)", ylabel = "Energy (keV)", lw = 1, xlim = [0,160], xminorticks = 5, yminorticks = 3, minorgrid=true);
 p2 = plot(21 .* rm_og.allT[indexrange], rm_og.allPA[indexrange], legend=false, xlabel= "Time (ms)", ylabel = "Pitch angle α (°)", lw = 1, ylim = [0,90], xlim = [0,160], xminorticks = 5, yminorticks = 3, minorgrid=true);
 p = plot(p1, p2, layout = (1,2),dpi = 500, tickfontsize=14, labelfontsize = 16, size=(1500,600), margin=20px, bottom_margin=40px, left_margin=40px)
 savefig(p, "main/images/og_traj.pdf")
+savefig(p, "main/images/og_traj.png")
 
-sol_short = @time run_model(60, ICrange, 6.5, 23., 3., 0.35, 40, 1, ["og", 5, 30, 1., 40., 5]);
+sol_short = @time run_model(60, ICrange, 6.5, 23., 3., 0.35, 800, 1, ["og", 5, 30, 1., 40., 5]);
 rm_short = @time sol2rm(sol_short, "thesis");
 p1 = plot(21 .* rm_short.allT[indexrange], rm_short.allE[indexrange], legend=false, xlabel= "Time (ms)", ylabel = "Energy (keV)", lw = 1, xlim = [0,160], xminorticks = 5, yminorticks = 3, minorgrid=true);
 p2 = plot(21 .* rm_short.allT[indexrange], rm_short.allPA[indexrange], legend=false, xlabel= "Time (ms)", ylabel = "Pitch angle α (°)", lw = 1, ylim = [0,90], xlim = [0,160], xminorticks = 5, yminorticks = 3, minorgrid=true);
 p = plot(p1, p2, layout = (1,2),dpi = 500, tickfontsize=14, labelfontsize = 16, size=(1500,600), margin=20px, bottom_margin=40px, left_margin=40px)
 savefig(p, "main/images/pack_traj.pdf")
+savefig(p, "main/images/pack_traj.png")
 
-sol_bw = @time run_model(60, ICrange, 6.5, 23., 3., 0.35, 40, 1, "bw");
+sol_bw = @time run_model(60, ICrange, 6.5, 23., 3., 0.35, 800, 1, "bw");
 rm_bw = @time sol2rm(sol_bw, "thesis");
 p1 = plot(21 .* rm_bw.allT[indexrange], rm_bw.allE[indexrange], legend=false, xlabel= "Time (ms)", ylabel = "Energy (keV)", lw = 1, xlim = [0,160], xminorticks = 5, yminorticks = 3, minorgrid=true);
 p2 = plot(21 .* rm_bw.allT[indexrange], rm_bw.allPA[indexrange], legend=false, xlabel= "Time (ms)", ylabel = "Pitch angle α (°)", lw = 1, ylim = [0,90], xlim = [0,160], xminorticks = 5, yminorticks = 3, minorgrid=true);
 p = plot(p1, p2, layout = (1,2),dpi = 500, tickfontsize=14, labelfontsize = 16, size=(1500,600), margin=20px, bottom_margin=40px, left_margin=40px)
 savefig(p, "main/images/bw_traj.pdf")
 
-sol_wna3 = @time run_model(60, ICrange, 6.5, 23., 3., 0.35, 40, 1, "wna3");
+sol_wna3 = @time run_model(60, ICrange, 6.5, 23., 3., 0.35, 800, 1, "wna3");
 rm_wna3 = @time sol2rm(sol_wna3, "thesis");
 p1 = plot(21 .* rm_wna3.allT[indexrange], rm_wna3.allE[indexrange], legend=false, xlabel= "Time (ms)", ylabel = "Energy (keV)", lw = 1, xlim = [0,160], xminorticks = 5, yminorticks = 3, minorgrid=true);
 p2 = plot(21 .* rm_wna3.allT[indexrange], rm_wna3.allPA[indexrange], legend=false, xlabel= "Time (ms)", ylabel = "Pitch angle α (°)", lw = 1, ylim = [0,90], xlim = [0,160], xminorticks = 5, yminorticks = 3, minorgrid=true);
