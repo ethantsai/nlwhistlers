@@ -177,7 +177,7 @@ sim_ratio_sm_4 = smooth(sim_ratio[1], 11, 6)
 norm_4 = normalize_to(97, energy, sim_plot_E_bins, hl_nite_md, sim_ratio_sm_4)
 
 E, Daa_wna1, prec_ratio_wna1 = obtain_diffusion_results("HI", "NITE", 1, "const", "6.5")
-dc_norm_1 = normalize_to(97, energy, E, hl_nite_md, prec_ratio_wna1)const
+dc_norm_1 = normalize_to(97, energy, E, hl_nite_md, prec_ratio_wna1)
 E, Daa_wna2, prec_ratio_wna2 = obtain_diffusion_results("HI", "NITE", 6, "const", "6.5")
 dc_norm_2 = normalize_to(97, energy, E, hl_nite_md, prec_ratio_wna2)
 E, Daa_wna3, prec_ratio_wna3 = obtain_diffusion_results("HI", "NITE", 4, "const", "6.5")
