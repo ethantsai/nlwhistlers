@@ -15,6 +15,7 @@ sim_plot_E_bins = logrange(52,1000,32)
 save_density_plot = true
 save_relative_density_comparison_plot = true
 save_oblique_comparison_plot = true
+save_relative_oblique_comparison_plot = true
 save_frequency_model_compare_plot = true
 save_constant_frequency_plot = true
 save_trajectory_comparison = false
@@ -216,6 +217,34 @@ if save_oblique_comparison_plot
     savefig(oblique_comparison_plot, "main/images/oblique_comparison.pdf")
 end
 
+x = dc_norm_1 * prec_ratio_wna1
+p = LinearInterpolator(E,x)
+relative_oblique_comparison_plot = plot(xscale=:log10, xlim=(80,1000), ylim=(0.0, 2.1),
+            xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10, minorgrid=true, legend=:bottomleft)
+relative_oblique_comparison_plot = plot!(energy, hl_nite_md ./ p.(energy), label = "ELFIN Night: L>5, 18<MLT<4", color = black, linewidth = 3, markershape=:circle)
+L, MLT, Kp, dir, scenario, colour, label = test_cases[1,:]
+relative_oblique_comparison_plot = plot!(E, dc_norm_1 * prec_ratio_wna1 ./ x, label = "FAW, QLDC: L=6.5, Night", color = colour, linewidth=2, linestyle=:dash)
+relative_oblique_comparison_plot = plot!(sim_plot_E_bins, norm_1 * sim_ratio_sm_1 ./ p.(sim_plot_E_bins), label="$label: L=$L, MLT=$MLT",  color = colour, linewidth=2)
+relative_oblique_comparison_plot = plot!(sim_plot_E_bins, norm_1 * sim_ratio_sm_1 ./ p.(sim_plot_E_bins), fillrange=p.(sim_plot_E_bins)./p.(sim_plot_E_bins), fillalpha = 0.05, label=false, color = colour, linealpha=0)
+
+L, MLT, Kp, dir, scenario, colour, label = test_cases[2,:]
+relative_oblique_comparison_plot = plot!(E, dc_norm_2 * prec_ratio_wna2 ./ x, label = "WNA1, QLDC: L=6.5, Night", color = colour, linewidth=2, linestyle=:dash)
+relative_oblique_comparison_plot = plot!(sim_plot_E_bins, norm_2 * sim_ratio_sm_2 ./ p.(sim_plot_E_bins), label="$label: L=$L, MLT=$MLT",  color = colour, linewidth=2)
+relative_oblique_comparison_plot = plot!(sim_plot_E_bins, norm_2 * sim_ratio_sm_2 ./ p.(sim_plot_E_bins), fillrange=p.(sim_plot_E_bins)./p.(sim_plot_E_bins), fillalpha = 0.05, label=false, color = colour, linealpha=0)
+
+L, MLT, Kp, dir, scenario, colour, label = test_cases[3,:]
+relative_oblique_comparison_plot = plot!(E, dc_norm_3 * prec_ratio_wna3 ./ x, label = "WNA2, QLDC: L=6.5, Night", color = colour, linewidth=2, linestyle=:dash)
+relative_oblique_comparison_plot = plot!(sim_plot_E_bins, norm_3 * sim_ratio_sm_3 ./ p.(sim_plot_E_bins), label="$label: L=$L, MLT=$MLT",  color = colour, linewidth=2)
+relative_oblique_comparison_plot = plot!(sim_plot_E_bins, norm_3 * sim_ratio_sm_3 ./ p.(sim_plot_E_bins), fillrange=p.(sim_plot_E_bins)./p.(sim_plot_E_bins), fillalpha = 0.05, label=false, color = colour, linealpha=0)
+
+L, MLT, Kp, dir, scenario, colour, label = test_cases[4,:]
+relative_oblique_comparison_plot = plot!(E, dc_norm_4 * prec_ratio_wna4 ./ x, label = "WNA3, QLDC: L=6.5, Night", color = colour, linewidth=2, linestyle=:dash)
+
+if save_relative_oblique_comparison_plot
+    savefig(relative_oblique_comparison_plot, "main/images/relative_oblique_comparison.png")
+    savefig(relative_oblique_comparison_plot, "main/images/relative_oblique_comparison.pdf")
+end
+
 
 # oblique_comparison_tps_only = plot(xscale=:log10, yscale=:log10, xlim=(80,1000), ylim=(1e-2, 1),
 # xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10, minorgrid=true)
@@ -233,6 +262,8 @@ end
 # oblique_comparison_tps_only = plot!(legendfontsize=12, tickfontsize=12, legend=:bottomleft)
 # oblique_comparison_tps_only = plot!(dpi = 500,size=(1000,600), margin=20px, bottom_margin=12px)
 
+E, Daa_wna0, prec_ratio_wna0 = obtain_diffusion_results("HI", "NITE", 1, "const", "6.5")
+dc_norm_0 = normalize_to(97, energy, E, hl_nite_md, prec_ratio_wna0)
 
 E, Daa_wna1, prec_ratio_wna1 = obtain_diffusion_results("HI", "NITE", 1, "const", "3")
 dc_norm_1 = normalize_to(97, energy, E, hl_nite_md, prec_ratio_wna1)
@@ -259,24 +290,54 @@ oblique_comparison_qldc_only = plot!(energy, hl_nite_md, fillrange=hl_nite_hi, f
 oblique_comparison_qldc_only = plot!(energy, hl_nite_md, fillrange=hl_nite_lo, fillalpha = 0.2, color = black, label=false)
 oblique_comparison_qldc_only = plot!(energy, hl_nite_md, label = "ELFIN Night: L>5, 18<MLT<4 ", color = black, linewidth=4, markershape=:circle);
 L, MLT, Kp, dir, scenario, colour, label = test_cases[1,:]
-oblique_comparison_qldc_only = plot!(E, dc_norm_1 * prec_ratio_wna1, label = "FAW, ω_m = const, Ω_pe = 3.0",  color = colour, linewidth=2, linestyle=:dash)
-oblique_comparison_qldc_only = plot!(E, dc_norm_5 * prec_ratio_wna5, label = "FAW, ω_m = vary, Ω_pe = 6.5",  color = colour, linewidth=3, linestyle=:dashdot)
+oblique_comparison_qldc_only = plot!(E, dc_norm_0 * prec_ratio_wna0, label = "FAW, ω_m = const, Ω_pe = 6.5",  color = colour, linewidth=2, linestyle=:dash)
+oblique_comparison_qldc_only = plot!(E, dc_norm_1 * prec_ratio_wna1, label = "FAW, ω_m = const, Ω_pe = 3.0",  color = colour, linewidth=2, linestyle=:dashdot)
+# oblique_comparison_qldc_only = plot!(E, dc_norm_5 * prec_ratio_wna5, label = "FAW, ω_m = vary, Ω_pe = 6.5",  color = colour, linewidth=3, linestyle=:dashdot)
 L, MLT, Kp, dir, scenario, colour, label = test_cases[2,:]
-oblique_comparison_qldc_only = plot!(E, dc_norm_2 * prec_ratio_wna2, label = "WNA1, ω_m = const, Ω_pe = 3.0",  color = colour, linewidth=2, linestyle=:dash)
-oblique_comparison_qldc_only = plot!(E, dc_norm_6 * prec_ratio_wna6, label = "WNA1, ω_m = vary, Ω_pe = 6.5",  color = colour, linewidth=3, linestyle=:dashdot)
+oblique_comparison_qldc_only = plot!(E, dc_norm_2 * prec_ratio_wna2, label = "WNA1, ω_m = const, Ω_pe = 3.0",  color = colour, linewidth=2, linestyle=:dashdot)
+# oblique_comparison_qldc_only = plot!(E, dc_norm_6 * prec_ratio_wna6, label = "WNA1, ω_m = vary, Ω_pe = 6.5",  color = colour, linewidth=3, linestyle=:dashdot)
 L, MLT, Kp, dir, scenario, colour, label = test_cases[3,:]
-oblique_comparison_qldc_only = plot!(E, dc_norm_3 * prec_ratio_wna3, label = "WNA2, ω_m = const, Ω_pe = 3.0",  color = colour, linewidth=2, linestyle=:dash)
-oblique_comparison_qldc_only = plot!(E, dc_norm_7 * prec_ratio_wna7, label = "WNA2, ω_m = vary, Ω_pe = 6.5",  color = colour, linewidth=3, linestyle=:dashdot)
+oblique_comparison_qldc_only = plot!(E, dc_norm_3 * prec_ratio_wna3, label = "WNA2, ω_m = const, Ω_pe = 3.0",  color = colour, linewidth=2, linestyle=:dashdot)
+# oblique_comparison_qldc_only = plot!(E, dc_norm_7 * prec_ratio_wna7, label = "WNA2, ω_m = vary, Ω_pe = 6.5",  color = colour, linewidth=3, linestyle=:dashdot)
 L, MLT, Kp, dir, scenario, colour, label = test_cases[4,:]
-oblique_comparison_qldc_only = plot!(E, dc_norm_4 * prec_ratio_wna4, label = "WNA3, ω_m = const, Ω_pe = 3.0",  color = colour, linewidth=2, linestyle=:dash)
-oblique_comparison_qldc_only = plot!(E, dc_norm_8 * prec_ratio_wna8, label = "WNA3, ω_m = vary, Ω_pe = 6.5",  color = colour, linewidth=3, linestyle=:dashdot)
+oblique_comparison_qldc_only = plot!(E, dc_norm_4 * prec_ratio_wna4, label = "WNA3, ω_m = const, Ω_pe = 3.0",  color = colour, linewidth=2, linestyle=:dashdot)
+# oblique_comparison_qldc_only = plot!(E, dc_norm_8 * prec_ratio_wna8, label = "WNA3, ω_m = vary, Ω_pe = 6.5",  color = colour, linewidth=3, linestyle=:dashdot)
 oblique_comparison_qldc_only = plot!(legendfontsize=12, tickfontsize=12, legend=:bottomleft)
-oblique_comparison_qldc_only = plot!(dpi = 500,size=(600,700), margin=20px, bottom_margin=12px)
+oblique_comparison_qldc_only = plot!(dpi = 500,size=(1000,600), margin=20px, bottom_margin=12px)
 
     
 if save_oblique_comparison_plot
     savefig(oblique_comparison_qldc_only, "main/images/oblique_comparison_low_plasma_density.png")
     savefig(oblique_comparison_qldc_only, "main/images/oblique_comparison_low_plasma_density.pdf")
+end
+
+
+x = dc_norm_0 * prec_ratio_wna0
+p = LinearInterpolator(E,x)
+relative_oblique_comparison_qldc_plot = plot(xscale=:log10, xlim=(80,1000), ylim=(0.0, 2.1),
+            xticks=([100, 1000], [100, 1000]), xminorticks=10, yminorticks=10, minorgrid=true, legend=:bottomleft)
+relative_oblique_comparison_qldc_plot = plot!(energy, hl_nite_md ./ p.(energy), label = "ELFIN Night: L>5, 18<MLT<4", color = black, linewidth = 3, markershape=:circle)
+
+L, MLT, Kp, dir, scenario, colour, label = test_cases[1,:]
+relative_oblique_comparison_qldc_plot = plot!(E, dc_norm_0 * prec_ratio_wna0 ./ x, label = "FAW, ω_m = const, Ω_pe = 6.5", color = colour, linewidth=2, linestyle=:dash)
+relative_oblique_comparison_qldc_plot = plot!(E, dc_norm_1 * prec_ratio_wna1 ./ x, label = "FAW, ω_m = const, Ω_pe = 3.0", color = colour, linewidth=2, linestyle=:dashdot)
+relative_oblique_comparison_qldc_plot = plot!(E, dc_norm_1 * prec_ratio_wna1 ./ x, fillrange=x./x, fillalpha = 0.05, label=false, color = colour, linealpha=0)
+
+L, MLT, Kp, dir, scenario, colour, label = test_cases[2,:]
+relative_oblique_comparison_qldc_plot = plot!(E, dc_norm_2 * prec_ratio_wna2 ./ x, label = "WNA1, ω_m = const, Ω_pe = 3.0", color = colour, linewidth=2, linestyle=:dashdot)
+relative_oblique_comparison_qldc_plot = plot!(E, dc_norm_2 * prec_ratio_wna2 ./ x, fillrange=x./x, fillalpha = 0.05, label=false, color = colour, linealpha=0)
+
+L, MLT, Kp, dir, scenario, colour, label = test_cases[3,:]
+relative_oblique_comparison_qldc_plot = plot!(E, dc_norm_3 * prec_ratio_wna3 ./ x, label = "WNA2, ω_m = const, Ω_pe = 3.0", color = colour, linewidth=2, linestyle=:dashdot)
+relative_oblique_comparison_qldc_plot = plot!(E, dc_norm_3 * prec_ratio_wna3 ./ x, fillrange=x./x, fillalpha = 0.05, label=false, color = colour, linealpha=0)
+
+L, MLT, Kp, dir, scenario, colour, label = test_cases[4,:]
+relative_oblique_comparison_qldc_plot = plot!(E, dc_norm_4 * prec_ratio_wna4 ./ x, label = "WNA3, ω_m = const, Ω_pe = 3.0", color = colour, linewidth=2, linestyle=:dashdot)
+relative_oblique_comparison_qldc_plot = plot!(E, dc_norm_4 * prec_ratio_wna4 ./ x, fillrange=x./x, fillalpha = 0.05, label=false, color = colour, linealpha=0)
+
+if save_relative_oblique_comparison_plot
+    savefig(relative_oblique_comparison_qldc_plot, "main/images/relative_oblique_comparison_qldc.png")
+    savefig(relative_oblique_comparison_qldc_plot, "main/images/relative_oblique_comparison_qldc.pdf")
 end
 
 
